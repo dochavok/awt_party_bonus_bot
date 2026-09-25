@@ -103,7 +103,7 @@ Priority: **M** = must have (v1), **S** = should have, **C** = could have (later
 
 | ID | Requirement | Pri |
 |---|---|---|
-| CH-1 | A player can register several characters, each with a name that is unique on the server (ignoring case). Names autocomplete in commands. | M |
+| CH-1 | A player can register several characters, each with a name that is unique on the server (ignoring case), so a name always means one character. A name that's taken is refused with a suggestion to pick a variant. Each character records the Discord user who registered it, and only that user can change it. Names autocomplete in commands. | M |
 | CH-2 | A player can rename or delete their own characters. Deletion asks for confirmation. | M |
 | CH-3 | **Current character:** each player has one **current** character, set with `/play <character>`. It stays until changed. A player's first registered character becomes current automatically, so most players (one character each) never need `/play`. Commands with no character named use the current character. | M |
 | CH-4 | **Optional level per character:** 1 up to a configurable maximum (currently 75). It can be left blank. | M |
@@ -610,6 +610,7 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 - **Catalog changes:** permanent IDs, retired instead of deleted, linked rather than copied, validated in CI, and deployed automatically on push to `main`.
 - **Stacking:** every giver counts, except entries marked "doesn't stack", which count once. A replacing entry supersedes the one it replaces.
 - **Devotion III** adds +1 to all of the character's own auras, from any tree. Only skills named "Aura" are auras (pending Q1).
+- **Character names are unique on the server**, not per player, so names are never ambiguous in commands or output. This can be revisited if duplicate names turn out to be common.
 - **One `/add` command** (and `/remove`) for skills, boons, ranks, items and awards, rather than one command per kind. Players don't need to know an entry's kind, and `/catalog` shows the exact command for each entry. Guild ranks and boons are only shown (in `/catalog` and autocomplete) and only accepted for members of that guild; leaving a guild removes them.
 - **Auras** (Holy Knight and Paladin) have no range limit: they reach the whole party.
 - **Position-dependent bonuses** (Commanding Presence's "same range") are conditional bonuses: shown separately, never in totals. The bot doesn't track who is in melee or ranged. "Would hurt" is a CR subtype that players ask about.
