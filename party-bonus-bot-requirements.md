@@ -1,6 +1,6 @@
 # AWT Party Bonus Bot: Requirements
 
-**Version:** 0.6 (draft)
+**Version:** 0.7 (draft)
 **Date:** 2026-09-25
 **Owner:** Craig
 **Server:** Adventures from the Wizards Tower (AWT)
@@ -123,17 +123,17 @@ The catalog lives in the repository as data files: `data/stats.yaml`, `data/skil
 | CT-5 | **Guild fields:** full name, short name, membership (Discord roles, or players join themselves), whether it's secret, and any automatic ability granted to every member (Rat Pack). The guild's rank and boon entries name the guild they belong to. | M |
 | CT-6 | **Retire, don't delete.** An entry that leaves the game is marked `retired`. It can't be added any more, but characters who have it keep it, and `/breakdown` marks it as retired. | M |
 | CT-7 | **Validation in CI.** Every push checks the catalog: the format is valid, stat and entry references exist, there are no duplicate IDs or names, and no entry used by a character has been deleted. An invalid catalog can't be deployed. | M |
-| CT-8 | **`/catalog [entry or guild]`** shows what an entry gives, with its card text, or a guild's automatic ability, ranks and boons. With no argument it lists everything, grouped by kind and tree or guild. Replies are always private. It doesn't show which characters have an entry; `/breakdown` does that. | S |
+| CT-8 | **`/catalog [entry or guild] [character]`** shows what an entry gives, with its card text and the exact `/add` command to add it. With no argument it lists everything available, grouped by kind and tree or guild. **Guild entries are shown only for guilds the character belongs to** (the current character unless `character:` names another): a character can't use them until it joins. Other guilds are listed by name with the command to join (`/guild join <character> <guild>`), but not their bonuses. Replies are always private. It doesn't show which characters have an entry; `/breakdown` does that. | M |
 | CT-9 | **`/request <text>`** lets any player suggest a missing or wrong entry. The bot posts it, with the player's name, to a configured channel the maintainer watches. | S |
 
 ### 6.3 What Characters Have
 
 | ID | Requirement | Pri |
 |---|---|---|
-| HV-1 | **`/add <character> <entry>`** gives a character a skill, boon, item or award from the catalog; **`/remove`** takes it away. Autocomplete shows entries labeled with their kind and tree or guild, e.g. "Holy Aura (Holy Knight skill)". | M |
-| HV-2 | **`/guild join <character> <guild>`** and **`/guild leave`** set a character's guild membership. Joining grants the guild's automatic ability, if any (Rat Pack). Ranks and boons are then added with `/add`; nothing is checked. | M |
+| HV-1 | **`/add <character> <entry>`** gives a character a skill, boon, rank, item or award from the catalog; **`/remove`** takes it away. Autocomplete shows entries labeled with their kind and tree or guild, e.g. "Holy Aura (Holy Knight skill)". **Guild entries (ranks and boons) appear only for guilds the character belongs to.** If `entry` is filled in before `character`, autocomplete uses the player's current character. | M |
+| HV-2 | **`/guild join <character> <guild>`** and **`/guild leave`** set a character's guild membership. Joining grants the guild's automatic ability, if any (Rat Pack). Ranks and boons are then added with `/add`. Leaving **removes the character's ranks and boons from that guild**, and the reply lists what was removed. | M |
 | HV-3 | **Support** comes from Discord roles, not from `/guild join`. The player's highest Guild rank role sets the rank, and it applies to every character that player owns. Roles are checked each time totals are calculated. | M |
-| HV-4 | **Warnings, not blocks.** The bot warns, but still accepts the change, when a character adds a rank or boon without being in its guild (e.g. Guild Thief without joining the Guild of Thieves), or adds Devotion III with no auras. | S |
+| HV-4 | **Checks when adding.** Autocomplete isn't a lock (a player can type any text), so the bot checks when the command runs. Adding a rank or boon from a guild the character isn't in is **refused**, with the command to join, e.g. *"High Priest is a Cult of the Dragon rank, and Crateris isn't a member. Join first: `/guild join Crateris Cult of the Dragon`"*. Adding Devotion III with no auras only **warns**. Rank itself is never checked: players add the ranks they've earned. | M |
 | HV-5 | **Audit log.** Every change to a character (entries, guilds, level, name) is written to the audit log, with who made it and when. There's no command to read it; the maintainer can read it from the database if a dispute comes up. | M |
 
 ### 6.4 Secret Guilds
@@ -601,8 +601,6 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 
 **Not tracked yet:** Rat Pack also gives +1 to escape, street work and burglary rolls, and Leadership to burglary and street work. These are left out until it's clear whether escape counts as a combat-time CR.
 
-**Design question for later: one `/add` or several commands?** The document uses a single `/add <character> <entry>` (and `/remove`) for skills, boons, items and awards, with autocomplete labeling each entry's kind. The alternative is separate commands such as `/addskill` and `/additem`. One command means less to learn; separate commands make it clearer what's being added.
-
 **For later consideration: long-term hosting.** Craig hosts the bot at launch. If it runs for the long term, decide who pays for hosting, who holds the bot token and backup credentials, who fixes it when it's down at game time, and how it's handed over if Craig steps away.
 
 ### Resolved
@@ -612,6 +610,7 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 - **Catalog changes:** permanent IDs, retired instead of deleted, linked rather than copied, validated in CI, and deployed automatically on push to `main`.
 - **Stacking:** every giver counts, except entries marked "doesn't stack", which count once. A replacing entry supersedes the one it replaces.
 - **Devotion III** adds +1 to all of the character's own auras, from any tree. Only skills named "Aura" are auras (pending Q1).
+- **One `/add` command** (and `/remove`) for skills, boons, ranks, items and awards, rather than one command per kind. Players don't need to know an entry's kind, and `/catalog` shows the exact command for each entry. Guild ranks and boons are only shown (in `/catalog` and autocomplete) and only accepted for members of that guild; leaving a guild removes them.
 - **Auras** (Holy Knight and Paladin) have no range limit: they reach the whole party.
 - **Position-dependent bonuses** (Commanding Presence's "same range") are conditional bonuses: shown separately, never in totals. The bot doesn't track who is in melee or ranged. "Would hurt" is a CR subtype that players ask about.
 - **CM** combines the old combat bonus and combat defence.
