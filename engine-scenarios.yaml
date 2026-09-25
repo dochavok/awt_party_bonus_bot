@@ -10,8 +10,8 @@
 #
 # Conventions
 #   - Players are keyed by character name, or Discord name if they have no character.
-#   - `has` lists catalog entries (skills, boons, items, awards).
-#   - `guilds` maps guild ID to {rank: ...}; `roles` lists Discord roles.
+#   - `has` lists catalog entries (skills, boons, ranks, items, awards).
+#   - `guilds` lists guild memberships; `roles` lists Discord roles.
 #   - Totals list only non-zero stats. A stat not listed is expected to be 0,
 #     except a CR subtype not listed, which is expected to equal CR.
 #   - `not_applied` (optional) lists entries that must appear in the recipient's
@@ -50,6 +50,20 @@ catalog:
     # GoTH boons
     Nuyaru's Love:       {kind: boon, guild: GoTH, gives: {CM: 1}}
     Seraph's Affection:  {kind: boon, guild: GoTH, gives: {CM: 3}, replaces: [Nuyaru's Love]}
+    # Guild ranks that grant a bonus
+    Guild Thief:         {kind: rank, guild: Thieves, ability: Leadership, audience: guild,
+                          includes_giver: true, stacks: false, gives: {CM: 2, CR stealth: 2}}
+    Captain:             {kind: rank, guild: Pirates, ability: King of the Pirates, audience: guild,
+                          includes_giver: true, stacks: false, gives: {CM: 2}}
+    High Priest:         {kind: rank, guild: Cult, ability: Cult of the Dragon, audience: guild,
+                          stacks: false,
+                          level_rules: [{when: "< 10", gives: {Damage: 1}},
+                                        {when: ">= 10", gives: {CM: 10}}]}
+    Ranger Captain:      {kind: rank, guild: Rangers, ability: Wilderness Lore, includes_giver: true,
+                          effect: "Challenge rolls to resist natural effects are one roll category easier"}
+    Master Ranger:       {kind: rank, guild: Rangers, ability: Wilderness Lore, includes_giver: true,
+                          replaces: [Ranger Captain],
+                          effect: "Challenge rolls to resist natural effects are one roll category easier"}
     # Items and awards
     Wills ward stone:    {kind: item, gives: {CM: 5}}
     NF pin:              {kind: item, gives: {CM: 1}}
@@ -63,8 +77,8 @@ catalog:
     Guild:
       full_name: The Guild
       membership: roles
-      ranks: [Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend]
-      abilities:
+      roles: [Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend]
+      automatic:
         - {name: Support, gives: {CM: 2}}
     GoTH:
       full_name: Guild of the Timeless Heroes
@@ -73,37 +87,17 @@ catalog:
       full_name: Guild of Thieves
       membership: open
       secret: true
-      ranks: [Footpad, Burglar, Guild Thief]
-      abilities:
+      automatic:
         - {name: Rat Pack, audience: guild, gives: {CM: 1}}
-        - {name: Leadership, min_rank: Guild Thief, audience: guild,
-           includes_giver: true, stacks: false, gives: {CM: 2, CR stealth: 2}}
     Pirates:
       full_name: Pirate Coalition
       membership: open
-      ranks: [Swabbie, Crew Mate, First Mate, Captain]
-      abilities:
-        - {name: King of the Pirates, min_rank: Captain, audience: guild,
-           includes_giver: true, stacks: false, gives: {CM: 2}}
     Cult:
       full_name: Cult of the Dragon
       membership: open
-      ranks: [Member, High Priest]
-      abilities:
-        - name: Cult of the Dragon
-          min_rank: High Priest
-          audience: guild
-          stacks: false
-          level_rules:
-            - {when: "< 10",  gives: {Damage: 1}}
-            - {when: ">= 10", gives: {CM: 10}}
     Rangers:
       full_name: Ranger's Guild
       membership: open
-      ranks: [Apprentice, Journeyman, Ranger Captain, Master Ranger]
-      abilities:
-        - {name: Wilderness Lore, min_rank: Ranger Captain, includes_giver: true,
-           effect: "Challenge rolls to resist natural effects are one roll category easier"}
 
 scenarios:
 
@@ -237,8 +231,8 @@ scenarios:
   - name: Seraph's Affection replaces Nuyaru's Love
     rule: "4.5; DM question Q3"
     players:
-      - {name: A, guilds: {GoTH: {}}, has: [Nuyaru's Love, Seraph's Affection]}
-      - {name: C, guilds: {GoTH: {}}, has: [Nuyaru's Love]}
+      - {name: A, guilds: [GoTH], has: [Nuyaru's Love, Seraph's Affection]}
+      - {name: C, guilds: [GoTH], has: [Nuyaru's Love]}
       - {name: B}
     expect:
       A: {CM: 1}                         # from C
@@ -249,11 +243,11 @@ scenarios:
 
   # ---------------------------------------------------------------- RULES 3, 8, 9 (guilds)
   - name: Thieves - Rat Pack per other member, Leadership once and includes the giver
-    rule: "4.3, 4.4, 4.8, 4.9"
+    rule: "4.3, 4.4, 4.8, 4.9; DM question Q6"
     players:
-      - {name: T1, guilds: {Thieves: {rank: Guild Thief}}}
-      - {name: T2, guilds: {Thieves: {rank: Guild Thief}}}
-      - {name: T3, guilds: {Thieves: {rank: Footpad}}}
+      - {name: T1, guilds: [Thieves], has: [Guild Thief]}
+      - {name: T2, guilds: [Thieves], has: [Guild Thief]}
+      - {name: T3, guilds: [Thieves]}
       - {name: O}
     expect:
       T1: {CM: 4, CR stealth: 2}         # Rat Pack 1+1, Leadership 2 (once)
@@ -261,11 +255,11 @@ scenarios:
       T3: {CM: 4, CR stealth: 2}
       O:  {}
 
-  - name: Thieves with no Guild Thief get Rat Pack only
-    rule: "4.9 (minimum rank)"
+  - name: Joining the Thieves grants Rat Pack only
+    rule: "4.9 (automatic ability)"
     players:
-      - {name: F1, guilds: {Thieves: {rank: Footpad}}}
-      - {name: F2, guilds: {Thieves: {rank: Burglar}}}
+      - {name: F1, guilds: [Thieves]}
+      - {name: F2, guilds: [Thieves]}
     expect:
       F1: {CM: 1}
       F2: {CM: 1}
@@ -273,8 +267,8 @@ scenarios:
   - name: King of the Pirates includes the Captain
     rule: "4.3"
     players:
-      - {name: Cap, guilds: {Pirates: {rank: Captain}}}
-      - {name: M,   guilds: {Pirates: {rank: Swabbie}}}
+      - {name: Cap, guilds: [Pirates], has: [Captain]}
+      - {name: M,   guilds: [Pirates]}
       - {name: O}
     expect:
       Cap: {CM: 2}
@@ -285,10 +279,10 @@ scenarios:
   - name: Cult High Priest gives by the recipient's level
     rule: "4.10; DM question Q2"
     players:
-      - {name: HP, level: 22, guilds: {Cult: {rank: High Priest}}}
-      - {name: K,  level: 8,  guilds: {Cult: {rank: Member}}}
-      - {name: L,  level: 10, guilds: {Cult: {rank: Member}}}
-      - {name: N,             guilds: {Cult: {rank: Member}}}   # no level
+      - {name: HP, level: 22, guilds: [Cult], has: [High Priest]}
+      - {name: K,  level: 8,  guilds: [Cult]}
+      - {name: L,  level: 10, guilds: [Cult]}
+      - {name: N,             guilds: [Cult]}   # no level
       - {name: O,  level: 20}
     expect:
       HP: {}
@@ -297,15 +291,15 @@ scenarios:
       N:  {}
       O:  {}
     not_applied:
-      HP: [{entry: Cult of the Dragon, from: HP, reason: giver_excluded}]
-      N:  [{entry: Cult of the Dragon, from: HP, reason: no_level}]
-      O:  [{entry: Cult of the Dragon, from: HP, reason: not_in_audience}]
+      HP: [{entry: High Priest, from: HP, reason: giver_excluded}]
+      N:  [{entry: High Priest, from: HP, reason: no_level}]
+      O:  [{entry: High Priest, from: HP, reason: not_in_audience}]
 
   - name: Ordinary Cult members give nothing
     rule: "4.9"
     players:
-      - {name: M1, level: 20, guilds: {Cult: {rank: Member}}}
-      - {name: M2, level: 20, guilds: {Cult: {rank: Member}}}
+      - {name: M1, level: 20, guilds: [Cult]}
+      - {name: M2, level: 20, guilds: [Cult]}
     expect:
       M1: {}
       M2: {}
@@ -313,21 +307,21 @@ scenarios:
   - name: Two High Priests don't stack
     rule: "4.4"
     players:
-      - {name: HP1, level: 20, guilds: {Cult: {rank: High Priest}}}
-      - {name: HP2, level: 20, guilds: {Cult: {rank: High Priest}}}
-      - {name: M,   level: 15, guilds: {Cult: {rank: Member}}}
+      - {name: HP1, level: 20, guilds: [Cult], has: [High Priest]}
+      - {name: HP2, level: 20, guilds: [Cult], has: [High Priest]}
+      - {name: M,   level: 15, guilds: [Cult]}
     expect:
       HP1: {CM: 10}                      # from HP2
       HP2: {CM: 10}                      # from HP1
       M:   {CM: 10}                      # counted once
 
   # ---------------------------------------------------------------- EFFECTS
-  - name: Effects follow the giver rule and minimum rank
-    rule: "4.2, 4.3, 4.9"
+  - name: Effects follow the giver rule; a higher rank replaces the lower
+    rule: "4.2, 4.3, 4.5, 4.9"
     players:
       - {name: K,  has: [Protective Aura]}
-      - {name: R1, guilds: {Rangers: {rank: Ranger Captain}}}
-      - {name: R2, guilds: {Rangers: {rank: Journeyman}}}
+      - {name: R1, guilds: [Rangers], has: [Ranger Captain, Master Ranger]}
+      - {name: R2, guilds: [Rangers]}
     expect:
       K:  {}
       R1: {}
@@ -335,7 +329,7 @@ scenarios:
     effects:
       - {text: "Resistance to damage from an Evil source", from: K, to: [R1, R2]}
       - {text: "Challenge rolls to resist natural effects are one roll category easier",
-         from: R1, to: [K, R1, R2]}
+         from: R1, to: [K, R1, R2]}      # once: Master Ranger replaces Ranger Captain
 
   # ---------------------------------------------------------------- CATALOG
   - name: A retired entry still counts for characters who have it
@@ -399,22 +393,22 @@ scenarios:
       - name: Ioseph
         level: 34
         roles: [Guild Vanguard]
-        guilds: {GoTH: {}}
+        guilds: [GoTH]
         has: [Nuyaru's Love, Seraph's Affection, Champion of Power]
       - name: Kael
         level: 8
         roles: [Junior Adventurer]
-        guilds: {Cult: {rank: Member}}
+        guilds: [Cult]
       - name: Crateris
         level: 22
-        guilds: {Cult: {rank: High Priest}}
-        has: [Holy Aura, Bolstering Aura, Protective Aura, Devotion III, Wills ward stone]
+        guilds: [Cult]
+        has: [High Priest, Holy Aura, Bolstering Aura, Protective Aura, Devotion III, Wills ward stone]
       - name: Chris
-        guilds: {Thieves: {rank: Guild Thief}}
-        has: [Inspiring Presence]
+        guilds: [Thieves]
+        has: [Guild Thief, Inspiring Presence]
       - name: Mira
         level: 15
-        guilds: {Thieves: {rank: Footpad}, Cult: {rank: Member}}
+        guilds: [Thieves, Cult]
         has: [Inspiring Presence]
       - {name: Dana, no_character: true}
       - {name: DM Sam, sitout: true}

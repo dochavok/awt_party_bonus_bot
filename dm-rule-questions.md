@@ -73,3 +73,15 @@ HoP has been counted as a bonus of at least +1, varying from member to member, g
 - What does HoP stand for, and is it a guild, a group or an award?
 - What does it give (CM? CR?), and does the amount depend on rank or something else?
 - Who receives it: only other HoP members, or all allies?
+
+---
+
+## Q6. Does a Guild Thief keep Rat Pack?
+
+**Write-up text:**
+- *Rat Pack* (Footpad): "Thieves' Guild Members gain +1 to any Street Work, Burglary, Escape or Combat Rolls for each other Thieves' Guild member present…"
+- *Leadership* (Guild Leader, the highest-level Guild Thief present): "When you are present, all Thieves' Guild members gain +2 on their stealth, burglary & streetwork rolls."
+
+**Current assumption:** Yes, they stack. Every member gives Rat Pack whatever their rank, so a Guild Thief gives Rat Pack **and** Leadership. In the bot, joining the Guild of Thieves grants Rat Pack, and adding the *Guild Thief* rank adds Leadership on top.
+
+**Alternative:** Guild Thief replaces Footpad, and a Guild Thief no longer gives Rat Pack.
