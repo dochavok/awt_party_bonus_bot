@@ -1,0 +1,289 @@
+# AWT Party Bonus Bot: engine scenario tests
+# ---------------------------------------------------------------------------
+# Each scenario describes who is in the voice channel, what they give, and the
+# totals each counted player should receive. The test runner loads this file,
+# builds the engine inputs, and compares results with `expect`.
+#
+# Conventions
+#   - Totals list only non-zero stats. A stat not listed is expected to be 0.
+#   - "CR vs fear" totals include the parent CR amount (rule 5).
+#   - Players are keyed by character name, or Discord name if they have no character.
+#   - `not_applied` (optional) lists bonuses that must appear in /breakdown's
+#     NOT APPLIED section, with the reason code.
+#   - `not_counted` / `no_character` (optional) list who must appear in those sections.
+#
+# Reason codes: giver_excluded, not_in_audience, no_level, amount_not_set
+# ---------------------------------------------------------------------------
+
+stats:
+  CM:               {kind: roll,        giver_included: false}
+  CR:               {kind: roll,        giver_included: true}
+  CR vs fear:       {kind: roll,        giver_included: true, parent: CR}
+  Damage:           {kind: combat_note, giver_included: true, unit: hearts}
+  Damage reduction: {kind: combat_note, giver_included: true, unit: hearts}
+  Healing:          {kind: combat_note, giver_included: true, unit: hearts}
+
+orgs:
+  Guild:
+    full_name: The Guild
+    membership: roles
+    ranks: [Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend]
+    bonuses:
+      - {name: Support, audience: everyone, amount_source: fixed, values: {CM: 2}}
+  GoTH:
+    full_name: Guild of the Timeless Heroes
+    membership: open
+    bonuses:
+      - {name: Timeless Heroes, audience: everyone, amount_source: member, stat: CM}
+  HoP:
+    full_name: HoP            # full name to be filled in
+    membership: open
+    bonuses:
+      - {name: HoP, audience: org, amount_source: member, stat: CM}
+  Cult:
+    full_name: Cult of the Dragon
+    membership: open
+    bonuses:
+      - name: Cult of the Dragon
+        audience: org
+        amount_source: fixed
+        level_rules:
+          - {when: "< 10",  stat: Damage, amount: 1}
+          - {when: ">= 10", stat: CM,     amount: 10}
+
+skills:
+  Holy Aura:       {tree: Holy Knight, values: {CR vs fear: 2}}
+  Bolstering Aura: {tree: Holy Knight, values: {CM: 2}, prerequisite: Holy Aura}
+
+scenarios:
+
+  # ---------------------------------------------------------------- RULE 1-3
+  - name: CM excludes the giver (three givers of +2 CM)
+    rule: "4.1, 4.2"
+    players:
+      - {name: A, bonuses: [{name: Buff A, values: {CM: 2}}]}
+      - {name: B, bonuses: [{name: Buff B, values: {CM: 2}}]}
+      - {name: C, bonuses: [{name: Buff C, values: {CM: 2}}]}
+      - {name: D}
+    expect:
+      A: {CM: 4}
+      B: {CM: 4}
+      C: {CM: 4}
+      D: {CM: 6}
+    not_applied:
+      A: [{bonus: Buff A, from: A, reason: giver_excluded}]
+
+  - name: CR includes the giver (three givers of +2 CR)
+    rule: "4.1, 4.3"
+    players:
+      - {name: A, bonuses: [{name: Focus A, values: {CR: 2}}]}
+      - {name: B, bonuses: [{name: Focus B, values: {CR: 2}}]}
+      - {name: C, bonuses: [{name: Focus C, values: {CR: 2}}]}
+      - {name: D}
+    expect:
+      A: {CR: 6, CR vs fear: 6}
+      B: {CR: 6, CR vs fear: 6}
+      C: {CR: 6, CR vs fear: 6}
+      D: {CR: 6, CR vs fear: 6}
+
+  # ---------------------------------------------------------------- RULE 4
+  - name: Support from five Guild rank holders
+    rule: "4.4, worked example"
+    players:
+      - {name: P1, roles: [Junior Adventurer]}
+      - {name: P2, roles: [Guild Veteran]}
+      - {name: P3, roles: [Guild Vanguard]}
+      - {name: P4, roles: [Guild Champion]}
+      - {name: P5, roles: [Guild Legend]}
+      - {name: Outsider}
+    expect:
+      P1: {CM: 8}
+      P2: {CM: 8}
+      P3: {CM: 8}
+      P4: {CM: 8}
+      P5: {CM: 8}
+      Outsider: {CM: 10}
+
+  - name: Multiple Guild roles still give Support once
+    rule: "GR-3 (highest matching role sets the rank)"
+    players:
+      - {name: A, roles: [Junior Adventurer, Guild Veteran]}
+      - {name: B}
+    expect:
+      A: {}
+      B: {CM: 2}
+
+  # ---------------------------------------------------------------- RULE 5
+  - name: Parent CR flows into CR vs fear
+    rule: "4.5"
+    players:
+      - {name: A, bonuses: [{name: Champion of power, values: {CR: 5, CM: 5}}]}
+      - {name: B, bonuses: [{name: Holy auras, values: {CR vs fear: 3, CM: 3}}]}
+    expect:
+      A: {CM: 3, CR: 5, CR vs fear: 8}
+      B: {CM: 5, CR: 5, CR vs fear: 8}
+
+  # ---------------------------------------------------------------- DUPLICATES
+  - name: Same catalog skill from two characters stacks
+    rule: "4.1 (duplicates stack)"
+    players:
+      - {name: Knight1, skills: [Holy Aura, Bolstering Aura]}
+      - {name: Knight2, skills: [Holy Aura, Bolstering Aura]}
+      - {name: C}
+    expect:
+      Knight1: {CR vs fear: 4, CM: 2}
+      Knight2: {CR vs fear: 4, CM: 2}
+      C:       {CR vs fear: 4, CM: 4}
+
+  # ---------------------------------------------------------------- RULE 6
+  - name: Org-only audience (HoP)
+    rule: "4.6, BN-5"
+    players:
+      - {name: A, orgs: {HoP: {amount: 2}}}
+      - {name: B, orgs: {HoP: {amount: 1}}}
+      - {name: C}
+    expect:
+      A: {CM: 1}
+      B: {CM: 2}
+      C: {}
+    not_applied:
+      C:
+        - {bonus: HoP, from: A, reason: not_in_audience}
+        - {bonus: HoP, from: B, reason: not_in_audience}
+
+  - name: Member-set org amounts differ (GoTH +1 and +3)
+    rule: "BN-2"
+    players:
+      - {name: A, orgs: {GoTH: {amount: 1}}}
+      - {name: B, orgs: {GoTH: {amount: 3}}}
+      - {name: C}
+    expect:
+      A: {CM: 3}
+      B: {CM: 1}
+      C: {CM: 4}
+
+  - name: Member-set amount not entered contributes nothing
+    rule: "BN-2a"
+    players:
+      - {name: A, orgs: {GoTH: {}}}
+      - {name: B}
+    expect:
+      A: {}
+      B: {}
+    not_applied:
+      B: [{bonus: Timeless Heroes, from: A, reason: amount_not_set}]
+
+  # ---------------------------------------------------------------- RULE 8
+  - name: Cult level rules, including the giver for Damage
+    rule: "4.8, BN-7; Damage includes the giver, CM does not"
+    players:
+      - {name: Kael,     level: 8,  orgs: {Cult: {}}}
+      - {name: Crateris, level: 22, orgs: {Cult: {}}}
+    expect:
+      Kael:     {Damage: 2}          # +1 from Crateris, +1 from his own bonus
+      Crateris: {CM: 10}             # from Kael; her own +10 CM is giver-excluded
+    not_applied:
+      Crateris: [{bonus: Cult of the Dragon, from: Crateris, reason: giver_excluded}]
+
+  - name: Level exactly 10 uses the ">= 10" band
+    rule: "BN-7 boundary"
+    players:
+      - {name: N, level: 10, orgs: {Cult: {}}}
+      - {name: K, level: 9,  orgs: {Cult: {}}}
+    expect:
+      N: {CM: 10}
+      K: {Damage: 2}
+
+  - name: No level recorded means no level-based bonus
+    rule: "CH-5"
+    players:
+      - {name: P, orgs: {Cult: {}}}           # no level
+      - {name: M, level: 22, orgs: {Cult: {}}}
+    expect:
+      P: {}
+      M: {CM: 10}                             # the giver's level doesn't matter
+    not_applied:
+      P:
+        - {bonus: Cult of the Dragon, from: M, reason: no_level}
+        - {bonus: Cult of the Dragon, from: P, reason: no_level}
+
+  # ---------------------------------------------------------------- PRESENCE
+  - name: Sitting out removes giving and receiving
+    rule: "4.7, SE-2"
+    players:
+      - {name: DM, sitout: true, bonuses: [{name: DM buff, values: {CM: 5, CR: 5}}]}
+      - {name: A,  bonuses: [{name: Buff A, values: {CM: 2}}]}
+      - {name: B}
+    expect:
+      A: {}
+      B: {CM: 2}
+    not_counted: [DM]
+
+  - name: Everyone sitting out gives an empty party
+    rule: "TS-2"
+    players:
+      - {name: A, sitout: true}
+      - {name: B, sitout: true}
+    expect: {}
+    not_counted: [A, B]
+
+  - name: Empty channel
+    rule: "TS-2"
+    players: []
+    expect: {}
+
+  - name: Bots in the channel are ignored
+    rule: "SE-7"
+    players:
+      - {name: MusicBot, bot: true}
+      - {name: A, bonuses: [{name: Buff A, values: {CM: 2}}]}
+      - {name: B}
+    expect:
+      A: {}
+      B: {CM: 2}
+
+  - name: No character set up still gives Support, and receives
+    rule: "SE-6"
+    players:
+      - {name: Dana, no_character: true, roles: [Junior Adventurer]}
+      - {name: B, bonuses: [{name: Buff B, values: {CM: 3, CR: 1}}]}
+    expect:
+      Dana: {CM: 3, CR: 1, CR vs fear: 1}
+      B:    {CM: 2, CR: 1, CR vs fear: 1}     # B's own CR includes the giver
+    no_character: [Dana]
+
+  # ---------------------------------------------------------------- SECTION 8
+  - name: Full sample game (requirements section 8.2)
+    rule: "section 8.2"
+    players:
+      - name: Ioseph
+        level: 34
+        roles: [Guild Vanguard]
+        orgs: {GoTH: {amount: 4}, HoP: {amount: 2}}
+        bonuses: [{name: Champion of power, values: {CR: 5, CM: 5}}]
+      - name: Kael
+        level: 8
+        roles: [Junior Adventurer]
+        orgs: {Cult: {}}
+      - name: Crateris
+        level: 22
+        orgs: {Cult: {}}
+        bonuses:
+          - {name: Holy auras,       values: {CR vs fear: 3, CM: 3}}
+          - {name: Wills ward stone, values: {CM: 5}}
+      - name: Chris
+        orgs: {HoP: {amount: 2}}
+        bonuses: [{name: Damage reduction, values: {Damage reduction: 2}}]
+        effects: ["Effects of extreme cold are negated around Chris the holy baker."]
+      - {name: Dana, no_character: true}
+      - {name: DM Sam, sitout: true}
+      - {name: Bob, sitout: true}
+    expect:
+      Ioseph:   {CM: 12, CR: 5, CR vs fear: 8, Damage reduction: 2}
+      Kael:     {CM: 19, CR: 5, CR vs fear: 8, Damage: 2, Damage reduction: 2}
+      Crateris: {CM: 23, CR: 5, CR vs fear: 8, Damage reduction: 2}
+      Chris:    {CM: 23, CR: 5, CR vs fear: 8, Damage reduction: 2}
+      Dana:     {CM: 21, CR: 5, CR vs fear: 8, Damage reduction: 2}
+    effects: ["Effects of extreme cold are negated around Chris the holy baker."]
+    not_counted: [DM Sam, Bob]
+    no_character: [Dana]
