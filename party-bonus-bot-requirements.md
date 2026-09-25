@@ -37,7 +37,7 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 - **No self-only bonuses.** A bonus that only helps its own character is part of that character's own CM or CR, which the player tracks. The bot's totals are added on top.
 - **No bonuses typed in by players.** Everything comes from the catalog. Anything missing is requested with `/request` and added to the catalog.
 - **Characters only.** Minions, summons, animal companions and allied NPCs (e.g. a Worldshaper's golem made an ally by Endowment) neither give nor receive party bonuses in the bot.
-- **No positioning or range.** If a character is present, their bonuses apply. Distance and positioning are up to the DM.
+- **No position tracking.** The bot doesn't know who is in melee or ranged. Bonuses that depend on position (e.g. Commanding Presence: "allies in the same range") are **shown separately as conditional bonuses and left out of totals**, so totals are never overstated. All other bonuses apply to every counted character in the audience.
 - **One server only** (AWT).
 - No web dashboard.
 
@@ -64,7 +64,7 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 | **Stacks / doesn't stack** | A bonus that stacks is counted once per giver. One that doesn't stack is counted once per recipient, however many givers are present. |
 | **Replaces** | A catalog entry that supersedes another: a character with both gives only the better one (e.g. Seraph's Affection replaces Nuyaru's Love). |
 | **Modifier** | An entry that changes the character's other entries instead of giving a bonus itself (e.g. Devotion III: +1 to each of the character's auras). |
-| **Condition note** | A condition the bot shows but doesn't enforce, e.g. "allies in the same range". The DM rules on it. |
+| **Conditional bonus** | A bonus that only applies in a situation the bot doesn't track, e.g. "allies in the same range". It's listed separately, with its condition, and never included in totals. Players add it themselves when it applies. |
 | **Effect** | A text-only benefit, e.g. *Resistance to damage from an Evil source*. |
 | **Counted / sitting out** | Players in the voice channel are *counted*, with their current character, unless they have used `/sitout`. |
 
@@ -81,7 +81,7 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 9. **Rank.** Guild abilities can require a minimum rank (e.g. Leadership needs a Guild Thief). Players set their own rank. Support is the exception: it comes from Discord roles.
 10. **Level conditions.** A bonus can depend on the **recipient's** level (the Cult of the Dragon). A character with no level recorded doesn't receive level-based bonuses, and `/mybonus` notes this.
 11. **Only counted players give or receive.** Anyone sitting out (the DM running the game, observers) is left out entirely. A player in the channel with no character set up still gives bonuses that come from their Discord roles (Support), but nothing that needs a character.
-12. **Present means in range.** Every counted character's bonuses apply to the whole audience. Conditions such as "allies in the same range" are shown as notes, and the DM rules on them.
+12. **Conditional bonuses stay out of totals.** A bonus whose catalog entry has a condition the bot can't check (e.g. "allies in the same range") is listed separately for each recipient it could apply to, e.g. `+5 CM if in the same range as Chris (Commanding Presence)`. It follows every other rule (allies, stacking, audience) but is never added to totals or exported.
 13. **Only totals are shown by default.** `/partybonus` and `/mybonus` show totals only. `/breakdown` shows every contributor and the working.
 
 Worked example (Support): each character whose player has one of the Guild rank roles (Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend) gives +2 CM to allies. With five of them present, other characters get +10 and each of the five gets +8.
@@ -119,7 +119,7 @@ The catalog lives in the repository as data files: `data/stats.yaml`, `data/skil
 | CT-1 | **Fixed catalog.** Stats, skills, guilds, ranks, guild abilities, boons, items and awards are defined only in the catalog files. There are no commands to create or change them. | M |
 | CT-2 | **Permanent IDs.** Every catalog entry has a permanent ID separate from its display name. Characters store the ID, so renaming an entry never breaks a character. | M |
 | CT-3 | **Linked, not copied.** Characters refer to catalog entries. Changing an entry's value in the catalog changes it for every character at once. | M |
-| CT-4 | **Entry fields:** name, kind (skill, boon, item, award), tree or guild, what it gives (one or more stats with amounts, or effect text), audience (party or one guild), whether the giver is included (default no), whether it stacks (default yes), what it replaces, tags (e.g. `aura`), modifiers, a condition note, level rules, and the card text quoted from the source. | M |
+| CT-4 | **Entry fields:** name, kind (skill, boon, item, award), tree or guild, what it gives (one or more stats with amounts, or effect text), audience (party or one guild), whether the giver is included (default no), whether it stacks (default yes), what it replaces, tags (e.g. `aura`), modifiers, a condition (which makes it a conditional bonus, rule 4.12), level rules, and the card text quoted from the source. | M |
 | CT-5 | **Guild fields:** full name, short name, membership (Discord roles, or players join themselves), ordered ranks, whether it's secret, and its abilities, each with a minimum rank. | M |
 | CT-6 | **Retire, don't delete.** An entry that leaves the game is marked `retired`. It can't be added any more, but characters who have it keep it, and `/breakdown` marks it as retired. | M |
 | CT-7 | **Validation in CI.** Every push checks the catalog: the format is valid, stat and entry references exist, there are no duplicate IDs or names, and no entry used by a character has been deleted. An invalid catalog can't be deployed. | M |
@@ -168,8 +168,8 @@ There are no sessions to start or end. Each time a command runs, the bot looks a
 
 | ID | Requirement | Pri |
 |---|---|---|
-| OUT-1 | **`/partybonus`**: a table of the roll-stat totals each counted character receives (CM, CR, and only the CR subtypes that differ from CR for someone), then combat notes (with their descriptions), effects, condition notes, and the *not counted* line. Totals only. | M |
-| OUT-2 | **`/mybonus [character]`**: totals for one character (roll stats, combat notes, effects, condition notes), plus a single line about any bonus missed because the level is missing. Totals only. | M |
+| OUT-1 | **`/partybonus`**: a table of the roll-stat totals each counted character receives (CM, CR, and only the CR subtypes that differ from CR for someone), then combat notes (with their descriptions), effects, conditional bonuses (with their conditions, not in totals), and the *not counted* line. Totals only. | M |
+| OUT-2 | **`/mybonus [character]`**: totals for one character (roll stats, combat notes, effects, and conditional bonuses listed separately), plus a single line about any bonus missed because the level is missing. Totals only. | M |
 | OUT-2a | **Not-current character notice:** when `/mybonus <character>` or `/breakdown <character>` names a character who isn't its player's current character, the bot works out the totals **as if that character were playing in place of the current one**, and shows a notice at the top, e.g. *"Crateris isn't your current character (you're playing Chris). These totals show Crateris in Chris's place. Use `/play Crateris` to switch."* | M |
 | OUT-3 | **`/breakdown`** (whole party): for **each bonus in play**, its name and source (tree, guild or item), what it gives and to whom, and **every contributing character** with their rank or level where it matters. Then: effects, the working for each character's totals (e.g. `CM 2+2+3+5 = +12`), and the *not counted* line. Secret guilds follow SG-4. | M |
 | OUT-3a | **`/breakdown <character>`**: each stat that character receives, the sum written out, and every contribution with the bonus name, giver and value (including modifiers, e.g. "Holy Aura +3 (2 + 1 Devotion III)"). Then: bonuses **not applied** to them, with the reason, and what the character **gives**. | M |
@@ -239,7 +239,7 @@ Values come from the skill-tree images and guild write-ups in the Diceknights dr
 | Devotion III | Holy Knight | Nothing itself | Modifier: +1 to each of this character's auras |
 | Aura of Defense | Paladin | +5 CR would hurt | Aura |
 | Aura of Hope | Paladin | +10 CM | Aura |
-| Commanding Presence | Commander | +5 CM | Condition: allies in the same range. Not an aura (DM question Q1). |
+| Commanding Presence | Commander | +5 CM | Conditional: allies in the same range, so shown separately and not in totals. Not an aura (DM question Q1). |
 | Inspiring Presence | Commander | +5 CR | Doesn't stack. Not an aura (Q1). |
 
 ### 8.3 Guilds
@@ -474,7 +474,7 @@ compute(counted_players, player_roles, character_entries, character_guilds, cata
 2. **List the gives:** each counted character's entries (after replacements, and with modifiers such as Devotion III applied), and each guild ability they qualify for by rank.
 3. **Apply them to recipients:** for each recipient, check each give against the audience, whether the giver is included, and any level rule. Record it as *applied* (with its amount) or *not applied* (with a reason: giver excluded, not in audience, no level, replaced, or not stacked).
 4. **Stacking:** for gives that don't stack, keep one per recipient (the highest amount).
-5. **Add up:** total each stat, then add parent-stat amounts into subtypes.
+5. **Add up:** total each stat, then add parent-stat amounts into subtypes. Conditional gives are kept in a separate list and never added.
 6. **Display:** `PartyReport` holds everything, including which gives come from secret guilds. The output layer applies the secrecy rules (section 6.4).
 
 ## 12. Technology, Storage and Deployment
@@ -578,7 +578,7 @@ Most of the checking is done by fast automated tests that never touch Discord. L
 
 ## 14. Optional: Hand-off to Bogsy's Dice Bot
 
-The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stats only** (CM, CR, CR subtypes) as values for the player to enter with Bogsy's `/modifier`. Combat notes and effects are never exported. The exported values are party bonuses only; they add on top of the character's own CM and CR.
+The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stats only** (CM, CR, CR subtypes) as values for the player to enter with Bogsy's `/modifier`. Combat notes, effects and conditional bonuses are never exported. The exported values are party bonuses only; they add on top of the character's own CM and CR.
 
 | ID | Requirement | Pri |
 |---|---|---|
@@ -611,7 +611,8 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 - **Catalog changes:** permanent IDs, retired instead of deleted, linked rather than copied, validated in CI, and deployed automatically on push to `main`.
 - **Stacking:** every giver counts, except entries marked "doesn't stack", which count once. A replacing entry supersedes the one it replaces.
 - **Devotion III** adds +1 to all of the character's own auras, from any tree. Only skills named "Aura" are auras (pending Q1).
-- **Conditions** such as "same range" are notes; the DM rules. "Would hurt" is a CR subtype that players ask about.
+- **Auras** (Holy Knight and Paladin) have no range limit: they reach the whole party.
+- **Position-dependent bonuses** (Commanding Presence's "same range") are conditional bonuses: shown separately, never in totals. The bot doesn't track who is in melee or ranged. "Would hurt" is a CR subtype that players ask about.
 - **CM** combines the old combat bonus and combat defence.
 - **GoTH boons** are always on. **Bard Inspiration** is out of scope.
 - **Guild of Thieves** is secret, tongue-in-cheek: the bot never names members, but public totals still include their bonuses, even though that makes them easy to spot. Leadership needs any Guild Thief present, and a stealth bonus counts toward both CM and stealth CRs.

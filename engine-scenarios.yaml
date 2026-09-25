@@ -17,6 +17,8 @@
 #   - `not_applied` (optional) lists entries that must appear in the recipient's
 #     NOT APPLIED section, with the reason code.
 #   - `effects` (optional) lists effect text and who receives it.
+#   - `conditional` (optional) lists conditional bonuses each recipient is shown
+#     separately; these are never included in `expect` totals.
 #   - `not_counted` / `no_character` (optional) list who must appear in those sections.
 #
 # Reason codes: giver_excluded, not_in_audience, no_level, replaced, not_stacked
@@ -198,13 +200,26 @@ scenarios:
       C:  {CM: 3, CR vs fear: 5}
 
   - name: Devotion III boosts Paladin auras but not Presence skills
-    rule: "4.6; DM question Q1"
+    rule: "4.6, 4.12; DM question Q1"
     players:
       - {name: P, has: [Aura of Hope, Aura of Defense, Commanding Presence, Devotion III]}
       - {name: C}
     expect:
       P: {}
-      C: {CM: 16, CR would hurt: 6}      # Aura of Hope 10+1, Commanding Presence 5, Aura of Defense 5+1
+      C: {CM: 11, CR would hurt: 6}      # Aura of Hope 10+1, Aura of Defense 5+1
+    conditional:
+      C: [{entry: Commanding Presence, from: P, gives: {CM: 5}, condition: "allies in the same range"}]
+
+  - name: Conditional bonuses stay out of totals but follow the other rules
+    rule: "4.12"
+    players:
+      - {name: Cmd, has: [Commanding Presence]}
+      - {name: A, has: [Test Buff]}
+    expect:
+      Cmd: {CM: 2}                       # Test Buff from A; own Commanding Presence excluded
+      A:   {}                            # Commanding Presence listed, not totaled
+    conditional:
+      A: [{entry: Commanding Presence, from: Cmd, gives: {CM: 5}, condition: "allies in the same range"}]
 
   # ---------------------------------------------------------------- RULE 4 (stacking)
   - name: Inspiring Presence doesn't stack
