@@ -1,17 +1,18 @@
 # AWT Party Bonus Bot: Requirements
 
-**Version:** 0.4 (draft)
-**Date:** 2026-09-24
+**Version:** 0.6 (draft)
+**Date:** 2026-09-25
 **Owner:** Craig
 **Server:** Adventures from the Wizards Tower (AWT)
+**Related:** [dm-rule-questions.md](dm-rule-questions.md) (rule questions waiting on the DMs)
 
 ---
 
 ## 1. Purpose
 
-Right now, one player keeps a master list of every party bonus. Each session they strike out the bonuses of players who aren't there, then share the list.
+Working out party bonuses by hand is slow and easy to get wrong. Someone has to know every character's bonuses, drop the ones whose characters aren't in the game, and add up the rest for each character.
 
-This bot replaces that list. Players record the bonuses their characters **give**. The GM defines the bonuses that come from orgs (guilds and other groups). When someone asks, the bot works out totals from the characters who are present:
+This bot does that work. Every skill, guild ability, item and award that gives a party bonus is defined once, in a **fixed catalog** kept in the bot's repository. Players record what their characters **have** (their skills, guilds and items) by picking from the catalog. When someone asks, the bot works out totals from the characters who are present:
 
 - `/partybonus`: the totals every present character receives.
 - `/mybonus [character]`: the totals for one of your characters.
@@ -24,13 +25,18 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 ### Goals
 
 - Any player can see their character's current totals, and how they were calculated if they want the detail.
-- The game's rules are applied correctly: every giver counts; CM bonuses don't apply to the giver, CR bonuses do; org, rank and level conditions are respected.
-- Players manage their own characters, levels and personal bonuses. The GM manages stats, orgs, ranks and org bonuses.
+- The game's rules are applied correctly: every giver counts, bonuses go to **allies** (not the giver) unless the catalog says otherwise, and stacking, rank and level conditions are respected.
+- Players enter their own data by picking from the catalog. Nobody else enters or approves anything.
+- The catalog is uniform: one definition of each skill, guild and item, so there are no duplicates or typos.
 
 ### Non-Goals
 
-- **No dice rolling.** At most, the bot hands CM/CR values to an existing dice bot (section 13).
-- **No character sheets.** Each character has a name, an optional level, org memberships, and the bonuses it gives. Nothing more.
+- **No dice rolling.** At most, the bot hands CM/CR values to an existing dice bot (section 14).
+- **No character sheets.** Each character has a name, an optional level, guild memberships with rank, and catalog entries. Nothing more. The bot doesn't track class.
+- **Only always-on bonuses to others.** Abilities used once per combat, day or weekend, Tasks, and repeatable one-off abilities (e.g. Bard Inspiration) aren't tracked.
+- **No self-only bonuses.** A bonus that only helps its own character is part of that character's own CM or CR, which the player tracks. The bot's totals are added on top.
+- **No bonuses typed in by players.** Everything comes from the catalog. Anything missing is requested with `/request` and added to the catalog.
+- **No positioning or range.** If a character is present, their bonuses apply. Distance and positioning are up to the DM.
 - **One server only** (AWT).
 - No web dashboard.
 
@@ -39,40 +45,54 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 | Term | Meaning |
 |---|---|
 | **Player** | A Discord member. Can have several characters. |
-| **Character** | One of a player's AWT characters. Levels, guild memberships and personal bonuses are recorded per character. |
-| **Level** | Optional, per character. Only used for level-based bonuses. |
-| **Stat** | What a bonus adds to. **Roll stats:** CM (combat modifier), CR (challenge roll) and CR subtypes such as *CR vs fear*. **Combat notes:** damage, damage reduction, healing, measured in hearts. Combat notes are shown for information only. |
+| **DM** | Dungeon Master. Runs games and rules on conditions. Has no special permissions in the bot. |
+| **Maintainer** | Whoever edits the catalog in the repository (Craig at launch). |
+| **Character** | One of a player's AWT characters. |
+| **Level** | Optional, per character. Only used for level-based bonuses (today, just the Cult of the Dragon). |
+| **Stat** | What a bonus adds to. **Roll stats:** CM (combat modifier, attack and defence combined), CR (challenge roll) and CR subtypes (*vs fear*, *stealth*, *would hurt*). **Combat notes:** damage, damage reduction, healing, measured in hearts. |
+| **Catalog** | The fixed list of stats, skills, guilds and items/awards, kept as data files in the repository (section 6.2). |
+| **Entry** | One thing in the catalog that a character can have: a **skill** (from a skill tree), a **boon** (e.g. a GoTH quest boon), an **item** (e.g. Wills ward stone) or an **award** (e.g. Champion of Power). |
+| **Guild** | Any group a character can belong to: a guild, order, cult or coalition. Each has ranks (optional) and guild abilities. |
+| **Guild ability** | A bonus that comes from being in a guild at or above a certain rank, e.g. *Rat Pack* (any Guild of Thieves member). |
+| **Secret guild** | A guild whose members are never revealed by the bot (the Guild of Thieves). |
+| **Party** | Every counted character in the voice channel. |
 | **Giver** | The character who provides a bonus. |
 | **Recipient** | A present character who receives a bonus. |
-| **Giver rule** | Whether a bonus also applies to its giver. **CM: no. CR, damage, damage reduction and healing: yes.** Set per stat. |
-| **Org (group)** | A guild, order or faction, recorded with a full name and an abbreviation, e.g. *Guild of the Timeless Heroes* / *GoTH*. Current orgs: the Guild, GoTH, HoP, Cult of the Dragon. More will be added later. |
-| **Rank / standing** | A character's standing in an org. It decides what they give. May come from Discord roles. |
-| **Org bonus** | A bonus the GM defines once, given by each qualifying member of an org, e.g. *Support: +2 CM*. |
-| **Counted / sitting out** | Players in the voice channel are *counted*, with their active character (they give and receive bonuses), unless they have used `/sitout`. The DM running the game sits out the same way. |
-| **Personal bonus** | A bonus from one character's own abilities or items, e.g. *Holy auras*. |
-| **Effect** | A text-only benefit, e.g. *Effects of extreme cold are negated around Chris the holy baker.* |
+| **Allies** | Everyone in a bonus's audience **except the giver**. All bonuses go to allies unless the catalog says the giver is included. |
+| **Audience** | Who can receive a bonus: the whole **party**, or only members of one **guild**. |
+| **Stacks / doesn't stack** | A bonus that stacks is counted once per giver. One that doesn't stack is counted once per recipient, however many givers are present. |
+| **Replaces** | A catalog entry that supersedes another: a character with both gives only the better one (e.g. Seraph's Affection replaces Nuyaru's Love). |
+| **Modifier** | An entry that changes the character's other entries instead of giving a bonus itself (e.g. Devotion III: +1 to each of the character's auras). |
+| **Condition note** | A condition the bot shows but doesn't enforce, e.g. "allies in the same range". The DM rules on it. |
+| **Effect** | A text-only benefit, e.g. *Resistance to damage from an Evil source*. |
+| **Counted / sitting out** | Players in the voice channel are *counted*, with their current character, unless they have used `/sitout`. |
 
 ## 4. How Bonuses Are Counted
 
-1. **Every giver counts.** Three present characters each giving +2 means the bonus counts three times. This includes the same skill from different characters, e.g. two Holy Knights with Holy Aura give +4 CR vs fear.
-2. **CM excludes the giver.** Three characters each giving +2 CM: each of them receives +4, and everyone else receives +6.
-3. **CR includes the giver.** Three characters each giving +2 CR: everyone receives +6.
-4. **Org bonuses follow the same rules.** Support, GoTH, HoP, the Cult of the Dragon and any future orgs: each qualifying member present gives the bonus. For CM it goes to everyone in the audience **except the giver**. For CR it goes to **everyone** in the audience.
-5. **Parent stats flow down to subtypes.** "+5 to all challenge rolls" plus "+3 CR vs fear" means CR +5 and CR vs fear +8.
-6. **Audience.** Everyone present (e.g. Support, GoTH) or only members of certain orgs (e.g. Cult of the Dragon: cult members only).
-7. **Only counted players give or receive.** Anyone sitting out (the DM running the game, observers) is left out entirely. A player in the channel with no character set up still gives bonuses that come from their Discord roles (e.g. Support), but nothing that needs a character.
-8. **Level conditions.** A bonus can depend on the recipient character's level. A character with no level recorded doesn't receive level-based bonuses. `/mybonus` notes this.
-9. **Only totals are shown by default.** `/partybonus` and `/mybonus` show totals only. `/breakdown` shows every contributor and the working.
+1. **Every giver counts.** Three present characters each giving +2 means the bonus counts three times, including the same skill from different characters. Two Holy Knights with Holy Aura give +4 CR vs fear.
+2. **Bonuses go to allies.** A bonus never applies to its giver. Three characters each giving +2 CM: each of them receives +4, and everyone else receives +6. The same holds for CR and combat notes.
+3. **Unless the catalog includes the giver.** A catalog entry can say the giver benefits too. Today that's Leadership, King of the Pirates, Wilderness Lore and Proper Seasoning, whose text says "all members" or "you and your allies".
+4. **Some bonuses don't stack.** An entry marked *doesn't stack* is counted once per recipient, however many givers are present. If the givers' amounts differ, the highest counts. Two Commanders with Inspiring Presence give allies +5 CR, not +10.
+5. **Replacements.** If a character has an entry and the entry that replaces it, they give only the replacement. A GoTH member with Nuyaru's Love (+1) and Seraph's Affection (+3) gives +3.
+6. **Modifiers.** Devotion III adds +1 to each aura **that same character** gives, from any tree (Holy Aura, Bolstering Aura, Aura of Defense, Aura of Hope). Only skills named "Aura" are auras. Auras with no number (Protective Aura) are unchanged.
+7. **Parent stats flow down to subtypes.** "+5 to all challenge rolls" plus "+3 CR vs fear" means CR +5 and CR vs fear +8. The same applies to *stealth* and *would hurt*.
+8. **Audience.** The whole party, or only members of one guild (e.g. Rat Pack: Guild of Thieves members only).
+9. **Rank.** Guild abilities can require a minimum rank (e.g. Leadership needs a Guild Thief). Players set their own rank. Support is the exception: it comes from Discord roles.
+10. **Level conditions.** A bonus can depend on the **recipient's** level (the Cult of the Dragon). A character with no level recorded doesn't receive level-based bonuses, and `/mybonus` notes this.
+11. **Only counted players give or receive.** Anyone sitting out (the DM running the game, observers) is left out entirely. A player in the channel with no character set up still gives bonuses that come from their Discord roles (Support), but nothing that needs a character.
+12. **Present means in range.** Every counted character's bonuses apply to the whole audience. Conditions such as "allies in the same range" are shown as notes, and the DM rules on them.
+13. **Only totals are shown by default.** `/partybonus` and `/mybonus` show totals only. `/breakdown` shows every contributor and the working.
 
-Worked example (Support): each character whose player has one of the Guild rank roles (Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend) gives +2 CM. With five of them present, other characters get +10 and each of the five gets +8.
+Worked example (Support): each character whose player has one of the Guild rank roles (Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend) gives +2 CM to allies. With five of them present, other characters get +10 and each of the five gets +8.
 
 ## 5. Users and Roles
 
 | Role | Can do |
 |---|---|
-| **Player** | Register and manage their characters; set levels; manage personal bonuses and effects; choose their active character; sit out (`/sitout`); join open orgs; run `/mybonus`, `/partybonus`, `/breakdown`. |
-| **GM** | Everything a player can do, plus: manage stats, orgs, ranks and org bonuses; assign characters to orgs; sit any player out or back in; edit any bonus; configure the bot. |
-| **Admin** | Set which Discord role counts as GM (default: *Manage Server*). |
+| **Player** | Every Discord member, DMs included. Register and manage **their own** characters; set levels; add catalog entries and guild memberships to their characters; choose their current character; sit themselves out; run `/partybonus`, `/mybonus`, `/breakdown`; request catalog additions. |
+| **Maintainer** | Edits the catalog and settings files in the repository (sections 6.2 and 6.7), and fixes data in the database if ever needed. This is a repository role, not a Discord role. |
+
+The bot has **no DM or admin role**. A DM is an ordinary player to the bot: a DM running a game uses `/sitout`, and may check the party `/breakdown` and ask players to fix mistakes.
 
 ## 6. Functional Requirements
 
@@ -82,363 +102,381 @@ Priority: **M** = must have (v1), **S** = should have, **C** = could have (later
 
 | ID | Requirement | Pri |
 |---|---|---|
-| CH-1 | A player can register several characters, each with a unique name on the server. Names autocomplete in commands. | M |
+| CH-1 | A player can register several characters, each with a name that is unique on the server (ignoring case). Names autocomplete in commands. | M |
 | CH-2 | A player can rename or delete their own characters. Deletion asks for confirmation. | M |
-| CH-3 | A player can mark one character as their **default**. Commands with no character named use the player's **active** character (see SE-3), or else their default. | M |
+| CH-3 | **Current character:** each player has one **current** character, set with `/play <character>`. It stays until changed. A player's first registered character becomes current automatically, so most players (one character each) never need `/play`. Commands with no character named use the current character. | M |
 | CH-4 | **Optional level per character:** 1 up to a configurable maximum (currently 75). It can be left blank. | M |
 | CH-5 | Level-based bonuses only apply to characters with a recorded level. `/mybonus` notes any bonus missed because the level is missing. | M |
 | CH-6 | The date each level was last updated is stored and shown in `/breakdown`. | S |
-| CH-7 | A GM can create or fix characters on a player's behalf, and take over characters of players who have left. | S |
 
-### 6.2 Stats
+### 6.2 The Catalog
 
-| ID | Requirement | Pri |
-|---|---|---|
-| ST-1 | The GM manages stats, with aliases and autocomplete. | M |
-| ST-2 | **Giver rule per stat:** CM excludes the giver. CR and all combat notes (damage, damage reduction, healing) include the giver. | M |
-| ST-3 | **Subtypes:** e.g. *CR vs fear*. Bonuses to the parent stat count toward each subtype. | M |
-| ST-4 | **Two kinds of stat:** *roll stats* (CM, CR and CR subtypes), which are totaled and can be exported; and *combat notes* (in hearts), which are totaled and shown but never exported. | M |
-| ST-5 | **Each combat note has a description that is displayed with it.** Starting set: **Damage**: extra hearts dealt when attacking. **Damage reduction**: hearts mitigated when attacked. **Healing**: hearts healed at the end of each round. | M |
-| ST-6 | **Starting catalog:** CM; CR, with subtype *CR vs fear*; Damage; Damage reduction; Healing. | M |
-
-### 6.3 Orgs (Groups) and Standing
-
-Membership comes from two levels:
-
-- **Player level:** Discord roles. They apply to **every** character that player owns. Example: a player with the *Guild Vanguard* role gives Support with any of their characters.
-- **Character level:** org membership recorded per character. One character can be in GoTH while the same player's other character is in the Cult.
+The catalog lives in the repository as data files: `data/stats.yaml`, `data/skills.yaml`, `data/guilds.yaml` (guilds, ranks, guild abilities and boons) and `data/items.yaml` (items and awards). Section 8 lists the starting catalog.
 
 | ID | Requirement | Pri |
 |---|---|---|
-| GR-1 | The GM manages a list of known orgs, each with a **full name** and an **abbreviation**, e.g. *Guild of the Timeless Heroes* / *GoTH*. Either one works in commands, with autocomplete. HoP's full name can be filled in later. | M |
-| GR-1a | **`/orgs`** lists every org: full name, abbreviation, how membership works, rank names, and a one-line summary of its bonuses. `/orgs <org>` also shows its members. | M |
-| GR-2 | **Membership source per org:** *Discord roles* (player level, applies to all of that player's characters), *GM-assigned* (per character), or *open* (players add or remove their own characters). | M |
-| GR-3 | **Ranks:** an org can have ordered ranks. For role-based orgs, each rank maps to a Discord role, e.g. Junior Adventurer … Guild Legend, and the player's highest matching role sets the rank. For GM-assigned orgs, the GM sets each character's rank. | M |
-| GR-4 | A character can belong to any number of orgs, and different characters of the same player can be in different orgs. | M |
-| GR-5 | Discord roles are checked each time totals are calculated, so role changes on the server take effect straight away. | M |
-| GR-6 | `/party` shows who is counted, with each character's orgs and ranks. | S |
-| GR-7 | Changes to character-level membership are written to the audit log. | S |
+| CT-1 | **Fixed catalog.** Stats, skills, guilds, ranks, guild abilities, boons, items and awards are defined only in the catalog files. There are no commands to create or change them. | M |
+| CT-2 | **Permanent IDs.** Every catalog entry has a permanent ID separate from its display name. Characters store the ID, so renaming an entry never breaks a character. | M |
+| CT-3 | **Linked, not copied.** Characters refer to catalog entries. Changing an entry's value in the catalog changes it for every character at once. | M |
+| CT-4 | **Entry fields:** name, kind (skill, boon, item, award), tree or guild, what it gives (one or more stats with amounts, or effect text), audience (party or one guild), whether the giver is included (default no), whether it stacks (default yes), what it replaces, tags (e.g. `aura`), modifiers, a condition note, level rules, and the card text quoted from the source. | M |
+| CT-5 | **Guild fields:** full name, short name, membership (Discord roles, or players join themselves), ordered ranks, whether it's secret, and its abilities, each with a minimum rank. | M |
+| CT-6 | **Retire, don't delete.** An entry that leaves the game is marked `retired`. It can't be added any more, but characters who have it keep it, and `/breakdown` marks it as retired. | M |
+| CT-7 | **Validation in CI.** Every push checks the catalog: the format is valid, stat and entry references exist, there are no duplicate IDs or names, and no entry used by a character has been deleted. An invalid catalog can't be deployed. | M |
+| CT-8 | **`/catalog [entry or guild]`** shows what an entry gives, with its card text, or a guild's ranks and abilities. With no argument it lists everything, grouped by kind and tree or guild. | S |
+| CT-9 | **`/request <text>`** lets any player suggest a missing or wrong entry. The bot posts it, with the player's name, to a configured channel the maintainer watches. | S |
 
-### 6.4 Bonuses
+### 6.3 What Characters Have
 
 | ID | Requirement | Pri |
 |---|---|---|
-| BN-1 | **Personal bonuses** belong to a character: a name, one or more stat values, and an optional note. | M |
-| BN-2 | **Org bonuses** are defined by the GM: the org, the stat(s), the audience, optionally a minimum rank, and any level rules. The **amount** comes from one of two places: **fixed** by the GM, optionally varying by rank (e.g. Support: +2 CM from every Guild rank), or **set by each member** for their own character, because members of the same org can give different amounts (e.g. one GoTH member gives +1 CM and another +3 CM). | M |
-| BN-2a | For member-set org bonuses, each character's `/breakdown` line shows their own amount, and the org's heading shows what they add up to. A member who hasn't entered an amount is flagged as "amount not set" and contributes nothing. | M |
-| BN-4 | **Several stats per bonus**, e.g. *Holy auras: +3 CR vs fear, +3 CM*. | M |
-| BN-5 | **Audience:** everyone present, or only members of listed orgs. | M |
-| BN-6 | Each bonus follows its stat's giver rule, which can be overridden per bonus. | M |
-| BN-7 | **Level rules:** the value depends on the recipient's level, and each level band can use a different stat, e.g. *Cult: level < 10: +1 heart damage; level ≥ 10: +10 CM*. | M |
-| BN-8 | **Effects:** text-only bonuses, with the same audience options. | M |
-| BN-9 | Players can list, edit and remove their characters' personal bonuses. The GM can edit any bonus. | M |
-| BN-10 | A bonus can be switched off temporarily, e.g. an item that isn't equipped. Absent characters need no switching: the bot only counts characters who are present. | S |
-| BN-11 | **No approval step:** players edit their own characters' bonuses, skills, org amounts and levels freely. Every change is written to the audit log. `/audit [character]` lets a GM review recent changes and undo any of them. | M |
-| BN-13 | **Skill catalog:** the GM (or trusted players) can define common bonus-giving skills **once**, and players add them to their characters by name instead of typing the values. Examples from the Holy Knight tree: *Bolstering Aura* (+2 CM to allies, not self) and *Holy Aura* (+2 CR vs fear). A character can have one or several catalog skills. Players can still enter one-off personal bonuses by hand. | M |
-| BN-14 | **Skill tree label:** catalog skills can be labeled with their tree (e.g. *Holy Knight*), so `/breakdown` shows "Holy Aura (Holy Knight)" and `/orgs`-style lists can group them. | S |
-| BN-15 | **Prerequisites:** a catalog skill can list a prerequisite skill (e.g. Bolstering Aura requires Holy Aura). The bot warns when a character adds a skill without its prerequisite, but doesn't block it. | C |
-| BN-12 | **Entering bonuses (v1: short slash commands).** Each command does one thing, with autocomplete for characters, skills, orgs and stats. Most entry is picking by name: `/skill add`, `/org join`. One-off bonuses use `/bonus add`, one stat per command; repeating the same name adds another stat to that bonus. Effects use `/effect add`. An interactive panel and a paste-in text format may come later. | M |
+| HV-1 | **`/add <character> <entry>`** gives a character a skill, boon, item or award from the catalog; **`/remove`** takes it away. Autocomplete shows entries labeled with their kind and tree or guild, e.g. "Holy Aura (Holy Knight skill)". | M |
+| HV-2 | **`/guild join <character> <guild> [rank]`**, **`/guild rank`** and **`/guild leave`** set a character's guild membership and rank. A guild with ranks requires one. Players choose their own rank; nothing is checked. | M |
+| HV-3 | **Support** comes from Discord roles, not from `/guild join`. The player's highest Guild rank role sets the rank, and it applies to every character that player owns. Roles are checked each time totals are calculated. | M |
+| HV-4 | **Warnings, not blocks.** The bot warns, but still accepts the change, when a character adds a boon without being in its guild (e.g. Seraph's Affection without GoTH), or adds Devotion III with no auras. | S |
+| HV-5 | **Audit log.** Every change to a character (entries, guilds, ranks, level, name) is written to the audit log, with who made it and when. There's no command to read it; the maintainer can read it from the database if a dispute comes up. | M |
+
+### 6.4 Secret Guilds
+
+The Guild of Thieves' rules say "never reveal another member". Even thieves don't automatically know who the other thieves are.
+
+| ID | Requirement | Pri |
+|---|---|---|
+| SG-1 | A guild can be marked **secret** in the catalog. Today only the Guild of Thieves is. | M |
+| SG-2 | `/guild join`, `/guild rank` and `/guild leave` for a secret guild reply privately. | M |
+| SG-3 | The bot never lists a secret guild's members: not in `/catalog`, the party `/breakdown`, or anyone's *not applied* list. | M |
+| SG-4 | In public output, secret guild bonuses are **included in totals**. The party `/breakdown` shows them as one unnamed "secret guild bonus" block, and as unnamed amounts in the working. It never names a giver. This is deliberately light: the secrecy is tongue-in-cheek, and members are usually easy to work out (e.g. from the CR stealth column). Labeling it "secret guild" plays along with the joke; it isn't meant to be airtight. | M |
+| SG-5 | A member's private `/mybonus` and `/breakdown` show the secret bonuses in detail, with **how many** members contributed but not who (e.g. "Rat Pack +1 (1 other member present)"). | M |
 
 ### 6.5 Presence (Voice Channel)
 
 There are no sessions to start or end. Each time a command runs, the bot looks at who is in the voice channel and counts them, with these exceptions:
 
 - **Sitting out:** anyone who has used `/sitout` in the last 12 hours. This covers the DM running the game and players who are only observing.
-- **No character set up:** members with no registered character, or with characters but none active or default, are still counted as players. They give only bonuses that come from their Discord roles, and are listed separately so they know to set up a character (SE-6).
+- **No character set up:** members with no usable character are still counted as players. They give only bonuses that come from their Discord roles, and are listed separately so they know to set up a character (SE-6).
 
 | ID | Requirement | Pri |
 |---|---|---|
-| SE-1 | **Which channel:** `/partybonus` and `/breakdown` use the voice channel the caller is in. `channel:<voice channel>` picks one explicitly, e.g. when the caller isn't in voice. `/mybonus` uses the voice channel the character's player is in. | M |
-| SE-2 | **`/sitout`** leaves the caller uncounted for **12 hours** (configurable), long enough for one game but expiring before, say, a morning event. `/sitin` ends it early. A DM can sit other players out or back in. | M |
-| SE-3 | **Active character:** each player is counted with their **active** character, which is their default unless they chose another with `/play <character>`. The choice stays until changed. Each player counts with one character. | M |
-| SE-4 | `/partybonus` and `/breakdown` end with a *not counted* line listing everyone sitting out (with the time it ends), so nobody is left out silently. | M |
-| SE-5 | `/party` lists who would be counted right now, with their active characters. It's a quick check before looking at bonuses. | S |
-| SE-6 | **No character set up:** a member in the voice channel with no usable character (none registered, or none active or default) is still **counted as a player**, under their Discord name:<br>• They **give** only bonuses that come from their **Discord roles**. Today that means just **Support**, from the Guild rank roles. Bonuses that need a character (catalog skills, per-character org memberships, one-off bonuses, effects) can't be included.<br>• They **receive** bonuses like anyone else, except level-based ones, since they have no level. The CM giver rule still applies, so they don't receive their own Support.<br>• `/partybonus` and `/breakdown` (whole party and single character) list them in a **NO CHARACTER SET UP** section, with the reason and the fix (`/character register` or `/play`), and a note that bonuses from their character are missing. Members sitting out aren't listed here. | M |
+| SE-1 | **Which channel:** `/partybonus` and `/breakdown` use the voice channel the caller is in. `channel:<voice channel>` picks one explicitly. `/mybonus` uses the voice channel the character's player is in. | M |
+| SE-2 | **`/sitout`** leaves the caller uncounted for **12 hours** (configurable). `/sitin` ends it early. Players only sit **themselves** out, e.g. because they're running the game or just listening in. Remembering to do it is each player's responsibility. | M |
+| SE-3 | **One character per player:** each player is counted with their **current** character (CH-3). Players play one character per event; a player switching characters runs `/play` first. | M |
+| SE-4 | `/partybonus` and `/breakdown` end with a *not counted* line listing everyone sitting out, with the time it ends. | M |
+| SE-6 | **No character set up:** a member in the voice channel with no usable character is still **counted as a player**, under their Discord name. They **give** only Support (from Discord roles). They **receive** bonuses like anyone else, except level-based ones and guild-only ones. `/partybonus` and `/breakdown` list them in a **NO CHARACTER SET UP** section with the fix (`/character register` or `/play`). | M |
 | SE-7 | Bots in the voice channel (e.g. music bots) are ignored and never listed. | M |
 
 ### 6.6 Output Commands
 
 | ID | Requirement | Pri |
 |---|---|---|
-| OUT-1 | **`/partybonus`**: a table of the roll-stat totals (CM, CR, CR subtypes) each counted character receives, then the combat notes (with their descriptions), the effects, and the *not counted* line. It shows totals only. | M |
-| OUT-2 | **`/mybonus [character]`**: totals for one character (roll stats, combat notes, effects), plus a single line about any bonus missed because the level is missing. It shows totals only. | M |
-| OUT-3 | **`/breakdown`** (whole party): a detailed version of the old master list. For **each bonus in play**, it shows its name and org, what it adds up to for each audience (e.g. "+4 CM to non-members, +2 CM to each giver"), and **every contributing character** on its own line with their rank or level where it matters. Then: effects, the working for each character's totals (e.g. `CM 2+2+4+5+10 = +23`), and the *not counted* line. | M |
-| OUT-3a | **`/breakdown <character>`**: each stat that character receives, the sum written out, and every contribution with the bonus name, giver and value. Then: bonuses **not applied** to them, with the reason, and what the character **gives**. | M |
-| OUT-3b | Discord messages are limited to 2,000 characters (4,096 in an embed). Longer breakdowns are split across several messages or pages, never cut off. | M |
+| OUT-1 | **`/partybonus`**: a table of the roll-stat totals each counted character receives (CM, CR, and only the CR subtypes that differ from CR for someone), then combat notes (with their descriptions), effects, condition notes, and the *not counted* line. Totals only. | M |
+| OUT-2 | **`/mybonus [character]`**: totals for one character (roll stats, combat notes, effects, condition notes), plus a single line about any bonus missed because the level is missing. Totals only. | M |
+| OUT-2a | **Not-current character notice:** when `/mybonus <character>` or `/breakdown <character>` names a character who isn't its player's current character, the bot works out the totals **as if that character were playing in place of the current one**, and shows a notice at the top, e.g. *"Crateris isn't your current character (you're playing Chris). These totals show Crateris in Chris's place. Use `/play Crateris` to switch."* | M |
+| OUT-3 | **`/breakdown`** (whole party): for **each bonus in play**, its name and source (tree, guild or item), what it gives and to whom, and **every contributing character** with their rank or level where it matters. Then: effects, the working for each character's totals (e.g. `CM 2+2+3+5 = +12`), and the *not counted* line. Secret guilds follow SG-4. | M |
+| OUT-3a | **`/breakdown <character>`**: each stat that character receives, the sum written out, and every contribution with the bonus name, giver and value (including modifiers, e.g. "Holy Aura +3 (2 + 1 Devotion III)"). Then: bonuses **not applied** to them, with the reason, and what the character **gives**. | M |
+| OUT-3b | Discord messages are limited to 2,000 characters (4,096 in an embed). Longer output is split across several messages or pages, never cut off. | M |
 | OUT-4 | If the player isn't in a voice channel, `/mybonus` and `/breakdown <character>` show what the character **gives**, and explain that no party is present. | M |
 | OUT-5 | `/mybonus` and `/breakdown <character>` reply privately by default. `/partybonus` and `/breakdown` (whole party) post publicly by default. An option switches either way. | M |
-| OUT-6 | A player can look up anyone's character. | S |
-| OUT-7 | A pinned `/partybonus` message that updates itself when people join or leave the voice channel. | C |
+| OUT-6 | A player can look up anyone's character (subject to SG-3). | S |
+| OUT-7 | Output never uses pronouns for characters ("to Kael", not "to himself"). | M |
+| OUT-8 | A pinned `/partybonus` message that updates itself when people join or leave the voice channel. | C |
 
-### 6.7 Administration
+### 6.7 Administration and Review
 
 | ID | Requirement | Pri |
 |---|---|---|
-| AD-1 | `/config` sets the GM role, default visibility, sit-out duration (default 12 h) and maximum level. | M |
-| AD-2 | Export and import all data as JSON. | S |
-| AD-3 | One-time import from the current master list. | C |
+| AD-1 | **Settings live in the repository**, in `config/settings.yaml`, not in Discord commands: the `/request` channel, default reply visibility, sit-out duration (default 12 h) and maximum level (75). Changing one is a commit and an automatic deploy, like a catalog change. Secrets (bot token, storage credentials) stay in environment variables (NF-9). | M |
+| AD-2 | **Review:** anyone, typically the DM, can check the party `/breakdown` during a game to catch mistakes and abuse, and ask the owner to fix their character. The maintainer can correct data in the database as a last resort. | M |
 
 ## 7. Commands
 
-Entry follows BN-12: short, single-purpose commands with autocomplete.
-
 ```
-/character register name:<text> [level:<n>] [default:<bool>]
-/character list | rename <character> <new> | delete <character> | default <character>
-/level set <character> <n> | clear <character>
-
+Game night (players)
 /partybonus [channel:<voice>] [private:<bool>]
 /mybonus [character] [public:<bool>] [export:<bogsy>]
 /breakdown [character] [channel:<voice>] [public:<bool>]
-
-/bonus add character:<c> name:<text> stat:<stat> amount:<n> [audience:<everyone|orgs>]
-           [orgs:<o,...>] [giver_included:<default|yes|no>] [note:<text>]
-/bonus add-stat <bonus> stat:<stat> amount:<n>
-/bonus level-rule <bonus> when:<lt|gte> level:<n> stat:<stat> amount:<n>
-/bonus list [character] | edit <bonus> | toggle <bonus> | remove <bonus>
-/effect add character:<c> text:<text> [name:<text>] [audience:<everyone|org>] [org:<o>]
-/effect list [character] | edit <effect> | remove <effect>
-/skill add character:<c> skill:<skill> | remove
-/org amount character:<c> org:<o> amount:<n>
-
-/sitout | /sitin
-/sitout member:<m> | /sitin member:<m>                       (GM)
 /play <character>
-/party [channel:<voice>]
+/sitout   /sitin
 
-/orgs [org]
-/org add full_name:<text> abbrev:<text> membership:<roles|gm|open> | edit | remove   (GM)
-/org rank add <org> name:<text> [role:<discord role>] [order:<n>]                  (GM)
-/org assign <character> <org> [rank:<rank>] | unassign                             (GM)
-/org join <character> <org> | leave <character> <org>                             (open orgs)
-/org bonus add <org> name:<text> stat:<stat> amount:<n>
-           [min_rank:<rank>] [audience:<everyone|org>]                              (GM)
-
-/stats list | add | subtype | alias | describe | remove     (GM)
-/config ...                                                 (Admin)
+Setup (players, for their own characters)
+/character register name:<text> [level:<n>]
+/character list | rename <character> <new> | delete <character>
+           | level <character> <n|clear>
+/add <character> <entry>              skill, boon, item or award
+/remove <character> <entry>
+/guild join <character> <guild> [rank]
+/guild rank <character> <guild> <rank>
+/guild leave <character> <guild>
+/catalog [entry or guild]
+/request <text>
 ```
 
-## 8. Example
+Everyone has the same commands. There are no DM or admin commands: settings and the catalog live in the repository.
 
-### 8.1 Setup (from the current master list)
+## 8. Starting Catalog
 
-| Bonus | Type | Given by | Values | Audience |
+Values come from the skill-tree images and guild write-ups in the Diceknights drive. Items marked *to confirm* wait on the DMs ([dm-rule-questions.md](dm-rule-questions.md)).
+
+### 8.1 Stats
+
+| Stat | Kind | Notes |
+|---|---|---|
+| CM | Roll | Combat modifier; attack and defence combined. |
+| CR | Roll | Challenge roll. |
+| CR vs fear | Roll (CR subtype) | |
+| CR stealth | Roll (CR subtype) | |
+| CR would hurt | Roll (CR subtype) | Applies when a failed CR would cause damage; players ask the DM. |
+| Damage | Combat note (hearts) | Extra hearts dealt when attacking. |
+| Damage reduction | Combat note (hearts) | Hearts mitigated when attacked. |
+| Healing | Combat note (hearts) | Hearts healed at the end of each round. |
+
+### 8.2 Skills
+
+| Skill | Tree | Gives (to allies) | Notes |
+|---|---|---|---|
+| Holy Aura | Holy Knight | +2 CR vs fear | Aura |
+| Bolstering Aura | Holy Knight | +2 CM | Aura |
+| Protective Aura | Holy Knight | Effect: resistance to damage from an Evil source | Aura |
+| Devotion III | Holy Knight | Nothing itself | Modifier: +1 to each of this character's auras |
+| Aura of Defense | Paladin | +5 CR would hurt | Aura |
+| Aura of Hope | Paladin | +10 CM | Aura |
+| Commanding Presence | Commander | +5 CM | Condition: allies in the same range. Not an aura (DM question Q1). |
+| Inspiring Presence | Commander | +5 CR | Doesn't stack. Not an aura (Q1). |
+
+### 8.3 Guilds
+
+| Guild | Membership and ranks | Abilities |
+|---|---|---|
+| **The Guild** | Discord roles: Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend | **Support** (any rank): +2 CM to allies. |
+| **Guild of the Timeless Heroes** (GoTH) | Players join; no ranks | Boons (added with `/add`): **Nuyaru's Love** +1 CM to allies; **Seraph's Affection** +3 CM to allies, replaces Nuyaru's Love (Q4). |
+| **Guild of Thieves** (secret) | Footpad, Burglar, Guild Thief | **Rat Pack** (any rank): +1 CM to other members. **Leadership** (Guild Thief): +2 CM and +2 CR stealth to all members, the giver included; doesn't stack. |
+| **Pirate Coalition** | Swabbie, Crew Mate, First Mate, Captain | **King of the Pirates** (Captain): +2 CM to all members, the giver included; doesn't stack. |
+| **Cult of the Dragon** | Member, High Priest | **High Priest's blessing** (High Priest): to other members, level under 10: +1 heart damage; level 10 or higher: +10 CM. Doesn't stack (Q3). |
+| **Ranger's Guild** | Apprentice, Journeyman, Ranger Captain, Master Ranger | **Wilderness Lore** (Ranger Captain): effect: challenge rolls to resist natural effects are one roll category easier, for the giver and allies. |
+| **Order of Cookery** | Scullery Servant, Sous Chef, Chef, Cookery Master | **Proper Seasoning** (Chef): effect: +1 heart when Invigorated, for the giver and allies. |
+| **HoP** | To be defined (Q6) | To be defined. |
+
+Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Physicians, Lorekeepers) aren't in the catalog. They can be added if one is needed as an audience.
+
+### 8.4 Items and Awards
+
+| Entry | Kind | Gives (to allies) | Status |
+|---|---|---|---|
+| Wills ward stone | Item | +5 CM | To confirm (Q5) |
+| NF (nobuFest pin) | Item | +1 CM | To confirm (Q5) |
+| Champion of Power | Award | +5 CR, +5 CM | To confirm (Q5) |
+
+The sources of the healing and damage reduction bonuses from the original sample are still unknown (Q5).
+
+## 9. Example
+
+### 9.1 Sample game
+
+Voice channel: *AWT Voice*. DM Sam and Bob, an observer, are in the channel but have used `/sitout`. Dana has just joined the server, has no Guild rank role, and hasn't registered a character. Counted characters:
+
+| Character | Level | Discord role | Guilds (rank) | Has |
 |---|---|---|---|---|
-| Support | Org (the Guild; player-level roles) | Each character of a player with a Guild rank role | +2 CM, **fixed** | Everyone |
-| Guild of the Timeless Heroes | Org (GoTH; per character) | GoTH members | CM, **amount set by each member** (e.g. +1, +3, +4) | Everyone |
-| HoP | Org (HoP; per character) | HoP members | CM, **amount set by each member** | HoP members only |
-| Cult of the Dragon | Org (Cult; per character) | Cult members | Level < 10: +1 heart damage; level ≥ 10: +10 CM (fixed, to confirm) | Cult members only |
-| Holy auras | Catalog skills (Holy Knight tree) | Holy Knight characters | *Holy Aura*: +2 CR vs fear. *Bolstering Aura*: +2 CM to allies. (The old list's +3 values are kept in the sample below.) | Everyone |
-| Champion of power | Personal | (a character) | +5 CR (all), +5 CM | Everyone |
-| Wills ward stone | Personal (item) | (a character) | +5 CM | Everyone |
-| Healing | Personal | (a character) | 1 heart healing | Everyone |
-| Damage reduction | Personal | (a character) | 2 hearts damage reduction | Everyone |
-| Chris the holy baker | Effect | Chris | "Effects of extreme cold are negated around Chris" | Everyone |
+| Ioseph | 34 | Guild Vanguard | GoTH | Nuyaru's Love, Seraph's Affection, Champion of Power |
+| Kael | 8 | Junior Adventurer | Cult of the Dragon (Member) | |
+| Crateris | 22 | | Cult of the Dragon (High Priest) | Holy Aura, Bolstering Aura, Protective Aura, Devotion III, Wills ward stone |
+| Chris | not recorded | | Guild of Thieves (Guild Thief) | Inspiring Presence |
+| Mira | 15 | | Guild of Thieves (Footpad), Cult of the Dragon (Member) | Inspiring Presence |
 
-### 8.2 Sample game
-
-Voice channel: *AWT Voice*. DM Sam and Bob, an observer, are in the channel but have used `/sitout`. Dana has just joined the server, has no Guild rank role yet, and hasn't registered a character. She receives bonuses but gives none. Counted characters:
-
-- **Ioseph:** level 34, player has the Guild Vanguard role, GoTH (gives +4), HoP (gives +2); gives *Champion of power*.
-- **Kael:** level 8, player has the Junior Adventurer role, Cult.
-- **Crateris:** level 22, Cult; gives *Holy auras* and *Wills ward stone*.
-- **Chris:** no level recorded, HoP (gives +2); gives *Damage reduction* and the cold effect.
-
-The healing giver isn't in the channel. Damage reduction also protects its giver, Chris.
+What's in play:
+- **Support:** +2 CM each from Ioseph and Kael.
+- **Seraph's Affection:** +3 CM from Ioseph. It replaces Nuyaru's Love.
+- **Champion of Power:** +5 CR and +5 CM from Ioseph.
+- **Crateris's auras, with Devotion III:** Holy Aura +3 CR vs fear, Bolstering Aura +3 CM, and the Protective Aura effect.
+- **Wills ward stone:** +5 CM from Crateris.
+- **Cult of the Dragon:** the High Priest (Crateris) gives Kael (level 8) +1 heart damage, and Mira (level 15) +10 CM.
+- **Inspiring Presence:** Chris and Mira both have it. It doesn't stack, so allies get +5 CR once. Chris and Mira each still get +5 from the other.
+- **Secret guild bonuses:**
+  - Rat Pack: Chris and Mira each get +1 CM from the other.
+  - Leadership: Chris is a Guild Thief, so both get +2 CM and +2 CR stealth, Chris included.
 
 `/partybonus`:
 
 ```
-PARTY BONUSES: AWT Voice (5 counted)
-------------------------------------------
-CHARACTER   CM    CR   CR vs fear
-Ioseph      +12   +5   +8
-Kael        +19   +5   +8
-Crateris    +23   +5   +8
-Chris       +23   +5   +8
-Dana*       +21   +5   +8
-------------------------------------------
+PARTY BONUSES: AWT Voice (6 counted)
+-------------------------------------------------
+CHARACTER   CM    CR    CR vs fear   CR stealth
+Ioseph      +10   +5    +8           +5
+Kael        +18   +10   +13          +10
+Crateris    +12   +10   +10          +10
+Chris       +23   +10   +13          +12
+Mira        +33   +10   +13          +12
+Dana*       +20   +10   +13          +10
+-------------------------------------------------
 COMBAT NOTES
-Kael        Damage +2 hearts (extra hearts dealt when attacking)
-Everyone    Damage reduction 2 hearts (mitigated when attacked)
-------------------------------------------
+Kael        Damage +1 heart (extra hearts dealt when attacking)
+-------------------------------------------------
 EFFECTS
-Effects of extreme cold are negated around Chris the holy baker.
-------------------------------------------
+All but Crateris   Resistance to damage from an Evil source (Protective Aura)
+-------------------------------------------------
 NO CHARACTER SET UP (* only bonuses from Discord roles are counted)
   Dana    no character registered: use /character register
-------------------------------------------
+-------------------------------------------------
 Not counted: DM Sam (sitting out until 11:40 PM), Bob (sitting out until 10:15 PM)
 ```
 
 `/breakdown` (whole party):
 
 ```
-PARTY BREAKDOWN: AWT Voice (5 counted)
-------------------------------------------
-Support (the Guild): +4 CM to non-members, +2 CM to each giver
-    Ioseph     Guild Vanguard        +2 CM to others
-    Kael       Junior Adventurer     +2 CM to others
+PARTY BREAKDOWN: AWT Voice (6 counted)
+-------------------------------------------------
+Support (the Guild): +2 CM to allies from each giver
+    Ioseph     Guild Vanguard
+    Kael       Junior Adventurer
 
-Guild of the Timeless Heroes (GoTH): +4 CM to all but Ioseph
-    Ioseph                           +4 CM to others
+Seraph's Affection (GoTH boon): +3 CM to allies
+    Ioseph                           (replaces Nuyaru's Love)
 
-HoP (HoP members only): +2 CM to Ioseph, +2 CM to Chris
-    Ioseph                           +2 CM to other HoP members
-    Chris                            +2 CM to other HoP members
-
-Cult of the Dragon (cult members only): Kael +2 hearts damage, Crateris +10 CM
-    Kael       level 8               +10 CM to Crateris (level 10+)
-                                     +1 heart damage to Kael himself (damage includes the giver)
-    Crateris   level 22              +1 heart damage to Kael (under level 10)
-
-Champion of power: +5 all CR to everyone, +5 CM to all but Ioseph
+Champion of Power (award): +5 all CR, +5 CM to allies
     Ioseph
 
-Holy auras: +3 CR vs fear to everyone, +3 CM to all but Crateris
+Cult of the Dragon (Cult members only)
+    Crateris   High Priest           +1 heart damage to Kael (level 8)
+                                     +10 CM to Mira (level 15)
+
+Holy Aura (Holy Knight): +3 CR vs fear to allies (2 + 1 Devotion III)
     Crateris
 
-Wills ward stone: +5 CM to all but Crateris
+Bolstering Aura (Holy Knight): +3 CM to allies (2 + 1 Devotion III)
     Crateris
 
-Damage reduction: 2 hearts to everyone (mitigated when attacked)
-    Chris
+Wills ward stone (item): +5 CM to allies
+    Crateris
 
-Effect: Effects of extreme cold are negated around Chris the holy baker.
-    Chris
-------------------------------------------
+Inspiring Presence (Commander): +5 all CR to allies, doesn't stack
+    Chris, Mira
+
+Secret guild bonus: +3 CM and +2 CR stealth to each member present
+    (givers not shown)
+
+Effect: Resistance to damage from an Evil source (Protective Aura), to allies
+    Crateris
+-------------------------------------------------
 TOTALS
-Ioseph     CM 2+2+3+5 = +12           CR +5   CR vs fear 5+3 = +8
-Kael       CM 2+4+5+3+5 = +19         CR +5   CR vs fear 5+3 = +8   Damage 1+1 = +2 hearts
-Crateris   CM 2+2+4+5+10 = +23        CR +5   CR vs fear 5+3 = +8
-Chris      CM 2+2+4+2+5+3+5 = +23     CR +5   CR vs fear 5+3 = +8
-Dana*      CM 2+2+4+5+3+5 = +21       CR +5   CR vs fear 5+3 = +8
-Everyone   Damage reduction 2 hearts
-------------------------------------------
+Ioseph     CM 2+3+5 = +10               CR 5 = +5      CR vs fear 5+3 = +8
+Kael       CM 2+3+5+3+5 = +18           CR 5+5 = +10   CR vs fear 10+3 = +13
+           Damage +1 heart
+Crateris   CM 2+2+3+5 = +12             CR 5+5 = +10   CR vs fear +10
+Chris      CM 2+2+3+5+3+5+3s = +23      CR 5+5 = +10   CR vs fear 10+3 = +13
+           CR stealth 10+2s = +12
+Mira       CM 2+2+3+5+3+5+10+3s = +33   CR 5+5 = +10   CR vs fear 10+3 = +13
+           CR stealth 10+2s = +12
+Dana*      CM 2+2+3+5+3+5 = +20         CR 5+5 = +10   CR vs fear 10+3 = +13
+(s = secret guild bonus)
+-------------------------------------------------
 NO CHARACTER SET UP (* only bonuses from Discord roles are counted)
   Dana    no character registered: use /character register
-------------------------------------------
+-------------------------------------------------
 Not counted: DM Sam (sitting out until 11:40 PM), Bob (sitting out until 10:15 PM)
 ```
 
-If Dana did have a Guild rank role (e.g. Junior Adventurer), her Support would still count without a character. Every other counted character would get +2 CM more, and `/breakdown` would show:
-
-```
-Support (the Guild): +6 CM to non-members, +4 CM to each giver
-    Ioseph     Guild Vanguard        +2 CM to others
-    Kael       Junior Adventurer     +2 CM to others
-    Dana       Junior Adventurer     +2 CM to others   (no character set up)
-```
-
-`/mybonus Crateris`:
-
-```
-CRATERIS (level 22): AWT Voice
-------------------------------------------
-CM          +23
-CR          +5
-CR vs fear  +8
-------------------------------------------
-Damage reduction 2 hearts (mitigated when attacked)
-Effects of extreme cold are negated around Chris the holy baker.
-------------------------------------------
-See how this was worked out: /breakdown Crateris
-```
-
-`/breakdown Crateris`:
+`/breakdown Crateris` (private):
 
 ```
 BREAKDOWN: Crateris (level 22, updated 2026-09-20)
-------------------------------------------
-CM = 2 + 2 + 4 + 5 + 10 = +23
+-------------------------------------------------
+CM = 2 + 2 + 3 + 5 = +12
    +2   Support               from Ioseph (Guild Vanguard)
    +2   Support               from Kael (Junior Adventurer)
-   +4   Timeless Heroes       from Ioseph
-   +5   Champion of power     from Ioseph
-  +10   Cult of the Dragon    from Kael (Crateris is level 10+)
-CR = 5 = +5
-   +5   Champion of power     from Ioseph
-CR vs fear = 5 (all CR) + 3 = +8
-   +5   Champion of power     from Ioseph
-   +3   Holy auras            from Crateris (CR includes giver)
-Damage reduction = 2 hearts
-    2   Damage reduction      from Chris
-------------------------------------------
+   +3   Seraph's Affection    from Ioseph
+   +5   Champion of Power     from Ioseph
+CR = 5 + 5 = +10
+   +5   Champion of Power     from Ioseph
+   +5   Inspiring Presence    from Chris, Mira (doesn't stack: counted once)
+CR vs fear = 10 (all CR) = +10
+CR stealth = 10 (all CR) = +10
+-------------------------------------------------
 NOT APPLIED
-  Holy auras +3 CM, Wills ward stone +5 CM    CM excludes the giver
-  Cult of the Dragon (own)                    CM excludes the giver
-  HoP +2 CM                                   HoP members only
-------------------------------------------
-CRATERIS GIVES: Holy auras, Wills ward stone, Cult of the Dragon
+  Holy Aura, Bolstering Aura, Wills ward stone    allies only (Crateris is the giver)
+  Cult of the Dragon                              allies only (Crateris is the giver)
+-------------------------------------------------
+CRATERIS GIVES
+  Holy Aura +3 CR vs fear (2 + 1 Devotion III)
+  Bolstering Aura +3 CM (2 + 1 Devotion III)
+  Protective Aura: resistance to damage from an Evil source
+  Wills ward stone +5 CM
+  Cult of the Dragon (High Priest)
+```
+
+`/mybonus Mira` (private; Mira is a Guild of Thieves member):
+
+```
+MIRA (level 15): AWT Voice
+-------------------------------------------------
+CM          +33
+CR          +10
+CR vs fear  +13
+CR stealth  +12
+-------------------------------------------------
+Resistance to damage from an Evil source (Protective Aura)
+-------------------------------------------------
+Secret guild (Guild of Thieves), included above:
+  Rat Pack     +1 CM (1 other member present)
+  Leadership   +2 CM, +2 CR stealth (a Guild Thief is present)
+-------------------------------------------------
+See how this was worked out: /breakdown Mira
 ```
 
 A character with no level recorded would see this in `/mybonus`:
 
 ```
-1 bonus not applied: level not recorded. Use /level set <character> <n>.
+1 bonus not applied: level not recorded. Use /character level <character> <n>.
 ```
 
-## 9. Non-Functional Requirements
+If Crateris's player were actually playing another character, `/mybonus Crateris` would start with the OUT-2a notice:
+
+```
+NOTE: Crateris isn't your current character (you're playing Elowen).
+These totals show Crateris in Elowen's place. Use /play Crateris to switch.
+```
+
+## 10. Non-Functional Requirements
 
 | ID | Requirement |
 |---|---|
-| NF-1 | **Responsiveness:** replies within Discord's 3-second limit. Calculating a 20-character party takes under 200 ms. |
+| NF-1 | **Responsiveness:** commands acknowledge within Discord's 3-second limit (deferring the reply if needed). Calculating a 20-character party takes under 200 ms. |
 | NF-2 | **Scale:** one server (AWT), up to about 300 characters and about 20 present at once. |
-| NF-3 | **Reliability:** reconnects automatically and restarts after a crash. All state lives in the database. |
-| NF-4 | **Permissions:** players change only their own characters' data unless they are a GM. Checked in the bot on every command. |
-| NF-5 | **Privacy:** Discord IDs, display names and game data only. Doesn't read message content. |
+| NF-3 | **Reliability:** reconnects automatically and restarts after a crash. All character data lives in the database; the catalog lives in the repository. A restart mid-game loses nothing. |
+| NF-4 | **Permissions:** players change only their own characters, and sit out only themselves. Checked in the bot on every command. There are no elevated roles. |
+| NF-5 | **Privacy:** Discord IDs, display names and game data only. Doesn't read message content. Secret guild membership is protected as in section 6.4. |
 | NF-6 | **Intents:** `Guilds` and `GuildVoiceStates` (both non-privileged). Roles for present players are looked up individually, so no privileged intents are needed. Results are cached for about 60 s. |
-| NF-7 | **Quality (see section 12):** type-checked; the calculation engine has at least 90% branch coverage, including every rule in section 4 and the numbers in section 8; CI on every push. |
-| NF-8 | **Operations:** structured logs; continuous off-site database replication plus nightly snapshots (section 11.1). |
-| NF-9 | **Security:** the bot token lives only in environment variables or secrets. |
+| NF-7 | **Quality (see section 13):** type-checked; the calculation engine has at least 90% branch coverage, including every rule in section 4 and the numbers in section 9; CI on every push. |
+| NF-8 | **Operations:** structured logs; nightly off-site database snapshots (section 12.1). |
+| NF-9 | **Security:** the bot token and storage credentials live only in environment variables or the host's secret store. |
+| NF-10 | **Time zones:** every time the bot stores or checks (sit-out expiry, level "last updated", audit log, snapshots) is in **GMT (UTC)**, never the host's local time. Times shown to players use Discord timestamps (`<t:…>`), which Discord displays in each reader's own time zone. |
 
-## 10. Data Model and Engine
+## 11. Data Model and Engine
+
+The **catalog** and **settings** aren't stored in the database. They're loaded from `data/*.yaml` and `config/settings.yaml` at startup, and the database stores only catalog IDs. All timestamps are GMT (UTC).
 
 ```
-Settings        (server_id, gm_role_id, presence_mode, default_visibility,
-                 sitout_hours, level_max)
-Stat            (id, name, parent_stat_id NULL, kind[roll|combat_note], unit[number|hearts],
-                 description, giver_included_default, export_name NULL, sort_order)
-StatAlias       (stat_id, alias)
-Player          (discord_user_id, default_character_id NULL, active_character_id NULL)
-Character       (id, discord_user_id, name UNIQUE, level NULL, level_updated_at)
-Org             (id, full_name UNIQUE, abbreviation UNIQUE, membership[roles|gm|open], description)
-OrgRank         (id, org_id, name, rank_order, discord_role_id NULL)
-OrgRole         (org_id, discord_role_id)                 -- role membership without ranks
-CharacterOrg    (character_id, org_id, rank_id NULL, assigned_by, assigned_at)
-Bonus           (id, name, kind[numeric|effect], effect_text NULL,
-                 giver_character_id NULL, giver_org_id NULL, min_rank_id NULL,
-                 audience[everyone|orgs],
-                 giver_included[default|yes|no], is_enabled, note)
-BonusValue      (bonus_id, stat_id, amount NULL, rank_id NULL, amount_source[fixed|member])
-MemberAmount    (bonus_id, stat_id, character_id, amount)   -- member-set org bonus amounts
-Skill           (id, name UNIQUE, tree NULL, prerequisite_skill_id NULL)  -- catalog; its bonus
-                                                            -- lives in Bonus/BonusValue
-CharacterSkill  (character_id, skill_id)
-BonusLevelRule  (bonus_id, op[lt|gte], level, stat_id, amount)
-BonusAudience   (bonus_id, org_id)
+Player          (discord_user_id, current_character_id NULL)
+Character       (id, discord_user_id, name UNIQUE NOCASE, level NULL, level_updated_at)
+CharacterEntry  (character_id, entry_id)                  -- skill, boon, item or award (catalog ID)
+CharacterGuild  (character_id, guild_id, rank_id NULL, joined_at)   -- catalog IDs
 SitOut          (discord_user_id, until, set_by)
--- Player also holds active_character_id NULL. Presence comes from live voice
--- state, so no session records are kept.
-AuditLog        (id, actor_user_id, entity, entity_id, action, before_json, after_json, at)
+AuditLog        (id, actor_user_id, character_id, action, before_json, after_json, at)
 ```
 
-Role-based membership isn't stored. It's worked out on each calculation from the player's current Discord roles and applied to whichever character that player has present.
+Support isn't stored. It's worked out on each calculation from the player's current Discord roles.
 
 **Calculation engine:** a pure function with no Discord or database code:
 
 ```
-compute(counted_characters, player_roles, memberships, bonuses, stats) -> PartyReport
+compute(counted_players, player_roles, character_entries, character_guilds, catalog) -> PartyReport
 ```
 
-0. **Who is counted:** members in the voice channel (excluding bots), minus anyone with an active sit-out. Each counted player uses their active character, or a stand-in with no character (Discord name, no level, no skills or per-character orgs) if none is set up.
-1. **Work out memberships:** combine each counted character's own org memberships with those from their player's Discord roles.
-2. **List the gives:** personal bonuses of counted characters, and org bonuses once for each qualifying counted member.
-3. **Apply them to recipients:** for each recipient, check each give against the audience, the giver rule and any level rule. Record it as *applied* (with its amount) or *not applied* (with a reason).
-4. **Add up:** total each stat, then add parent-stat amounts into subtypes.
-5. **Display:** `PartyReport` holds everything. `/partybonus` and `/mybonus` display the totals; `/breakdown` groups the gives by bonus and lists every contributor.
+0. **Who is counted:** members in the voice channel (excluding bots), minus anyone with an active sit-out. Each counted player uses their current character, or a stand-in with no character if none is set up. For OUT-2a, the named character replaces its player's current character.
+1. **Work out memberships:** each character's guilds and ranks, plus the Guild rank from their player's Discord roles.
+2. **List the gives:** each counted character's entries (after replacements, and with modifiers such as Devotion III applied), and each guild ability they qualify for by rank.
+3. **Apply them to recipients:** for each recipient, check each give against the audience, whether the giver is included, and any level rule. Record it as *applied* (with its amount) or *not applied* (with a reason: giver excluded, not in audience, no level, replaced, or not stacked).
+4. **Stacking:** for gives that don't stack, keep one per recipient (the highest amount).
+5. **Add up:** total each stat, then add parent-stat amounts into subtypes.
+6. **Display:** `PartyReport` holds everything, including which gives come from secret guilds. The output layer applies the secrecy rules (section 6.4).
 
-## 11. Recommended Technology Stack
+## 12. Technology, Storage and Deployment
 
 | Layer | Choice | Why |
 |---|---|---|
@@ -446,19 +484,22 @@ compute(counted_characters, player_roles, memberships, bonuses, stats) -> PartyR
 | Discord library | **discord.py 2.x** (`app_commands`) | Mature and maintained; slash commands and autocomplete. |
 | Database | **SQLite** (WAL mode) | A single file, no database server to run. Plenty for one server. |
 | ORM / migrations | **SQLAlchemy 2.0 (async)** + **aiosqlite**, **Alembic** | Typed models; versioned schema changes. |
+| Catalog | **YAML** files validated with **pydantic** | Easy to edit by hand; checked in CI. |
 | Config | **pydantic-settings** | Typed config from the environment. |
 | Testing | **pytest**, **pytest-asyncio**, **hypothesis** | Property tests fit the counting rules well. |
-| Quality | **ruff**, **mypy --strict** | Lint, format, type-check. |
+| Quality | **ruff**, **mypy**, **pytest-cov** | Lint, format, type-check; enforce 90% branch coverage on the engine. |
 | Packaging | **uv** + `pyproject.toml` | Fast, reproducible. |
 | Deploy | **Docker** on a small VPS (about $4–6/mo) or Fly.io / Railway with a volume | Needs a process that's always running. |
-| CI | **GitHub Actions** | Lint, type-check, test, build. |
-| Backups | **Litestream** replication plus nightly `sqlite3 .backup` snapshots to object storage | Meets NF-8; see 11.1. |
+| CI/CD | **GitHub Actions** | Lint, type-check, test, validate the catalog, build and deploy. |
+| Backups | Nightly `sqlite3 .backup` snapshots to object storage | Meets NF-8; see 12.1. |
 
 **Alternative:** Node.js 22 + discord.js v14 + Prisma + Vitest.
 
-### 11.1 Storage and Backups
+### 12.1 Storage and Backups
 
-**Where the data lives:** a single **SQLite** file (e.g. `data/awt-bonus.db`) on the same machine as the bot. There's no separate database server; the bot reads and writes the file directly. Nothing is stored in Discord. Roles and voice presence are read live from Discord each time a command runs.
+**Where the data lives:** a single **SQLite** file (e.g. `data/awt-bonus.db`) on the same machine as the bot. Nothing is stored in Discord. Roles and voice presence are read live from Discord each time a command runs.
+
+**Hosting:** Craig hosts the bot at launch. Long-term hosting is an open question (section 16).
 
 | Hosting | Location of the database file |
 |---|---|
@@ -470,116 +511,122 @@ compute(counted_characters, player_roles, memberships, bonuses, stats) -> PartyR
 |---|---|---|
 | DB-1 | The database path is set by configuration (`DATABASE_URL`), never hard-coded. | M |
 | DB-2 | The database must be on **persistent** storage. The bot refuses to start if the path is on a known temporary filesystem, or if it can't write a test file. | M |
-| DB-3 | SQLite runs in **WAL mode** with a busy timeout, so reads never block writes. Only **one** bot process uses the file at a time. | M |
+| DB-3 | SQLite runs in **WAL mode** with a busy timeout. Only **one** bot process uses the file at a time. | M |
 | DB-4 | **Schema changes** only happen through Alembic migrations. They run automatically at startup, after a snapshot is taken first. | M |
-| DB-5 | **Continuous replication:** Litestream runs alongside the bot and streams every change to object storage (e.g. Backblaze B2 or Amazon S3). If the host fails, at most a few seconds of changes are lost. | S |
+| DB-5 | **Continuous replication:** Litestream streams every change to object storage, so at most seconds of changes are lost instead of up to a day. Not needed at launch: losing a day of character changes costs players a few minutes of re-entering. | C |
 | DB-6 | **Nightly snapshots:** a full `sqlite3 .backup` copy goes to the same object storage every night and is kept for 30 days. | M |
-| DB-7 | **Restore is documented and tested:** a written runbook covers restoring from Litestream or from a snapshot onto a new host. It's tried at least once before AWT goes live. | M |
-| DB-8 | **Readable export:** `/admin export` (AD-2) produces a JSON copy a GM can download at any time, independent of the backups. | S |
-| DB-9 | **Secrets:** storage credentials live only in environment variables or the host's secret store, like the bot token. | M |
+| DB-7 | **Restore is documented and tested:** a written runbook covers restoring onto a new host. It's tried at least once before AWT goes live. | M |
 
-**Expected size:** well under 10 MB, even with hundreds of characters and a long audit log. Storage costs are pennies a month.
+**Expected size:** well under 10 MB. Storage costs are pennies a month.
 
-**Alternative (not planned):** a managed **Postgres** database (e.g. Neon or Supabase) would keep the data separate from the bot's host. It adds another account and a network dependency, so it isn't needed at AWT's size. Because data access goes through SQLAlchemy, switching later is mainly a change to `DATABASE_URL` plus a one-time data copy.
-
-## 12. Testing Strategy
-
-Testing is layered. Most of the checking is done by fast automated tests that never touch Discord. Live testing in Discord only confirms the Discord-specific parts, and a trial alongside the current master list proves the bot at AWT.
-
-### 12.1 Calculation Engine (most of the work)
-
-The engine is a pure function (section 10), so it's the easiest part to test thoroughly. It's also where mistakes would hurt most.
+### 12.2 Deployment
 
 | ID | Requirement | Pri |
 |---|---|---|
-| TS-1 | **Scenario files:** engine tests are written as YAML scenarios: who is in the channel, what they give, and the expected totals (and, where relevant, the expected *not applied* lines). They can be read and written without reading code. Every rules question that comes up becomes a permanent scenario. The first set, `engine-scenarios.yaml`, covers every rule in section 4 and the full sample game in section 8. | M |
-| TS-2 | **Edge cases** each get a scenario: no level recorded; level exactly at a threshold (10); a player with no character but a Guild role; everyone sitting out; an empty channel; a member-set org amount that hasn't been entered; the same skill from two characters; bots in the channel. | M |
-| TS-3 | **Property tests (Hypothesis):** thousands of randomly generated parties check rules that must always hold:<br>• nobody receives their own CM bonus;<br>• everyone receives their own CR and combat-note bonuses;<br>• every total equals the sum of the lines `/breakdown` shows for it;<br>• a subtype total is never lower than its parent's;<br>• the order of players doesn't change the result;<br>• removing a giver never increases anyone's total (with non-negative bonuses). | M |
+| DP-1 | **Automatic deployment:** every push to `main` that passes CI (tests, type checks, catalog validation) is deployed automatically. | M |
+| DP-2 | **Branches:** experimental work happens on branches and reaches `main` by merge. Only `main` is deployed. | M |
+| DP-3 | **Catalog changes are ordinary commits.** Adding a skill or award is an edit to a data file, a push, and an automatic deploy: a few minutes end to end. | M |
+| DP-4 | **Safe restarts:** a deploy restarts the bot in a few seconds without losing data, so deploying during a game is harmless. | M |
 
-### 12.2 Output
+## 13. Testing Strategy
 
-| ID | Requirement | Pri |
-|---|---|---|
-| TS-4 | **Snapshot tests:** the text of `/partybonus`, `/mybonus` and `/breakdown` for the sample game is saved as reference files and compared on every run, so layout changes are caught and reviewed on purpose. | M |
-| TS-5 | **Message size:** a very large party must split across messages under Discord's 2,000-character limit and never cut off mid-line (OUT-3b). | M |
+Most of the checking is done by fast automated tests that never touch Discord. Live testing in Discord only confirms the Discord-specific parts, and a trial at AWT, with DMs checking the numbers, proves the bot in real games.
 
-### 12.3 Commands and Database (no Discord needed)
+### 13.1 Calculation Engine
 
 | ID | Requirement | Pri |
 |---|---|---|
-| TS-6 | The Discord-specific code is kept thin: it reads voice members and roles, and sends replies. Command logic runs behind it against a **fake Discord** that supplies voice members, roles and bots from test data. | M |
-| TS-7 | **Permission tests:** players can't change other players' characters; GMs can. Every GM-only command is checked. | M |
-| TS-8 | **Fake clock:** time-based behavior (the 12-hour `/sitout`, level "last updated" dates, snapshot retention) is tested with a controllable clock, not real waiting. | M |
-| TS-9 | **Database tests:** each test gets a fresh temporary SQLite file. Alembic migrations are tested from an empty database and from the previous release's schema. | M |
-| TS-10 | **Backup and restore:** an automated test restores a snapshot into a new database and checks the data matches, in addition to the manual runbook in DB-7. | S |
+| TS-1 | **Scenario files:** engine tests are written as YAML scenarios: who is in the channel, what they have, and the expected totals (and, where relevant, *not applied* lines). They use their own test catalog, so changing a real catalog value doesn't break them. `engine-scenarios.yaml` covers every rule in section 4 and the sample game in section 9. Every rules question that comes up becomes a permanent scenario. | M |
+| TS-2 | **Edge cases** each get a scenario: no level recorded; level exactly 10; a player with no character but a Guild role; everyone sitting out; an empty channel; the same skill from two characters; bots in the channel; two givers of a bonus that doesn't stack; a replaced boon; a retired entry. | M |
+| TS-3 | **Property tests (Hypothesis):** thousands of randomly generated parties check rules that must always hold:<br>• nobody receives their own bonus unless the entry includes the giver;<br>• a bonus that doesn't stack is counted at most once per recipient;<br>• every total equals the sum of the lines `/breakdown` shows for it;<br>• a subtype total is never lower than its parent's;<br>• the order of players doesn't change the result;<br>• removing a giver never increases anyone's total. | M |
+| TS-4 | **Catalog validation tests:** the real catalog loads and passes every check in CT-7. | M |
 
-### 12.4 Live Testing on a Private Server
-
-| ID | Requirement | Pri |
-|---|---|---|
-| TS-11 | A **separate test bot** application (its own token and database) runs on a private test server, so testing never touches AWT data. | M |
-| TS-12 | The test server **mirrors AWT's setup**: the five Guild rank roles, a voice channel, and a music bot. Testing uses two or three people or alt accounts operated by hand. | M |
-| TS-13 | A **manual checklist** covers what automated tests can't:<br>• joining and leaving voice, then re-running commands;<br>• role changes showing up;<br>• bots ignored;<br>• autocomplete;<br>• private versus public replies;<br>• long `/breakdown` output splitting;<br>• the bot restarting mid-game without losing data;<br>• `/sitout` / `/sitin`;<br>• a member with no character. | M |
-| TS-14 | **No self-bots:** real user accounts are never automated to drive tests. That breaks Discord's Terms of Service. | M |
-
-### 12.5 Trial at AWT
+### 13.2 Output
 
 | ID | Requirement | Pri |
 |---|---|---|
-| TS-15 | **Parallel run:** for the first few games, the bot runs alongside the existing master list and the numbers are compared. Every mismatch is either a bug or a rule modeled wrong, and becomes a new scenario. | M |
-| TS-16 | A few players try `/mybonus` and `/breakdown` and give feedback on how clear the output is before general rollout. | S |
+| TS-5 | **Snapshot tests:** the text of `/partybonus`, `/mybonus` and `/breakdown` for the sample game is saved as reference files and compared on every run. | M |
+| TS-6 | **Secrecy tests:** for the sample game, no public output and no non-member's output contains a secret guild member's name next to a secret guild bonus, or lists secret guild members. | M |
+| TS-7 | **Message size:** a very large party splits across messages under Discord's 2,000-character limit and never cuts off mid-line (OUT-3b). | M |
 
-### 12.6 Continuous Integration
-
-| ID | Requirement | Pri |
-|---|---|---|
-| TS-17 | Every push runs linting (ruff), type checks (mypy), all automated tests, and a coverage check (at least 90% branch coverage for the engine). A change that breaks a scenario or a snapshot can't be merged. | M |
-
-**Fit with the milestones:** 12.1 is built together with the engine in M1, 12.2–12.3 grow with M2–M3, and 12.4–12.5 happen before and during launch.
-
-## 13. Optional: Hand-off to Bogsy's Dice Bot
-
-The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stats only** (CM, CR, CR subtypes) as values for the player to enter with Bogsy's `/modifier`. Combat notes and effects are never exported.
-
-Each character's totals are different, so these have to be personal Bogsy modifiers, and the player enters them. Another bot can't run Bogsy's slash commands.
+### 13.3 Commands and Database (no Discord needed)
 
 | ID | Requirement | Pri |
 |---|---|---|
-| BG-1 | The export lists each roll stat's modifier name and value, e.g. `awt_cm` = `+23`, `awt_cr` = `+5`, `awt_cr_fear` = `+8`. It also gives copyable text lines (`.awt_cm = +23 "AWT CM"`). | C |
-| BG-2 | The GM sets modifier names (`export_name`) per stat. The bot avoids names that clash with Bogsy's reserved words. | C |
+| TS-8 | The Discord-specific code is kept thin. Command logic runs against a **fake Discord** that supplies voice members, roles and bots from test data. | M |
+| TS-9 | **Permission tests:** no player can change another player's characters, whatever Discord roles they have. Every command that acts on a character is checked. | M |
+| TS-10 | **Fake clock:** time-based behavior is tested with a controllable clock in GMT (UTC), including a host set to a different time zone. | M |
+| TS-11 | **Database tests:** each test gets a fresh temporary SQLite file. Migrations are tested from empty and from the previous release's schema. | M |
+| TS-12 | **Backup and restore:** an automated test restores a snapshot into a new database and checks the data matches. At launch, the manual restore in DB-7 is enough. | C |
+
+### 13.4 Live Testing on a Private Server
+
+| ID | Requirement | Pri |
+|---|---|---|
+| TS-13 | A **separate test bot** (its own token and database) runs on a private test server, so testing never touches AWT data. | M |
+| TS-14 | The test server **mirrors AWT's setup**: the five Guild rank roles, a voice channel, and a music bot. Testing uses two or three people or alt accounts operated by hand. | M |
+| TS-15 | A **manual checklist** covers: joining and leaving voice; role changes; bots ignored; autocomplete; private versus public replies; long output splitting; a restart mid-game; `/sitout` / `/sitin`; a member with no character; the not-current character notice; secret guild privacy; a catalog change deployed automatically. | M |
+| TS-16 | **No self-bots:** real user accounts are never automated to drive tests. That breaks Discord's Terms of Service. | M |
+
+### 13.5 Trial at AWT
+
+| ID | Requirement | Pri |
+|---|---|---|
+| TS-17 | **DM-checked trial:** for the first few games, the DM checks the party `/breakdown` by hand against the rules. Every mismatch is a bug, a rule modeled wrong, or a catalog error. Each becomes a new scenario or catalog fix. | M |
+| TS-18 | A few players try `/mybonus` and `/breakdown` and give feedback on how clear the output is before general rollout. | S |
+
+## 14. Optional: Hand-off to Bogsy's Dice Bot
+
+The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stats only** (CM, CR, CR subtypes) as values for the player to enter with Bogsy's `/modifier`. Combat notes and effects are never exported. The exported values are party bonuses only; they add on top of the character's own CM and CR.
+
+| ID | Requirement | Pri |
+|---|---|---|
+| BG-1 | The export lists each roll stat's modifier name and value, e.g. `awt_cm` = `+33`, `awt_cr` = `+10`, `awt_cr_fear` = `+13`, with copyable text lines (`.awt_cm = +33 "AWT CM"`). | C |
+| BG-2 | Modifier names come from the catalog's stat definitions and avoid Bogsy's reserved words. | C |
 | BG-3 | The export also lists modifiers to clear (`.awt_cm =`) for stats that are now zero. | C |
 
-## 14. Future Enhancements
+## 15. Future Enhancements
 
 - Buttons on the `/partybonus` message (Join / Leave / Refresh).
-- A pinned message that updates itself (OUT-7).
-- A one-time import from the master list (AD-3).
+- A pinned message that updates itself (OUT-8).
+- Switching an item off temporarily without removing it (e.g. not equipped).
+- Continuous database replication with Litestream (DB-5) and an automated restore test (TS-12).
+- Stricter type checking (`mypy --strict`).
 
-## 15. Open Questions
+## 16. Open Questions
 
+**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), whether anything else includes the giver (Q2), the Cult's level rule (Q3), GoTH boons (Q4), the full item and award list (Q5), and HoP (Q6).
 
-**Resolved:** bonus entry starts with short slash commands (BN-12).
+**Not tracked yet:** Rat Pack also gives +1 to escape, street work and burglary rolls, and Leadership to burglary and street work. These are left out until it's clear whether escape counts as a combat-time CR.
 
-**Resolved:** there are no sessions. The bot counts whoever is in the voice channel. The DM and observers use `/sitout`, which lasts 12 hours (configurable), and `/sitin` ends it early.
+**Design question for later: one `/add` or several commands?** The document uses a single `/add <character> <entry>` (and `/remove`) for skills, boons, items and awards, with autocomplete labeling each entry's kind. The alternative is separate commands such as `/addskill` and `/additem`. One command means less to learn; separate commands make it clearer what's being added.
 
-**Resolved:** GoTH, HoP and the Cult of the Dragon are recorded per character in the bot. Only the Guild ranks come from Discord roles. Since players edit freely, these orgs default to *open* membership: players add their own characters.
+**For later consideration: long-term hosting.** Craig hosts the bot at launch. If it runs for the long term, decide who pays for hosting, who holds the bot token and backup credentials, who fixes it when it's down at game time, and how it's handed over if Craig steps away.
 
-**Resolved:** players edit their own characters' bonuses, skills, org amounts and levels freely. Every change is written to the audit log, and a GM can review or undo it.
+### Resolved
 
-**Resolved:** duplicates stack. Two Holy Knights with Holy Aura give +4 CR vs fear. Every giver counts, with no exceptions.
+- **Allies only:** a bonus never applies to its giver, unless the catalog entry says so (Leadership, King of the Pirates, Wilderness Lore, Proper Seasoning).
+- **Fixed catalog:** skills, guild abilities, boons, items and awards come from data files in the repository. Players pick from it and can't type in bonuses. Missing entries are requested with `/request`.
+- **Catalog changes:** permanent IDs, retired instead of deleted, linked rather than copied, validated in CI, and deployed automatically on push to `main`.
+- **Stacking:** every giver counts, except entries marked "doesn't stack", which count once. A replacing entry supersedes the one it replaces.
+- **Devotion III** adds +1 to all of the character's own auras, from any tree. Only skills named "Aura" are auras (pending Q1).
+- **Conditions** such as "same range" are notes; the DM rules. "Would hurt" is a CR subtype that players ask about.
+- **CM** combines the old combat bonus and combat defence.
+- **GoTH boons** are always on. **Bard Inspiration** is out of scope.
+- **Guild of Thieves** is secret, tongue-in-cheek: the bot never names members, but public totals still include their bonuses, even though that makes them easy to spot. Leadership needs any Guild Thief present, and a stealth bonus counts toward both CM and stealth CRs.
+- **The Cult bonus** comes only from the High Priest.
+- **Guild rank** is chosen by the player. Support comes from Discord roles.
+- **Sit-outs:** players sit only themselves out (when running the game or just listening); the bot doesn't guess.
+- **No DM or admin role** in the bot: everyone has the same commands and changes only their own characters. DMs review informally with `/breakdown`.
+- **Times** are stored in GMT (UTC).
+- **No master list:** each player enters their own characters.
 
-**Resolved:** all five Guild ranks give the same +2 CM Support. The ranks only decide who qualifies.
-
-**Resolved:** org bonus amounts can be set by each member (e.g. GoTH +1 or +3); HoP is an ordinary org.
-
-**Resolved:** combat notes (damage, damage reduction, healing) apply to the giver too, like CR.
-
-## 16. Milestones
+## 17. Milestones
 
 | Milestone | Scope |
 |---|---|
-| **M1: Engine** | Stats (giver rule, subtypes, combat notes), characters and level, personal bonuses, calculation engine with tests for section 4 and section 8. |
-| **M2: Commands** | `/character`, `/level`, `/bonus`, `/effect`, voice presence, `/sitout` / `/sitin`, `/play`, `/partybonus`, `/mybonus`, `/breakdown`. |
-| **M3: Orgs** | Org list (full name and abbreviation, `/orgs`), role-based and per-character membership, ranks, org bonuses, audiences, level rules. |
-| **M4: Ops** | Docker, CI, hosting, persistent storage, Litestream and nightly snapshots, restore runbook, `/config`, JSON export/import. |
-| **M5: Extras** | Bogsy hand-off, buttons, master-list import. |
+| **M1: Engine and catalog** | Catalog format and loader with validation; stats; the calculation engine with every rule in section 4; scenario and property tests. |
+| **M2: Characters and output** | `/character`, `/add`, `/remove`, voice presence, `/sitout` / `/sitin`, `/play`, `/partybonus`, `/mybonus`, `/breakdown`, `/catalog`. |
+| **M3: Guilds** | `/guild join/rank/leave`, Support from Discord roles, secret guilds. |
+| **M4: Ops** | Docker, CI with catalog validation, automatic deployment, persistent storage, nightly snapshots, restore runbook, settings file, `/request`. |
+| **M5: Extras** | Bogsy hand-off, buttons. |
