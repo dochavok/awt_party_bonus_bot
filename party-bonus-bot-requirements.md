@@ -12,7 +12,7 @@
 
 Working out party bonuses by hand is slow and easy to get wrong. Someone has to know every character's bonuses, drop the ones whose characters aren't in the game, and add up the rest for each character.
 
-This bot does that work. Every skill, guild ability, item and award that gives a party bonus is defined once, in a **fixed catalog** kept in the bot's repository. Players record what their characters **have** (their skills, guilds and items) by picking from the catalog. When someone asks, the bot works out totals from the characters who are present:
+This bot does that work. Every skill, guild ability, item and title that gives a party bonus is defined once, in a **fixed catalog** kept in the bot's repository. Players record what their characters **have** (their skills, guilds and items) by picking from the catalog. When someone asks, the bot works out totals from the characters who are present:
 
 - `/partybonus`: the totals every present character receives.
 - `/mybonus [character]`: the totals for one of your characters.
@@ -50,9 +50,9 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 | **Maintainer** | Whoever edits the catalog in the repository (Craig at launch). |
 | **Character** | One of a player's AWT characters. |
 | **Level** | Optional, per character. Only used for level-based bonuses (today, just the Cult of the Dragon). |
-| **Stat** | What a bonus adds to. **Roll stats:** CM (combat modifier, attack and defence combined), CR (challenge roll) and CR subtypes (*vs fear*, *stealth*, *would hurt*). **Combat notes:** damage, damage reduction, healing, measured in hearts. |
-| **Catalog** | The fixed list of stats, skills, guilds and items/awards, kept as data files in the repository (section 6.2). |
-| **Entry** | One thing in the catalog that a character can have: a **skill** (from a skill tree), a **boon** (e.g. a GoTH quest boon), a **rank** (e.g. Guild Thief), an **item** (e.g. Wills ward stone) or an **award** (e.g. Champion of Power). |
+| **Stat** | What a bonus adds to. **Roll stats:** CM (combat modifier, attack and defence combined), CR (challenge roll) and CR subtypes (*vs fear*, *stealth*, *escape*, *would hurt*). **Combat notes:** damage, damage reduction, healing, measured in hearts. |
+| **Catalog** | The fixed list of stats, skills, guilds, items and titles, kept as data files in the repository (section 6.2). |
+| **Entry** | One thing in the catalog that a character can have: a **skill** (from a skill tree), a **boon** (e.g. a GoTH quest boon), a **rank** (e.g. Guild Thief), an **item** (e.g. Wills ward stone) or a **title** (e.g. Champion of Power, Hero of Passion). |
 | **Guild** | Any group a character can belong to: a guild, order, cult or coalition. Membership decides guild-only audiences and secrecy. A guild can grant an **automatic ability** to every member on joining; today only the Guild of Thieves does (*Rat Pack*). |
 | **Rank entry** | A guild rank that grants a bonus, added by name like a skill, e.g. *Guild Thief* (grants Leadership) or *High Priest*. Ranks that grant nothing aren't in the catalog. A higher rank replaces the lower one (Master Ranger replaces Ranger Captain). |
 | **Secret guild** | A guild whose members are never revealed by the bot (the Guild of Thieves). |
@@ -60,7 +60,7 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 | **Giver** | The character who provides a bonus. |
 | **Recipient** | A present character who receives a bonus. |
 | **Allies** | Everyone in a bonus's audience **except the giver**. All bonuses go to allies unless the catalog says the giver is included. |
-| **Audience** | Who can receive a bonus: the whole **party**, or only members of one **guild**. |
+| **Audience** | Who can receive a bonus: the whole **party**, only members of one **guild**, or only other **holders** of the same entry (e.g. Hero of Passion goes only to other HoP holders). |
 | **Stacks / doesn't stack** | A bonus that stacks is counted once per giver. One that doesn't stack is counted once per recipient, however many givers are present. |
 | **Replaces** | A catalog entry that supersedes another: a character with both gives only the better one (e.g. Seraph's Affection replaces Nuyaru's Love). |
 | **Modifier** | An entry that changes the character's other entries instead of giving a bonus itself (e.g. Devotion III: +1 to each of the character's auras). |
@@ -75,9 +75,11 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 3. **Unless the catalog includes the giver.** A catalog entry can say the giver benefits too. Today that's Leadership, King of the Pirates, Wilderness Lore and Proper Seasoning, whose text says "all members" or "you and your allies".
 4. **Some bonuses don't stack.** An entry marked *doesn't stack* is counted once per recipient, however many givers are present. If the givers' amounts differ, the highest counts. Two Commanders with Inspiring Presence give allies +5 CR, not +10.
 5. **Replacements.** If a character has an entry and the entry that replaces it, they give only the replacement. A GoTH member with Nuyaru's Love (+1) and Seraph's Affection (+3) gives +3.
-6. **Modifiers.** Devotion III adds +1 to each aura **that same character** gives, from any tree (Holy Aura, Bolstering Aura, Aura of Defense, Aura of Hope). Only skills named "Aura" are auras. Auras with no number (Protective Aura) are unchanged.
-7. **Parent stats flow down to subtypes.** "+5 to all challenge rolls" plus "+3 CR vs fear" means CR +5 and CR vs fear +8. The same applies to *stealth* and *would hurt*.
-8. **Audience.** The whole party, or only members of one guild (e.g. Rat Pack: Guild of Thieves members only).
+6. **Modifiers.** A modifier changes the bonuses **that same character** gives, and nobody else's. Numbers only; effects with no number are unchanged.
+   - **Devotion III:** +1 to each aura, from any tree (Holy Aura, Bolstering Aura, Aura of Defense, Aura of Hope). Only skills named "Aura" are auras.
+   - **Helping Hands / v2.0:** +1 / +2 to each numerical value of every bonus the character gives allies (pending Q7). Modifiers add together: a Holy Knight with Devotion III and Helping Hands gives Holy Aura +4.
+7. **Parent stats flow down to subtypes.** "+5 to all challenge rolls" plus "+3 CR vs fear" means CR +5 and CR vs fear +8. The same applies to *stealth*, *escape* and *would hurt*.
+8. **Audience.** The whole party, only members of one guild (e.g. Rat Pack: Guild of Thieves members only), or only other holders of the same entry (e.g. Hero of Passion: other HoP holders only).
 9. **Guilds and ranks.** Joining a guild only records membership (plus any automatic ability, i.e. Rat Pack). Bonuses from rank or service are entries the player adds by name: a rank (Guild Thief, Captain, High Priest, Ranger Captain, Chef…) or a boon (Seraph's Affection). Support is the exception: it comes from Discord roles.
 10. **Level conditions.** A bonus can depend on the **recipient's** level (the Cult of the Dragon). A character with no level recorded doesn't receive level-based bonuses, and `/mybonus` notes this.
 11. **Only counted players give or receive.** Anyone sitting out (the DM running the game, observers) is left out entirely. A player in the channel with no character set up still gives bonuses that come from their Discord roles (Support), but nothing that needs a character.
@@ -112,14 +114,14 @@ Priority: **M** = must have (v1), **S** = should have, **C** = could have (later
 
 ### 6.2 The Catalog
 
-The catalog lives in the repository as data files: `data/stats.yaml`, `data/skills.yaml`, `data/guilds.yaml` (guilds, their automatic abilities, and their rank and boon entries) and `data/items.yaml` (items and awards). Section 8 lists the starting catalog.
+The catalog lives in the repository as data files: `data/stats.yaml`, `data/skills.yaml`, `data/guilds.yaml` (guilds, their automatic abilities, and their rank and boon entries) and `data/items.yaml` (items and titles). Section 8 lists the starting catalog.
 
 | ID | Requirement | Pri |
 |---|---|---|
-| CT-1 | **Fixed catalog.** Stats, skills, guilds, ranks, boons, items and awards are defined only in the catalog files. There are no commands to create or change them. | M |
+| CT-1 | **Fixed catalog.** Stats, skills, guilds, ranks, boons, items and titles are defined only in the catalog files. There are no commands to create or change them. | M |
 | CT-2 | **Permanent IDs.** Every catalog entry has a permanent ID separate from its display name. Characters store the ID, so renaming an entry never breaks a character. | M |
 | CT-3 | **Linked, not copied.** Characters refer to catalog entries. Changing an entry's value in the catalog changes it for every character at once. | M |
-| CT-4 | **Entry fields:** name, kind (skill, boon, item, award), tree or guild, what it gives (one or more stats with amounts, or effect text), audience (party or one guild), whether the giver is included (default no), whether it stacks (default yes), what it replaces, tags (e.g. `aura`), modifiers, a condition (which makes it a conditional bonus, rule 4.12), level rules, and the card text quoted from the source. | M |
+| CT-4 | **Entry fields:** name, kind (skill, boon, rank, item, title), tree or guild, what it gives (one or more stats with amounts, effect text, or nothing), audience (party, one guild, or other holders of the same entry), whether the giver is included (default no), whether it stacks (default yes), what it replaces, tags (e.g. `aura`), modifiers, a condition (which makes it a conditional bonus, rule 4.12), level rules, and the card text quoted from the source. | M |
 | CT-5 | **Guild fields:** full name, short name, membership (Discord roles, or players join themselves), whether it's secret, and any automatic ability granted to every member (Rat Pack). The guild's rank and boon entries name the guild they belong to. | M |
 | CT-6 | **Retire, don't delete.** An entry that leaves the game is marked `retired`. It can't be added any more, but characters who have it keep it, and `/breakdown` marks it as retired. | M |
 | CT-7 | **Validation in CI.** Every push checks the catalog: the format is valid, stat and entry references exist, there are no duplicate IDs or names, and no entry used by a character has been deleted. An invalid catalog can't be deployed. | M |
@@ -130,7 +132,7 @@ The catalog lives in the repository as data files: `data/stats.yaml`, `data/skil
 
 | ID | Requirement | Pri |
 |---|---|---|
-| HV-1 | **`/add <character> <entry>`** gives a character a skill, boon, rank, item or award from the catalog; **`/remove`** takes it away. Autocomplete shows entries labeled with their kind and tree or guild, e.g. "Holy Aura (Holy Knight skill)". **Guild entries (ranks and boons) appear only for guilds the character belongs to.** If `entry` is filled in before `character`, autocomplete uses the player's current character. | M |
+| HV-1 | **`/add <character> <entry>`** gives a character a skill, boon, rank, item or title from the catalog; **`/remove`** takes it away. Autocomplete shows entries labeled with their kind and tree or guild, e.g. "Holy Aura (Holy Knight skill)". **Guild entries (ranks and boons) appear only for guilds the character belongs to.** If `entry` is filled in before `character`, autocomplete uses the player's current character. | M |
 | HV-2 | **`/guild join <character> <guild>`** and **`/guild leave`** set a character's guild membership. Joining grants the guild's automatic ability, if any (Rat Pack). Ranks and boons are then added with `/add`. Leaving **removes the character's ranks and boons from that guild**, and the reply lists what was removed. | M |
 | HV-3 | **Support** comes from Discord roles, not from `/guild join`. The player's highest Guild rank role sets the rank, and it applies to every character that player owns. Roles are checked each time totals are calculated. | M |
 | HV-4 | **Checks when adding.** Autocomplete isn't a lock (a player can type any text), so the bot checks when the command runs. Adding a rank or boon from a guild the character isn't in is **refused**, with the command to join, e.g. *"High Priest is a Cult of the Dragon rank, and Crateris isn't a member. Join first: `/guild join Crateris Cult of the Dragon`"*. Adding Devotion III with no auras only **warns**. Rank itself is never checked: players add the ranks they've earned. | M |
@@ -184,7 +186,7 @@ There are no sessions to start or end. Each time a command runs, the bot looks a
 
 | ID | Requirement | Pri |
 |---|---|---|
-| AD-1 | **Settings live in the repository**, in `config/settings.yaml`, not in Discord commands: the `/request` channel, default reply visibility, sit-out duration (default 12 h) and maximum level (75). Changing one is a commit and an automatic deploy, like a catalog change. Secrets (bot token, storage credentials) stay in environment variables (NF-9). | M |
+| AD-1 | **Settings live in the repository**, in `config/settings.yaml`, not in Discord commands: the `/request` channel (`#bonus-bot-support`), default reply visibility, sit-out duration (default 12 h) and maximum level (75). Changing one is a commit and an automatic deploy, like a catalog change. Secrets (bot token, storage credentials) stay in environment variables (NF-9). | M |
 | AD-2 | **Review:** anyone, typically the DM, can check the party `/breakdown` during a game to catch mistakes and abuse, and ask the owner to fix their character. The maintainer can correct data in the database as a last resort. | M |
 
 ## 7. Commands
@@ -201,7 +203,7 @@ Setup (players, for their own characters)
 /character register name:<text> [level:<n>]
 /character list | rename <character> <new> | delete <character>
            | level <character> <n|clear>
-/add <character> <entry>              skill, boon, rank, item or award
+/add <character> <entry>              skill, boon, rank, item or title
 /remove <character> <entry>
 /guild join <character> <guild>
 /guild leave <character> <guild>
@@ -223,6 +225,7 @@ Values come from the skill-tree images and guild write-ups in the Diceknights dr
 | CR | Roll | Challenge roll. |
 | CR vs fear | Roll (CR subtype) | |
 | CR stealth | Roll (CR subtype) | |
+| CR escape | Roll (CR subtype) | Challenge rolls to escape combat. |
 | CR would hurt | Roll (CR subtype) | Applies when a failed CR would cause damage; players ask the DM. |
 | Damage | Combat note (hearts) | Extra hearts dealt when attacking. |
 | Damage reduction | Combat note (hearts) | Hearts mitigated when attacked. |
@@ -247,26 +250,35 @@ Values come from the skill-tree images and guild write-ups in the Diceknights dr
 |---|---|---|---|
 | **The Guild** | Discord roles: Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend | **Support** (from the roles, not joining): +2 CM to allies. | — |
 | **Guild of the Timeless Heroes** (GoTH) | `/guild join` | — | Boons: **Nuyaru's Love** +1 CM to allies; **Seraph's Affection** +3 CM to allies, replaces Nuyaru's Love (Q3). Length of service isn't tracked. |
-| **Guild of Thieves** (secret) | `/guild join` | **Rat Pack:** +1 CM to other members. | Rank **Guild Thief** (Leadership): +2 CM and +2 CR stealth to all members, the giver included; doesn't stack. Keeps Rat Pack (Q6). |
+| **Guild of Thieves** (secret) | `/guild join` | **Rat Pack:** +1 CM and +1 CR escape to other members. | Rank **Guild Thief** (Leadership): +2 CM and +2 CR stealth to all members, the giver included; doesn't stack. Keeps Rat Pack (Q6). |
 | **Pirate Coalition** | `/guild join` | — | Rank **Captain** (King of the Pirates): +2 CM to all members, the giver included; doesn't stack. |
 | **Cult of the Dragon** | `/guild join` | — | Rank **High Priest** (blessing): to other members, level under 10: +1 heart damage; level 10 or higher: +10 CM. Doesn't stack (Q2). |
 | **Ranger's Guild** | `/guild join` | — | Ranks **Ranger Captain** and **Master Ranger** (replaces Ranger Captain), each with Wilderness Lore: effect: challenge rolls to resist natural effects are one roll category easier, for the giver and allies. |
 | **Order of Cookery** | `/guild join` | — | Ranks **Chef** and **Cookery Master** (replaces Chef), each with Proper Seasoning: effect: +1 heart when Invigorated, for the giver and allies. |
-| **HoP** | To be defined (Q5) | To be defined. | To be defined. |
 
 Ranks that grant no party bonus (e.g. Footpad, Journeyman, Swabbie) aren't in the catalog.
 
 Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Physicians, Lorekeepers) aren't in the catalog. They can be added if one is needed as an audience.
 
-### 8.4 Items and Awards
+### 8.4 Items and Titles
 
 | Entry | Kind | Gives (to allies) | Status |
 |---|---|---|---|
 | Wills ward stone | Item | +5 CM | To confirm (Q4) |
 | NF (nobuFest pin) | Item | +1 CM | To confirm (Q4) |
-| Champion of Power | Award | +5 CR, +5 CM | To confirm (Q4) |
+| Champion of Power | Title | +5 CR, +5 CM | To confirm (Q4) |
+| Hero of Passion (HoP) | Title | +1 or more, to **other HoP holders only** | Amount to be defined (Q5) |
+| Helping Hands | Title | Nothing itself. **Modifier:** +1 to each numerical value of every bonus this character gives allies. Card text: "Anytime you buff or heal an ally/allies the numerical value is increased by 1." | Scope to confirm (Q7) |
+| Helping Hands v2.0 | Title | As Helping Hands, but +2; replaces Helping Hands | Scope to confirm (Q7) |
+| Power Supporter | Title | No party bonus | Listed for completeness |
+| Charitable Adventurer | Title | No party bonus | Listed for completeness |
+| Element Savant | Title | No party bonus | Listed for completeness |
+| Joy-Maker | Title | No party bonus | Listed for completeness |
+| Story Teller | Title | No party bonus | Listed for completeness |
 
-The sources of the healing and damage reduction bonuses from the original sample are still unknown (Q4).
+Titles with no party bonus can still be added with `/add`; they show in `/catalog` and in what a character has, but never change totals.
+
+The sources of the healing and damage reduction bonuses from the original sample are still unknown; damage reduction may come from a title (Q8).
 
 ## 9. Example
 
@@ -291,7 +303,7 @@ What's in play:
 - **Cult of the Dragon:** the High Priest (Crateris) gives Kael (level 8) +1 heart damage, and Mira (level 15) +10 CM.
 - **Inspiring Presence:** Chris and Mira both have it. It doesn't stack, so allies get +5 CR once. Chris and Mira each still get +5 from the other.
 - **Secret guild bonuses:**
-  - Rat Pack: Chris and Mira each get +1 CM from the other.
+  - Rat Pack: Chris and Mira each get +1 CM and +1 CR escape from the other.
   - Leadership: Chris is a Guild Thief, so both get +2 CM and +2 CR stealth, Chris included.
 
 `/partybonus`:
@@ -299,13 +311,13 @@ What's in play:
 ```
 PARTY BONUSES: AWT Voice (6 counted)
 -------------------------------------------------
-CHARACTER   CM    CR    CR vs fear   CR stealth
-Ioseph      +10   +5    +8           +5
-Kael        +18   +10   +13          +10
-Crateris    +12   +10   +10          +10
-Chris       +23   +10   +13          +12
-Mira        +33   +10   +13          +12
-Dana*       +20   +10   +13          +10
+CHARACTER   CM    CR    CR vs fear   CR stealth   CR escape
+Ioseph      +10   +5    +8           +5           +5
+Kael        +18   +10   +13          +10          +10
+Crateris    +12   +10   +10          +10          +10
+Chris       +23   +10   +13          +12          +11
+Mira        +33   +10   +13          +12          +11
+Dana*       +20   +10   +13          +10          +10
 -------------------------------------------------
 COMBAT NOTES
 Kael        Damage +1 heart (extra hearts dealt when attacking)
@@ -331,7 +343,7 @@ Support (the Guild): +2 CM to allies from each giver
 Seraph's Affection (GoTH boon): +3 CM to allies
     Ioseph                           (replaces Nuyaru's Love)
 
-Champion of Power (award): +5 all CR, +5 CM to allies
+Champion of Power (title): +5 all CR, +5 CM to allies
     Ioseph
 
 Cult of the Dragon (Cult members only)
@@ -350,7 +362,7 @@ Wills ward stone (item): +5 CM to allies
 Inspiring Presence (Commander): +5 all CR to allies, doesn't stack
     Chris, Mira
 
-Secret guild bonus: +3 CM and +2 CR stealth to each member present
+Secret guild bonus: +3 CM, +2 CR stealth and +1 CR escape to each member present
     (givers not shown)
 
 Effect: Resistance to damage from an Evil source (Protective Aura), to allies
@@ -362,9 +374,9 @@ Kael       CM 2+3+5+3+5 = +18           CR 5+5 = +10   CR vs fear 10+3 = +13
            Damage +1 heart
 Crateris   CM 2+2+3+5 = +12             CR 5+5 = +10   CR vs fear +10
 Chris      CM 2+2+3+5+3+5+3s = +23      CR 5+5 = +10   CR vs fear 10+3 = +13
-           CR stealth 10+2s = +12
+           CR stealth 10+2s = +12       CR escape 10+1s = +11
 Mira       CM 2+2+3+5+3+5+10+3s = +33   CR 5+5 = +10   CR vs fear 10+3 = +13
-           CR stealth 10+2s = +12
+           CR stealth 10+2s = +12       CR escape 10+1s = +11
 Dana*      CM 2+2+3+5+3+5 = +20         CR 5+5 = +10   CR vs fear 10+3 = +13
 (s = secret guild bonus)
 -------------------------------------------------
@@ -389,6 +401,7 @@ CR = 5 + 5 = +10
    +5   Inspiring Presence    from Chris, Mira (doesn't stack: counted once)
 CR vs fear = 10 (all CR) = +10
 CR stealth = 10 (all CR) = +10
+CR escape = 10 (all CR) = +10
 -------------------------------------------------
 NOT APPLIED
   Holy Aura, Bolstering Aura, Wills ward stone    allies only (Crateris is the giver)
@@ -411,11 +424,12 @@ CM          +33
 CR          +10
 CR vs fear  +13
 CR stealth  +12
+CR escape   +11
 -------------------------------------------------
 Resistance to damage from an Evil source (Protective Aura)
 -------------------------------------------------
 Secret guild (Guild of Thieves), included above:
-  Rat Pack     +1 CM (1 other member present)
+  Rat Pack     +1 CM, +1 CR escape (1 other member present)
   Leadership   +2 CM, +2 CR stealth (a Guild Thief is present)
 -------------------------------------------------
 See how this was worked out: /breakdown Mira
@@ -447,6 +461,8 @@ These totals show Crateris in Elowen's place. Use /play Crateris to switch.
 | NF-7 | **Quality (see section 13):** type-checked; the calculation engine has at least 90% branch coverage, including every rule in section 4 and the numbers in section 9; CI on every push. |
 | NF-8 | **Operations:** structured logs; nightly off-site database snapshots (section 12.1). |
 | NF-9 | **Security:** the bot token and storage credentials live only in environment variables or the host's secret store. |
+| NF-11 | **Least privilege:** the bot is invited with only View Channels, Send Messages, Embed Links and Use Application Commands. Never Administrator. |
+| NF-12 | **Protecting automatic deployment:** because a push to `main` deploys to the server, the GitHub account uses two-factor authentication, `main` is protected (CI must pass), and deploy credentials live only in GitHub secrets. Dependencies are kept current with Dependabot. |
 | NF-10 | **Time zones:** every time the bot stores or checks (sit-out expiry, level "last updated", audit log, snapshots) is in **GMT (UTC)**, never the host's local time. Times shown to players use Discord timestamps (`<t:…>`), which Discord displays in each reader's own time zone. |
 
 ## 11. Data Model and Engine
@@ -456,7 +472,7 @@ The **catalog** and **settings** aren't stored in the database. They're loaded f
 ```
 Player          (discord_user_id, current_character_id NULL)
 Character       (id, discord_user_id, name UNIQUE NOCASE, level NULL, level_updated_at)
-CharacterEntry  (character_id, entry_id)                  -- skill, boon, rank, item or award (catalog ID)
+CharacterEntry  (character_id, entry_id)                  -- skill, boon, rank, item or title (catalog ID)
 CharacterGuild  (character_id, guild_id, joined_at)       -- catalog ID
 SitOut          (discord_user_id, until, set_by)
 AuditLog        (id, actor_user_id, character_id, action, before_json, after_json, at)
@@ -495,7 +511,9 @@ compute(counted_players, player_roles, character_entries, character_guilds, cata
 | CI/CD | **GitHub Actions** | Lint, type-check, test, validate the catalog, build and deploy. |
 | Backups | Nightly `sqlite3 .backup` snapshots to object storage | Meets NF-8; see 12.1. |
 
-**Alternative:** Node.js 22 + discord.js v14 + Prisma + Vitest.
+**Decided: Python.** It's the easiest to read and review, Hypothesis is the strongest fit for the property tests (TS-3) and the 90% coverage target, and its dependency tree is smaller than npm's. TypeScript + discord.js was the runner-up; C# and Go were ruled out as more code for the same bot.
+
+**Python-specific security:** the catalog and settings are read with `yaml.safe_load` (never `yaml.load`, which can run code) and validated with pydantic. Dependencies are locked with hashes in `uv.lock`.
 
 ### 12.1 Storage and Backups
 
@@ -527,7 +545,7 @@ compute(counted_players, player_roles, character_entries, character_guilds, cata
 |---|---|---|
 | DP-1 | **Automatic deployment:** every push to `main` that passes CI (tests, type checks, catalog validation) is deployed automatically. | M |
 | DP-2 | **Branches:** experimental work happens on branches and reaches `main` by merge. Only `main` is deployed. | M |
-| DP-3 | **Catalog changes are ordinary commits.** Adding a skill or award is an edit to a data file, a push, and an automatic deploy: a few minutes end to end. | M |
+| DP-3 | **Catalog changes are ordinary commits.** Adding a skill or title is an edit to a data file, a push, and an automatic deploy: a few minutes end to end. | M |
 | DP-4 | **Safe restarts:** a deploy restarts the bot in a few seconds without losing data, so deploying during a game is harmless. | M |
 
 ## 13. Testing Strategy
@@ -597,26 +615,28 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 
 ## 16. Open Questions
 
-**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), GoTH boons (Q3), the full item and award list (Q4), HoP (Q5), and whether a Guild Thief keeps Rat Pack (Q6).
-
-**Not tracked yet:** Rat Pack also gives +1 to escape, street work and burglary rolls, and Leadership to burglary and street work. These are left out until it's clear whether escape counts as a combat-time CR.
+**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), GoTH boons (Q3), the full item and title list (Q4), the Hero of Passion amount (Q5), whether a Guild Thief keeps Rat Pack (Q6), what Helping Hands raises (Q7), and whether a title gives permanent damage reduction or healing (Q8).
 
 **For later consideration: long-term hosting.** Craig hosts the bot at launch. If it runs for the long term, decide who pays for hosting, who holds the bot token and backup credentials, who fixes it when it's down at game time, and how it's handed over if Craig steps away.
 
 ### Resolved
 
 - **Allies only:** a bonus never applies to its giver, unless the catalog entry says so (Leadership, King of the Pirates, Wilderness Lore, Proper Seasoning).
-- **Fixed catalog:** skills, guild abilities, boons, items and awards come from data files in the repository. Players pick from it and can't type in bonuses. Missing entries are requested with `/request`.
+- **Fixed catalog:** skills, guild abilities, boons, items and titles come from data files in the repository. Players pick from it and can't type in bonuses. Missing entries are requested with `/request`.
 - **Catalog changes:** permanent IDs, retired instead of deleted, linked rather than copied, validated in CI, and deployed automatically on push to `main`.
 - **Stacking:** every giver counts, except entries marked "doesn't stack", which count once. A replacing entry supersedes the one it replaces.
 - **Devotion III** adds +1 to all of the character's own auras, from any tree. Only skills named "Aura" are auras (pending Q1).
 - **Character names are unique on the server**, not per player, so names are never ambiguous in commands or output. This can be revisited if duplicate names turn out to be common.
-- **One `/add` command** (and `/remove`) for skills, boons, ranks, items and awards, rather than one command per kind. Players don't need to know an entry's kind, and `/catalog` shows the exact command for each entry. Guild ranks and boons are only shown (in `/catalog` and autocomplete) and only accepted for members of that guild; leaving a guild removes them.
+- **One `/add` command** (and `/remove`) for skills, boons, ranks, items and titles, rather than one command per kind. Players don't need to know an entry's kind, and `/catalog` shows the exact command for each entry. Guild ranks and boons are only shown (in `/catalog` and autocomplete) and only accepted for members of that guild; leaving a guild removes them.
 - **Auras** (Holy Knight and Paladin) have no range limit: they reach the whole party.
 - **Position-dependent bonuses** (Commanding Presence's "same range") are conditional bonuses: shown separately, never in totals. The bot doesn't track who is in melee or ranged. "Would hurt" is a CR subtype that players ask about.
 - **CM** combines the old combat bonus and combat defence.
 - **GoTH boons** are always on. **Bard Inspiration** is out of scope.
-- **Guild of Thieves** is secret, tongue-in-cheek: the bot never names members, but public totals still include their bonuses, even though that makes them easy to spot. Leadership needs any Guild Thief present, and a stealth bonus counts toward both CM and stealth CRs.
+- **Guild of Thieves** is secret, tongue-in-cheek: the bot never names members, but public totals still include their bonuses, even though that makes them easy to spot. Leadership needs any Guild Thief present, and a stealth bonus counts toward both CM and stealth CRs. Rat Pack's escape bonus is tracked (escape is a CR subtype); street work and burglary rolls are ignored.
+- **Bogsy hand-off** stays a *could have*.
+- **Tech stack:** Python 3.12+ with discord.py, SQLite and SQLAlchemy (section 12).
+- **Titles:** Champion of Power and Hero of Passion (HoP) are titles. HoP goes only to other HoP holders. Titles with no party bonus are listed anyway for completeness.
+- **`/request`** posts to `#bonus-bot-support`.
 - **The Cult bonus** comes only from the High Priest.
 - **Guilds and ranks:** joining a guild only records membership (plus Rat Pack for the Guild of Thieves). Ranks that grant bonuses and GoTH boons are entries the player adds by name, and a higher rank replaces a lower one. Nothing is checked. Support comes from Discord roles.
 - **Sit-outs:** players sit only themselves out (when running the game or just listening); the bot doesn't guess.

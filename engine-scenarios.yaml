@@ -10,7 +10,7 @@
 #
 # Conventions
 #   - Players are keyed by character name, or Discord name if they have no character.
-#   - `has` lists catalog entries (skills, boons, ranks, items, awards).
+#   - `has` lists catalog entries (skills, boons, ranks, items, titles).
 #   - `guilds` lists guild memberships; `roles` lists Discord roles.
 #   - Totals list only non-zero stats. A stat not listed is expected to be 0,
 #     except a CR subtype not listed, which is expected to equal CR.
@@ -30,6 +30,7 @@ catalog:
     CR:               {kind: roll}
     CR vs fear:       {kind: roll, parent: CR}
     CR stealth:       {kind: roll, parent: CR}
+    CR escape:        {kind: roll, parent: CR}
     CR would hurt:    {kind: roll, parent: CR}
     Damage:           {kind: combat_note, unit: hearts}
     Damage reduction: {kind: combat_note, unit: hearts}
@@ -64,10 +65,14 @@ catalog:
     Master Ranger:       {kind: rank, guild: Rangers, ability: Wilderness Lore, includes_giver: true,
                           replaces: [Ranger Captain],
                           effect: "Challenge rolls to resist natural effects are one roll category easier"}
-    # Items and awards
+    # Items and titles
     Wills ward stone:    {kind: item, gives: {CM: 5}}
     NF pin:              {kind: item, gives: {CM: 1}}
-    Champion of Power:   {kind: award, gives: {CR: 5, CM: 5}}
+    Champion of Power:   {kind: title, gives: {CR: 5, CM: 5}}
+    Hero of Passion:     {kind: title, audience: holders, gives: {CM: 1}}   # amount to confirm (Q5)
+    Helping Hands:       {kind: title, modifies: {all: true, add: 1}}           # scope to confirm (Q7)
+    Helping Hands v2.0:  {kind: title, modifies: {all: true, add: 2}, replaces: [Helping Hands]}
+    Story Teller:        {kind: title}                                      # no party bonus
     # Test-only entries
     Test Buff:           {kind: item, gives: {CM: 2}}
     Test Focus:          {kind: item, gives: {CR: 2}}
@@ -88,7 +93,7 @@ catalog:
       membership: open
       secret: true
       automatic:
-        - {name: Rat Pack, audience: guild, gives: {CM: 1}}
+        - {name: Rat Pack, audience: guild, gives: {CM: 1, CR escape: 1}}
     Pirates:
       full_name: Pirate Coalition
       membership: open
@@ -250,9 +255,9 @@ scenarios:
       - {name: T3, guilds: [Thieves]}
       - {name: O}
     expect:
-      T1: {CM: 4, CR stealth: 2}         # Rat Pack 1+1, Leadership 2 (once)
-      T2: {CM: 4, CR stealth: 2}
-      T3: {CM: 4, CR stealth: 2}
+      T1: {CM: 4, CR stealth: 2, CR escape: 2}   # Rat Pack 1+1, Leadership 2 (once)
+      T2: {CM: 4, CR stealth: 2, CR escape: 2}
+      T3: {CM: 4, CR stealth: 2, CR escape: 2}
       O:  {}
 
   - name: Joining the Thieves grants Rat Pack only
@@ -261,8 +266,8 @@ scenarios:
       - {name: F1, guilds: [Thieves]}
       - {name: F2, guilds: [Thieves]}
     expect:
-      F1: {CM: 1}
-      F2: {CM: 1}
+      F1: {CM: 1, CR escape: 1}
+      F2: {CM: 1, CR escape: 1}
 
   - name: King of the Pirates includes the Captain
     rule: "4.3"
@@ -330,6 +335,44 @@ scenarios:
       - {text: "Resistance to damage from an Evil source", from: K, to: [R1, R2]}
       - {text: "Challenge rolls to resist natural effects are one roll category easier",
          from: R1, to: [K, R1, R2]}      # once: Master Ranger replaces Ranger Captain
+
+  # ---------------------------------------------------------------- TITLES
+  - name: Hero of Passion goes only to other holders
+    rule: "4.8 (holders audience); DM question Q5"
+    players:
+      - {name: H1, has: [Hero of Passion]}
+      - {name: H2, has: [Hero of Passion]}
+      - {name: O}
+    expect:
+      H1: {CM: 1}                        # from H2
+      H2: {CM: 1}                        # from H1
+      O:  {}
+    not_applied:
+      O:
+        - {entry: Hero of Passion, from: H1, reason: not_in_audience}
+        - {entry: Hero of Passion, from: H2, reason: not_in_audience}
+
+  - name: Helping Hands raises every bonus its holder gives, and adds to Devotion III
+    rule: "4.6; DM question Q7"
+    players:
+      - {name: K, has: [Holy Aura, Bolstering Aura, Devotion III, Helping Hands]}
+      - {name: W, has: [Wills ward stone, Helping Hands, Story Teller]}
+      - {name: C}
+    expect:
+      K: {CM: 6}                         # Wills ward stone 5+1 from W
+      W: {CM: 4, CR vs fear: 4}          # Bolstering 2+1+1, Holy Aura 2+1+1 from K
+      C: {CM: 10, CR vs fear: 4}         # 4 from K, 6 from W
+
+  - name: Helping Hands v2.0 replaces Helping Hands; alone it gives nothing
+    rule: "4.5, 4.6"
+    players:
+      - {name: A, has: [Champion of Power, Helping Hands, Helping Hands v2.0]}
+      - {name: B, has: [Helping Hands]}
+      - {name: C}
+    expect:
+      A: {}                              # B has nothing for Helping Hands to raise
+      B: {CM: 7, CR: 7}                  # Champion of Power 5+2 from A
+      C: {CM: 7, CR: 7}
 
   # ---------------------------------------------------------------- CATALOG
   - name: A retired entry still counts for characters who have it
@@ -417,8 +460,8 @@ scenarios:
       Ioseph:   {CM: 10, CR: 5,  CR vs fear: 8}
       Kael:     {CM: 18, CR: 10, CR vs fear: 13, Damage: 1}
       Crateris: {CM: 12, CR: 10, CR vs fear: 10}
-      Chris:    {CM: 23, CR: 10, CR vs fear: 13, CR stealth: 12}
-      Mira:     {CM: 33, CR: 10, CR vs fear: 13, CR stealth: 12}
+      Chris:    {CM: 23, CR: 10, CR vs fear: 13, CR stealth: 12, CR escape: 11}
+      Mira:     {CM: 33, CR: 10, CR vs fear: 13, CR stealth: 12, CR escape: 11}
       Dana:     {CM: 20, CR: 10, CR vs fear: 13}
     effects:
       - {text: "Resistance to damage from an Evil source", from: Crateris,

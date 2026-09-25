@@ -15,7 +15,7 @@ The bot works out the party bonuses (CM, CR, and more) that each character recei
    ```
    /guild join character:Crateris guild:Cult of the Dragon
    ```
-3. **Add what your character has**: skills, guild ranks, boons, items and awards. Autocomplete shows what's available:
+3. **Add what your character has**: skills, guild ranks, boons, items and titles. Autocomplete shows what's available:
    ```
    /add character:Crateris entry:Holy Aura
    /add character:Crateris entry:High Priest

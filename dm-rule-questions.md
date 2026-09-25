@@ -48,31 +48,34 @@ A character can have both Holy Knight and Commander skills, so a Holy Knight wit
 
 ---
 
-## Q4. Which items and awards give a bonus to the party?
+## Q4. Which items and titles give a bonus to the party?
 
-The bot will keep a fixed list of items and awards that give always-on bonuses to allies, the same way it does for skills. Players pick from the list; they don't type values in. Known or suspected so far:
+The bot will keep a fixed list of items and titles that give always-on bonuses to allies, the same way it does for skills. Players pick from the list; they don't type values in. Known or suspected so far:
 
-| Item / award | What we think it gives | Unsure about |
+| Item / title | What we think it gives | Unsure about |
 |---|---|---|
-| Wills ward stone | +5 CM to allies | Is that right? |
-| NF (nobuFest pin) | Probably +1 | +1 to what (CM? CR?), and to whom? |
-| Champion of Power | +5 to all challenge rolls, +5 CM | Is it an item, an award or a title? Does it go to allies only? |
-| HoP | +1 or more | See Q5. |
+| Wills ward stone (item) | +5 CM to allies | Is that right? |
+| NF (nobuFest pin) (item) | Probably +1 | +1 to what (CM? CR?), and to whom? |
+| Champion of Power (title) | +5 to all challenge rolls, +5 CM to allies | Is that right? |
+| Hero of Passion (title) | +1 or more, to other HoP holders only | See Q5. |
+| Helping Hands / v2.0 (titles) | Raise the holder's buffs and heals by 1 / 2 | See Q7. |
+| Power Supporter, Charitable Adventurer, Element Savant, Joy-Maker, Story Teller (titles) | No party bonus | |
 | (unknown source) | 1 heart of healing at the end of each round, to allies | What gives this? |
-| (unknown source) | 2 hearts of damage reduction, to allies | What gives this? |
+| (unknown source) | 2 hearts of damage reduction, to allies | See Q8. |
 
-**Question:** Please correct the table, and add every other item, pin, award or title that gives an always-on bonus to allies.
+**Question:** Please correct the table, and add every other item, pin or title that gives an always-on bonus to allies.
 
 ---
 
-## Q5. What is HoP, and what does it give?
+## Q5. What does the Hero of Passion (HoP) title give?
 
-HoP has been counted as a bonus of at least +1, varying from member to member, going only to other HoP members.
+HoP is **Hero of Passion**, a title. It goes only to other HoP holders. It has been counted as a bonus of at least +1, varying from holder to holder.
+
+**Current assumption:** +1 CM to each other HoP holder present.
 
 **Questions:**
-- What does HoP stand for, and is it a guild, a group or an award?
-- What does it give (CM? CR?), and does the amount depend on rank or something else?
-- Who receives it: only other HoP members, or all allies?
+- What does it give (CM? CR?)?
+- Is it always the same amount, or does it vary (e.g. by how many times the title was earned)? If it varies, what are the possible values?
 
 ---
 
@@ -85,3 +88,54 @@ HoP has been counted as a bonus of at least +1, varying from member to member, g
 **Current assumption:** Yes, they stack. Every member gives Rat Pack whatever their rank, so a Guild Thief gives Rat Pack **and** Leadership. In the bot, joining the Guild of Thieves grants Rat Pack, and adding the *Guild Thief* rank adds Leadership on top.
 
 **Alternative:** Guild Thief replaces Footpad, and a Guild Thief no longer gives Rat Pack.
+
+---
+
+## Q7. What does Helping Hands actually do, and what does it apply to?
+
+This one needs a careful answer, because **the written title and the way players have been counting it disagree**, and the two readings give very different numbers.
+
+### What we have
+
+- **The title text:** Helping Hands: "Anytime you buff or heal an ally/allies the numerical value is increased by 1." Helping Hands v2.0 is the same with +2.
+- **How players have been counting it:** the player-made bonus summaries list it as a flat party bonus: Helping Hands as **+1 healing** to allies, and v2.0 as **+2 healing**.
+
+Read literally, the title gives **nothing on its own**. It only makes the holder's *other* buffs and heals bigger. The player summaries treat it as a bonus in its own right.
+
+### Part 1: What does it really do?
+
+| Reading | What a holder gives the party | Example: a holder whose only other bonus is Bolstering Aura (+2 CM) |
+|---|---|---|
+| **A. Modifier (the title text)** | Nothing by itself; +1 (v2.0: +2) to the numbers of their own buffs and heals | Bolstering Aura +3 CM; no healing |
+| **B. Flat healing (the player summaries)** | +1 (v2.0: +2) heart of healing to allies, every round | Bolstering Aura +2 CM, plus +1 heart healing |
+| **C. Both** | Flat healing **and** raises their other buffs and heals | Bolstering Aura +3 CM, plus +1 heart healing |
+
+**Question 1:** Which reading is right: A, B or C?
+
+### Part 2: If it's a modifier (A or C), what does it apply to?
+
+"Buff or heal" could mean a lot or a little. For each of these, does Helping Hands raise it?
+
+| The holder's bonus | Example | Raised by Helping Hands? |
+|---|---|---|
+| Always-on skill auras | Holy Aura +2 → +3 | ? |
+| Guild abilities and ranks | Support +2 → +3; Leadership +2 → +3 | ? |
+| Titles and items | Champion of Power +5 → +6; Wills ward stone +5 → +6 | ? |
+| Bonuses with two numbers | Champion of Power: +5 CR **and** +5 CM → both +6? | ? |
+| Once-per-combat buffs and heals (not tracked by the bot) | Healing Hands (Physician's Guild) | Probably yes, but players track these themselves |
+
+**Also:**
+- Does it add to Devotion III? (A Holy Knight with both would give Holy Aura +4.)
+- Does v2.0 **replace** Helping Hands (+2 total), or add to it (+3)?
+
+**Current assumption in the bot (until answered):** reading **A**. It raises every always-on bonus the holder gives allies by +1 (v2.0: +2) on each number, adds to Devotion III, and v2.0 replaces Helping Hands. On its own it gives nothing.
+
+**Why it matters:** under reading A, Helping Hands can get large. A Paladin with Aura of Hope, Devotion III and Helping Hands v2.0 gives every ally **+13 CM** (10 + 1 + 2), where the player summaries would only have shown +2 healing.
+
+---
+
+## Q8. Does any title give permanent damage mitigation?
+
+The original sample had a character giving **2 hearts of damage reduction** to allies, from an unknown source. There's also a heart of healing at the end of each round from an unknown source.
+
+**Question:** Does a title (or item) give allies permanent damage reduction or healing? If so, which one, how much, and to whom?
