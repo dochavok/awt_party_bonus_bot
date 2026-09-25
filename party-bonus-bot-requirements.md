@@ -36,6 +36,7 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 - **Only always-on bonuses to others.** Abilities used once per combat, day or weekend, Tasks, and repeatable one-off abilities (e.g. Bard Inspiration) aren't tracked.
 - **No self-only bonuses.** A bonus that only helps its own character is part of that character's own CM or CR, which the player tracks. The bot's totals are added on top.
 - **No bonuses typed in by players.** Everything comes from the catalog. Anything missing is requested with `/request` and added to the catalog.
+- **Characters only.** Minions, summons, animal companions and allied NPCs (e.g. a Worldshaper's golem made an ally by Endowment) neither give nor receive party bonuses in the bot.
 - **No positioning or range.** If a character is present, their bonuses apply. Distance and positioning are up to the DM.
 - **One server only** (AWT).
 - No web dashboard.
@@ -246,13 +247,13 @@ Values come from the skill-tree images and guild write-ups in the Diceknights dr
 | Guild | Membership and ranks | Abilities |
 |---|---|---|
 | **The Guild** | Discord roles: Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend | **Support** (any rank): +2 CM to allies. |
-| **Guild of the Timeless Heroes** (GoTH) | Players join; no ranks | Boons (added with `/add`): **Nuyaru's Love** +1 CM to allies; **Seraph's Affection** +3 CM to allies, replaces Nuyaru's Love (Q4). |
+| **Guild of the Timeless Heroes** (GoTH) | Players join; no ranks | Boons (added with `/add`): **Nuyaru's Love** +1 CM to allies; **Seraph's Affection** +3 CM to allies, replaces Nuyaru's Love (Q3). |
 | **Guild of Thieves** (secret) | Footpad, Burglar, Guild Thief | **Rat Pack** (any rank): +1 CM to other members. **Leadership** (Guild Thief): +2 CM and +2 CR stealth to all members, the giver included; doesn't stack. |
 | **Pirate Coalition** | Swabbie, Crew Mate, First Mate, Captain | **King of the Pirates** (Captain): +2 CM to all members, the giver included; doesn't stack. |
-| **Cult of the Dragon** | Member, High Priest | **High Priest's blessing** (High Priest): to other members, level under 10: +1 heart damage; level 10 or higher: +10 CM. Doesn't stack (Q3). |
+| **Cult of the Dragon** | Member, High Priest | **High Priest's blessing** (High Priest): to other members, level under 10: +1 heart damage; level 10 or higher: +10 CM. Doesn't stack (Q2). |
 | **Ranger's Guild** | Apprentice, Journeyman, Ranger Captain, Master Ranger | **Wilderness Lore** (Ranger Captain): effect: challenge rolls to resist natural effects are one roll category easier, for the giver and allies. |
 | **Order of Cookery** | Scullery Servant, Sous Chef, Chef, Cookery Master | **Proper Seasoning** (Chef): effect: +1 heart when Invigorated, for the giver and allies. |
-| **HoP** | To be defined (Q6) | To be defined. |
+| **HoP** | To be defined (Q5) | To be defined. |
 
 Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Physicians, Lorekeepers) aren't in the catalog. They can be added if one is needed as an audience.
 
@@ -260,11 +261,11 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 
 | Entry | Kind | Gives (to allies) | Status |
 |---|---|---|---|
-| Wills ward stone | Item | +5 CM | To confirm (Q5) |
-| NF (nobuFest pin) | Item | +1 CM | To confirm (Q5) |
-| Champion of Power | Award | +5 CR, +5 CM | To confirm (Q5) |
+| Wills ward stone | Item | +5 CM | To confirm (Q4) |
+| NF (nobuFest pin) | Item | +1 CM | To confirm (Q4) |
+| Champion of Power | Award | +5 CR, +5 CM | To confirm (Q4) |
 
-The sources of the healing and damage reduction bonuses from the original sample are still unknown (Q5).
+The sources of the healing and damage reduction bonuses from the original sample are still unknown (Q4).
 
 ## 9. Example
 
@@ -595,7 +596,7 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 
 ## 16. Open Questions
 
-**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), whether anything else includes the giver (Q2), the Cult's level rule (Q3), GoTH boons (Q4), the full item and award list (Q5), and HoP (Q6).
+**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), GoTH boons (Q3), the full item and award list (Q4), and HoP (Q5).
 
 **Not tracked yet:** Rat Pack also gives +1 to escape, street work and burglary rolls, and Leadership to burglary and street work. These are left out until it's clear whether escape counts as a combat-time CR.
 
@@ -617,6 +618,7 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 - **The Cult bonus** comes only from the High Priest.
 - **Guild rank** is chosen by the player. Support comes from Discord roles.
 - **Sit-outs:** players sit only themselves out (when running the game or just listening); the bot doesn't guess.
+- **Characters only:** minions, summons, companions and allied NPCs aren't tracked; bonuses apply only to player characters.
 - **No DM or admin role** in the bot: everyone has the same commands and changes only their own characters. DMs review informally with `/breakdown`.
 - **Times** are stored in GMT (UTC).
 - **No master list:** each player enters their own characters.

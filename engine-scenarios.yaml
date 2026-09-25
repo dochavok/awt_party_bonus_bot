@@ -220,7 +220,7 @@ scenarios:
 
   # ---------------------------------------------------------------- RULE 5 (replacements)
   - name: Seraph's Affection replaces Nuyaru's Love
-    rule: "4.5; DM question Q4"
+    rule: "4.5; DM question Q3"
     players:
       - {name: A, guilds: {GoTH: {}}, has: [Nuyaru's Love, Seraph's Affection]}
       - {name: C, guilds: {GoTH: {}}, has: [Nuyaru's Love]}
@@ -268,7 +268,7 @@ scenarios:
 
   # ---------------------------------------------------------------- RULE 10 (level)
   - name: Cult High Priest gives by the recipient's level
-    rule: "4.10; DM question Q3"
+    rule: "4.10; DM question Q2"
     players:
       - {name: HP, level: 22, guilds: {Cult: {rank: High Priest}}}
       - {name: K,  level: 8,  guilds: {Cult: {rank: Member}}}

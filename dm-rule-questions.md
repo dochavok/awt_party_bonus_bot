@@ -22,17 +22,7 @@ A character can have both Holy Knight and Commander skills, so a Holy Knight wit
 
 ---
 
-## Q2. Bonuses never apply to their giver: is that right for everything?
-
-The skill cards all say "allies", so the bot never applies a bonus to the character who gives it, whether CM, CR, damage, damage reduction or healing.
-
-**Current assumption:** Yes, with no exceptions. For example, a character giving 2 hearts of damage reduction to allies doesn't get it themselves.
-
-**Question:** Do any org bonuses or items (e.g. Support, Cult of the Dragon, Wills ward stone) apply to the giver as well?
-
----
-
-## Q3. Cult of the Dragon: whose level counts, and does the High Priest benefit?
+## Q2. Cult of the Dragon: whose level counts, and does the High Priest benefit?
 
 **Current rule:** The Cult's High Priest (one character) gives other Cult members: level under 10, +1 heart damage; level 10 or higher, +10 CM. Ordinary Cult members give nothing.
 
@@ -44,7 +34,7 @@ The skill cards all say "allies", so the bot never applies a bonus to the charac
 
 ---
 
-## Q4. GoTH: does Seraph's Affection replace Nuyaru's Love, or add to it?
+## Q3. GoTH: does Seraph's Affection replace Nuyaru's Love, or add to it?
 
 **Boon text:**
 - *Nuyaru's Love* (Trials of the Initiate): "Provide a +1 Combat bonus to all allies excluding yourself."
@@ -58,7 +48,7 @@ The skill cards all say "allies", so the bot never applies a bonus to the charac
 
 ---
 
-## Q5. Which items and awards give a bonus to the party?
+## Q4. Which items and awards give a bonus to the party?
 
 The bot will keep a fixed list of items and awards that give always-on bonuses to allies, the same way it does for skills. Players pick from the list; they don't type values in. Known or suspected so far:
 
@@ -67,7 +57,7 @@ The bot will keep a fixed list of items and awards that give always-on bonuses t
 | Wills ward stone | +5 CM to allies | Is that right? |
 | NF (nobuFest pin) | Probably +1 | +1 to what (CM? CR?), and to whom? |
 | Champion of Power | +5 to all challenge rolls, +5 CM | Is it an item, an award or a title? Does it go to allies only? |
-| HoP | +1 or more | See Q6. |
+| HoP | +1 or more | See Q5. |
 | (unknown source) | 1 heart of healing at the end of each round, to allies | What gives this? |
 | (unknown source) | 2 hearts of damage reduction, to allies | What gives this? |
 
@@ -75,7 +65,7 @@ The bot will keep a fixed list of items and awards that give always-on bonuses t
 
 ---
 
-## Q6. What is HoP, and what does it give?
+## Q5. What is HoP, and what does it give?
 
 HoP has been counted as a bonus of at least +1, varying from member to member, going only to other HoP members.
 
