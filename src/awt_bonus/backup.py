@@ -18,10 +18,13 @@ from collections.abc import Awaitable
 from contextlib import closing
 from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from awt_bonus.ports import Clock
 from awt_bonus.settings import Environment
+
+if TYPE_CHECKING:
+    from mypy_boto3_s3 import S3Client
 
 log = logging.getLogger(__name__)
 
@@ -107,26 +110,33 @@ class S3Uploader:
     """Uploads to an S3-compatible bucket (Backblaze B2 at launch)."""
 
     def __init__(self, bucket: str, endpoint_url: str, key_id: str, key: str) -> None:
-        import boto3
-        from botocore.config import Config
-
         self._bucket = bucket
-        self._client = boto3.client(
-            "s3",
-            endpoint_url=endpoint_url,
-            region_name=_region(endpoint_url),
-            aws_access_key_id=key_id,
-            aws_secret_access_key=key,
-            # B2 doesn't need the newer default checksums; send them only when required.
-            config=Config(
-                request_checksum_calculation="when_required",
-                response_checksum_validation="when_required",
-                retries={"max_attempts": 5, "mode": "standard"},
-            ),
-        )
+        self._client = s3_client(endpoint_url, key_id, key)
 
     def upload(self, path: Path) -> None:
         self._client.upload_file(str(path), self._bucket, REMOTE_PREFIX + path.name)
+
+
+def s3_client(endpoint_url: str, key_id: str, key: str) -> "S3Client":
+    """A client for an S3-compatible endpoint, e.g. ``s3.us-east-005.backblazeb2.com``."""
+    import boto3
+    from botocore.config import Config
+
+    if "://" not in endpoint_url:
+        endpoint_url = f"https://{endpoint_url}"
+    return boto3.client(
+        "s3",
+        endpoint_url=endpoint_url,
+        region_name=_region(endpoint_url),
+        aws_access_key_id=key_id,
+        aws_secret_access_key=key,
+        # B2 doesn't need the newer default checksums; send them only when required.
+        config=Config(
+            request_checksum_calculation="when_required",
+            response_checksum_validation="when_required",
+            retries={"max_attempts": 5, "mode": "standard"},
+        ),
+    )
 
 
 def _region(endpoint_url: str) -> str | None:
@@ -140,12 +150,9 @@ def uploader_from(environment: Environment) -> Uploader | None:
     e = environment
     if not (e.backup_bucket and e.backup_endpoint_url and e.backup_key_id and e.backup_key):
         return None
-    endpoint = e.backup_endpoint_url
-    if "://" not in endpoint:
-        endpoint = f"https://{endpoint}"
     return S3Uploader(
         e.backup_bucket,
-        endpoint,
+        e.backup_endpoint_url,
         e.backup_key_id.get_secret_value(),
         e.backup_key.get_secret_value(),
     )

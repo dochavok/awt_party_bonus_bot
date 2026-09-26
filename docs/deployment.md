@@ -126,6 +126,9 @@ Done once on 2026-09-26; repeat it for a new host, or to hand the bot over.
    ```
 6. The bucket name and endpoint (`https://s3.us-east-005.backblazeb2.com`) are in
    `fly.toml`.
+7. Restores download with a separate **read-only** key (`awt-restore`), made when
+   needed: see [restore-runbook.md](restore-runbook.md). The B2 website won't
+   download the snapshots, because they're stored encrypted.
 
 ### The first deploy
 
