@@ -44,20 +44,41 @@ def check_snapshot(snapshot: Path) -> int:
 def restore(snapshot: Path, db_path: Path, now: datetime) -> Path | None:
     """Put ``snapshot`` in place as ``db_path``; return where the old database went.
 
-    Raises RestoreError, or StartupError if the bot is running.
+    The snapshot is copied next to the database and checked there, so it can come
+    from a read-only folder. Raises RestoreError, or StartupError if the bot is
+    running.
     """
-    check_snapshot(snapshot)
+    if not snapshot.is_file():
+        raise RestoreError(f"There's no file {snapshot}.")
     with acquire_instance_lock(db_path):
         incoming = db_path.with_name(db_path.name + ".restoring")
         shutil.copyfile(snapshot, incoming)
+        try:
+            check_snapshot(incoming)
+        except RestoreError:
+            _remove_with_side_files(incoming)
+            raise RestoreError(f"{snapshot} isn't a sound bot database.") from None
         kept = None
         if db_path.exists():
+            # With its WAL file, which may hold the latest changes (e.g. after a crash).
             kept = db_path.with_name(f"{db_path.name}.before-restore-{now:%Y%m%dT%H%M%SZ}")
-            db_path.replace(kept)
-        for suffix in ("-wal", "-shm"):
-            db_path.with_name(db_path.name + suffix).unlink(missing_ok=True)
+            for suffix in ("", "-wal", "-shm"):
+                side = db_path.with_name(db_path.name + suffix)
+                if side.exists():
+                    side.replace(kept.with_name(kept.name + suffix))
+        _remove_with_side_files(db_path)
+        # Checking it may have left the copy in WAL mode; fold that back in first.
+        with closing(sqlite3.connect(incoming)) as db:
+            db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
         incoming.replace(db_path)
+        _remove_with_side_files(incoming)
     return kept
+
+
+def _remove_with_side_files(path: Path) -> None:
+    """Delete a database file and its WAL side files, whichever exist."""
+    for suffix in ("", "-wal", "-shm"):
+        path.with_name(path.name + suffix).unlink(missing_ok=True)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -67,8 +88,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         db_path = args.database or database_path(Environment().database_url)
-        characters = check_snapshot(args.snapshot)
         kept = restore(args.snapshot, db_path, datetime.now(UTC))
+        characters = check_snapshot(db_path)
     except (RestoreError, StartupError) as error:
         print(f"Not restored: {error}", file=sys.stderr)
         return 1

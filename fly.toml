@@ -1,0 +1,35 @@
+# The bot on Fly.io (requirements 12.1, 12.2). See docs/deployment.md.
+# Deployed by .github/workflows/deploy.yml after CI passes on main (DP-1).
+# Secrets (DISCORD_TOKEN, DISCORD_GUILD_ID, BACKUP_KEY_ID, BACKUP_KEY) are set with
+# `fly secrets`, never here (NF-9).
+
+app = "awt-party-bonus-bot"
+primary_region = "iad"
+
+# Stopping the bot: SIGTERM, then it closes cleanly and releases its lock (DP-4, DB-3).
+kill_signal = "SIGTERM"
+kill_timeout = "15s"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DATABASE_URL = "sqlite+aiosqlite:////data/awt-bonus.db"
+  BACKUP_BUCKET = "awt-party-bonus-backups"
+  BACKUP_ENDPOINT_URL = "https://s3.us-east-005.backblazeb2.com"
+
+# The database's persistent volume (DB-2). One volume, so one machine (DB-3).
+[mounts]
+  source = "awt_bonus_data"
+  destination = "/data"
+
+# Restart after a crash (NF-3).
+[[restart]]
+  policy = "always"
+  retries = 10
+
+# No [http_service]: the bot connects out to Discord and listens on no port.
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

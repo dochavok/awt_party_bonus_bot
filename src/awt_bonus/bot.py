@@ -370,7 +370,8 @@ class _Client(discord.Client):
         )
 
     async def on_ready(self) -> None:
-        log.info("ready", extra={"guild_id": self._prepared.guild_id})
+        version = os.environ.get("GIT_SHA", "dev")
+        log.info("ready", extra={"guild_id": self._prepared.guild_id, "version": version})
 
     async def on_disconnect(self) -> None:
         log.warning("gateway disconnected")

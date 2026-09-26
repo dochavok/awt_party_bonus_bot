@@ -513,9 +513,9 @@ compute(present_players, player_roles, character_entries, character_guilds, cata
 | Testing | **pytest**, **pytest-asyncio**, **hypothesis** | Property tests fit the counting rules well. |
 | Quality | **ruff**, **mypy**, **pytest-cov** | Lint, format, type-check; enforce 90% branch coverage on the engine. |
 | Packaging | **uv** + `pyproject.toml` | Fast, reproducible. |
-| Deploy | **Docker** on a small VPS (about $4–6/mo) or Fly.io / Railway with a volume | Needs a process that's always running. |
+| Deploy | **Docker** on **Fly.io**: one machine with a persistent volume | Needs a process that's always running; the host restarts it and collects its logs. |
 | CI/CD | **GitHub Actions** | Lint, type-check, test, validate the catalog, build and deploy. |
-| Backups | Nightly `sqlite3 .backup` snapshots to object storage | Meets NF-8; see 12.1. |
+| Backups | Nightly `sqlite3 .backup` snapshots to **Backblaze B2** (S3-compatible) | Meets NF-8; off-site from the host; see 12.1. |
 
 **Decided: Python.** It's the easiest to read and review, Hypothesis is the strongest fit for the property tests (TS-3) and the 90% coverage target, and its dependency tree is smaller than npm's. TypeScript + discord.js was the runner-up; C# and Go were ruled out as more code for the same bot.
 
@@ -525,12 +525,12 @@ compute(present_players, player_roles, character_entries, character_guilds, cata
 
 **Where the data lives:** a single **SQLite** file (by default `var/awt-bonus.db`) on the same machine as the bot. The `var/` folder is git-ignored; the catalog in `catalog/` is committed. Nothing is stored in Discord. Roles and voice presence are read live from Discord each time a command runs.
 
-**Hosting:** Craig hosts the bot at launch. Long-term hosting is an open question (section 16).
+**Hosting:** Craig hosts the bot at launch on Fly.io: one machine, with a persistent volume mounted at `/data` (`DATABASE_URL=sqlite+aiosqlite:////data/awt-bonus.db`). Long-term hosting is an open question (section 16).
 
 | Hosting | Location of the database file |
 |---|---|
 | Small VPS | The VPS's disk, mounted into the container as a Docker volume, e.g. `/srv/awt-bonus/var/` |
-| Fly.io / Railway | A **persistent volume** attached to the bot's container |
+| Fly.io | A **persistent volume** mounted at `/data` |
 | Local PC (development/testing) | A `var/` folder next to the code (git-ignored) |
 
 | ID | Requirement | Pri |
@@ -543,6 +543,8 @@ compute(present_players, player_roles, character_entries, character_guilds, cata
 | DB-6 | **Nightly snapshots:** a full `sqlite3 .backup` copy goes to the same object storage every night and is kept for 30 days. | M |
 | DB-7 | **Restore is documented and tested:** a written runbook covers restoring onto a new host. It's tried at least once before AWT goes live. | M |
 
+**Where snapshots go:** a private Backblaze B2 bucket. The bot uploads with a write-only application key limited to that bucket, set in `BACKUP_KEY_ID` and `BACKUP_KEY` (NF-9). The bucket's lifecycle rule deletes snapshots after 30 days.
+
 **Expected size:** well under 10 MB. Storage costs are pennies a month.
 
 ### 12.2 Deployment
@@ -553,6 +555,8 @@ compute(present_players, player_roles, character_entries, character_guilds, cata
 | DP-2 | **Branches:** experimental work happens on branches and reaches `main` by merge. Only `main` is deployed. | M |
 | DP-3 | **Catalog changes are ordinary commits.** Adding a skill or title is an edit to a data file, a push, and an automatic deploy: a few minutes end to end. | M |
 | DP-4 | **Safe restarts:** a deploy restarts the bot in a few seconds without losing data, so deploying during a game is harmless. | M |
+
+**How a push reaches the bot:** when CI passes on a push to `main`, the deploy workflow (`.github/workflows/deploy.yml`) runs `flyctl deploy` with a deploy-only Fly token kept in a GitHub secret (NF-12). Fly builds the Docker image, stops the running bot, which shuts down cleanly and releases its lock (DB-3), and starts the new one on the same volume.
 
 ## 13. Testing Strategy
 
