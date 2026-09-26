@@ -47,6 +47,10 @@ addopts = ["-rfEX", "--strict-markers", "--strict-config"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 xfail_strict = false
+filterwarnings = [
+    # discord.py imports audioop for voice playback, which the bot doesn't use.
+    "ignore:'audioop' is deprecated:DeprecationWarning:discord.player",
+]
 markers = [
     "milestone(name): the milestone that implements what this test checks (TF-4), e.g. milestone('M3')",
     "req(*ids): the requirement IDs this test checks (TF-3), e.g. req('HV-4') or req('4.6')",

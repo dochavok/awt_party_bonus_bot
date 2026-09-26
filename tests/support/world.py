@@ -8,7 +8,7 @@ sees the same data.
 Top-level keys starting with ``x-`` are ignored (they hold YAML anchors).
 """
 
-from collections.abc import Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -24,6 +24,9 @@ from awt_bonus.store import CharacterRecord, Store
 from tests.support.fakes import FakeClock, FakeDiscord
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
+
+type MakeWorld = Callable[[str], Awaitable["World"]]
+"""The ``make_world`` pytest fixture: ``world = await make_world("sample-game")``."""
 
 DEFAULT_SETTINGS = Settings(request_channel="bonus-bot-support", sitout_hours=12, max_level=75)
 """The settings in requirement AD-1."""
@@ -133,6 +136,13 @@ def read_fixture(name: str) -> FixtureSpec:
     return FixtureSpec.model_validate(data)
 
 
+def catalog_data(name: str = "catalog.yaml") -> dict[str, Any]:
+    """A test catalog as plain data, to change and pass to ``parse_catalog``."""
+    with (FIXTURES / name).open(encoding="utf-8") as f:
+        data: dict[str, Any] = yaml.safe_load(f)
+    return data
+
+
 def fixture_names() -> list[str]:
     """Every world fixture (the YAML files directly in tests/fixtures/, except the catalog)."""
     return sorted(p.stem for p in FIXTURES.glob("*.yaml") if p.name != "catalog.yaml")
@@ -168,6 +178,8 @@ class World:
     """Member handle -> Discord user ID."""
     channels: Mapping[str, ChannelId]
     """Channel name -> channel ID."""
+    store_path: Path
+    """The SQLite file, e.g. to reopen it as after a restart."""
 
     def user(self, handle: str) -> UserId:
         return self.users[handle]
@@ -183,6 +195,16 @@ class World:
         self, handle: str, command: str, option: str, typed: str, **options: OptionValue
     ) -> list[Choice]:
         return await self.app.autocomplete(self.user(handle), command, option, typed, options)
+
+    def app_with(self, *, catalog: Catalog | None = None, settings: Settings | None = None) -> App:
+        """Another App on the same database and Discord, e.g. after a catalog change."""
+        return App(
+            store=self.store,
+            discord=self.discord,
+            clock=self.clock,
+            catalog=catalog or self.catalog,
+            settings=settings or self.settings,
+        )
 
     async def character(self, name: str) -> CharacterRecord | None:
         return await self.store.character_by_name(name)
@@ -209,7 +231,8 @@ async def load_world(name: str, directory: Path) -> World:
     catalog = load_catalog_file(FIXTURES / spec.catalog)
 
     directory.mkdir(parents=True, exist_ok=True)
-    store = await Store.open(f"sqlite+aiosqlite:///{(directory / 'bot.db').as_posix()}")
+    store_path = directory / "bot.db"
+    store = await Store.open(f"sqlite+aiosqlite:///{store_path.as_posix()}")
     for player in spec.players:
         owner = users[player.member]
         ids: dict[str, CharacterId] = {}
@@ -238,4 +261,5 @@ async def load_world(name: str, directory: Path) -> World:
         settings=spec.settings,
         users=users,
         channels=channels,
+        store_path=store_path,
     )
