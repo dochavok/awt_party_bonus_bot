@@ -637,7 +637,7 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 
 - A live `/partybonus` message that updates itself (OUT-8).
 - Switching an item off temporarily without removing it (e.g. not equipped).
-- Continuous database replication with Litestream (DB-5) and an automated restore test (TS-12).
+- Continuous database replication with Litestream (DB-5).
 - Stricter type checking (`mypy --strict`).
 
 ## 16. Open Questions
