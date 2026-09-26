@@ -635,7 +635,6 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 
 ## 15. Future Enhancements
 
-- Buttons on the `/partybonus` message (Join / Leave / Refresh).
 - A live `/partybonus` message that updates itself (OUT-8).
 - Switching an item off temporarily without removing it (e.g. not equipped).
 - Continuous database replication with Litestream (DB-5) and an automated restore test (TS-12).
@@ -695,6 +694,6 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 | **M3: Characters and output** | `/character`, `/add`, `/remove`, voice presence, `/sitout` / `/sitin`, `/play`, `/partybonus`, `/mybonus`, `/breakdown`, `/catalog`, and the thin discord.py adapter (TS-8) for live testing on the private test server (TS-13). |
 | **M4: Guilds** | `/guild join/leave`, rank entries with several abilities, Support from Discord roles, secret guilds. Once the output layout is approved, the snapshot tests (TS-5) are created. |
 | **M5: Ops** | Docker, automatic deployment, persistent storage, nightly snapshots, restore runbook, settings file, `/request`. |
-| **M6: Extras** | Bogsy hand-off, buttons, `/help` (OUT-9). |
+| **M6: Extras** | Bogsy hand-off, `/help` (OUT-9). |
 
 Each milestone from M2 on is done when all of its M1 tests pass, with no test changed except through the test-change rule (TF-5).
