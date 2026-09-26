@@ -1,0 +1,13 @@
+# Only what the image needs: pyproject.toml, uv.lock, README.md, src/, catalog/,
+# config/, alembic.ini and docker/. Never secrets or the local database.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!src/
+!catalog/
+!config/
+!alembic.ini
+!docker/
+**/__pycache__
+**/*.py[cod]

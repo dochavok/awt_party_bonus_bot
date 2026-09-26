@@ -52,8 +52,15 @@ class DiscordGateway(Protocol):
         ...
 
     async def post(self, channel_name: str, text: str) -> None:
-        """Post a message to a text channel, e.g. a ``/request`` (CT-9)."""
+        """Post a message to a text channel, e.g. a ``/request`` (CT-9).
+
+        Raises PostFailed if the channel is missing or the bot may not post there.
+        """
         ...
+
+
+class PostFailed(Exception):
+    """A message couldn't be posted. The message says why, for the player to read."""
 
 
 class SystemClock:

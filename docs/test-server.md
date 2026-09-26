@@ -14,6 +14,12 @@ merging a milestone that changes Discord behaviour.
      Guild Champion, Guild Legend;
    - a voice channel (a second one helps for the `channel:` option);
    - a text channel called `bonus-bot-support` (for `/request`);
+     if it's private, as AWT's is likely to be, add the bot to it after inviting
+     it (step 4): **Edit Channel → Permissions → +**, pick the bot, and allow
+     **View Channel** and **Send Messages**. Otherwise `/request` replies that it
+     couldn't be posted, and the log shows `403 Forbidden ... Missing Access`.
+     Allow these on the channel only: never give the bot a role with server-wide
+     powers such as Administrator (NF-11);
    - optionally, a music bot, to check bots are ignored.
 3. **Create the test bot (TS-13).** It has its own token and database, so testing
    never touches AWT's data.
@@ -112,5 +118,6 @@ scenario or catalog fix.
 
 - [ ] A restart mid-game loses nothing: stop and start the bot, and the characters
       and sit-outs are still there.
-- [ ] `/request` posts to `#bonus-bot-support` with the player's name (M5).
+- [ ] `/request` posts to `#bonus-bot-support` with the player's name (M5). If the
+      channel is private, the bot has been added to it (see "Set up once").
 - [ ] A catalog change pushed to `main` is deployed automatically (M5).

@@ -1,0 +1,87 @@
+# Automatic deployment (requirements DP-1 to DP-4, NF-12). See docs/deployment.md.
+#
+# When the CI workflow finishes successfully for a push to main, this deploys that
+# commit to Fly.io: Fly builds the Docker image, stops the running bot (which shuts
+# down cleanly and releases its lock) and starts the new one on the same volume.
+# Only main is deployed (DP-2).
+#
+# The Fly token is a deploy-only token for this one app, kept as the FLY_API_TOKEN
+# secret of the "production" environment, which only main may use (NF-12).
+#
+# A change to this file needs a requirements change too (TF-6); updating only the
+# versions of the actions it uses is allowed.
+
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+# One deploy at a time, in order; never cancel one halfway.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      APP: awt-party-bonus-bot
+      SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      # A CI run that finishes late mustn't deploy an older commit over a newer one.
+      - name: Is this still the newest commit on main?
+        id: newest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          newest=$(gh api "repos/$REPO/commits/main" --jq .sha)
+          if [[ "$newest" == "$SHA" ]]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "main has moved on to $newest; that commit deploys instead of $SHA."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.newest.outputs.deploy == 'true'
+        with:
+          ref: ${{ env.SHA }}
+
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # v1.6
+        if: steps.newest.outputs.deploy == 'true'
+
+      - name: Deploy
+        if: steps.newest.outputs.deploy == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --app "$APP" --remote-only --build-arg "GIT_SHA=$SHA"
+
+      # Fly reports success once the machine starts; this waits for the bot itself
+      # to connect to Discord, so a bot that refuses to start fails the deploy.
+      - name: Wait for the bot to be ready
+        if: steps.newest.outputs.deploy == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          for attempt in $(seq 1 18); do
+            if flyctl logs --app "$APP" --no-tail | grep '"event": "ready"' | grep -q "\"version\": \"$SHA\""; then
+              echo "The bot is ready."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::The bot didn't report ready within 90 seconds. Check: flyctl logs --app $APP"
+          flyctl logs --app "$APP" --no-tail | tail -n 40
+          exit 1
