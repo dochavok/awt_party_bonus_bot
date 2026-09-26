@@ -158,7 +158,7 @@ scenarios:
       Outsider: {CM: 10}
 
   - name: Multiple Guild roles still give Support once
-    rule: "HV-3 (highest role sets the rank)"
+    rule: "HV-3 (any Guild rank role gives Support once)"
     players:
       - {name: A, roles: [Junior Adventurer, Guild Veteran]}
       - {name: B}
