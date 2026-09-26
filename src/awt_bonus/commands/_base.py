@@ -27,6 +27,18 @@ class Refused(Exception):
         self.lines = lines
 
 
+class Failed(Exception):
+    """Something outside the command went wrong, e.g. Discord refused a post.
+
+    The reply says what, privately; the log records it as an error, with the
+    traceback of its cause (NF-8).
+    """
+
+    def __init__(self, *lines: str) -> None:
+        super().__init__(" ".join(lines))
+        self.lines = lines
+
+
 @dataclass(frozen=True)
 class Services:
     store: Store

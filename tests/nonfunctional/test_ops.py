@@ -27,6 +27,7 @@ from awt_bonus.backup import (
 )
 from awt_bonus.ids import UserId
 from awt_bonus.logging_setup import configure_logging
+from awt_bonus.ports import PostFailed
 from awt_bonus.restore import RestoreError, restore
 from awt_bonus.settings import Environment, load_settings
 from awt_bonus.startup import (
@@ -443,3 +444,31 @@ async def test_an_unknown_command_is_logged_as_refused(make_world: MakeWorld) ->
     [record] = [r for r in map(json.loads, stream.getvalue().splitlines()) if "command" in r]
     assert record["command"] == "teleport"
     assert record["outcome"] == "refused"
+
+
+@pytest.mark.req("CT-9", "NF-8")
+@pytest.mark.usefixtures("root_logging")
+async def test_a_request_that_cant_be_posted_says_so_and_is_logged_as_an_error(
+    make_world: MakeWorld, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """E.g. a private channel the bot hasn't been added to."""
+    world = await make_world("setup")
+    stream = io.StringIO()
+    configure_logging(stream)
+
+    async def refused_post(channel_name: str, text: str) -> None:
+        try:
+            raise PermissionError("403 Forbidden (error code: 50001): Missing Access")
+        except PermissionError as error:
+            raise PostFailed(f"the bot can't post in #{channel_name}") from error
+
+    monkeypatch.setattr(world.discord, "post", refused_post)
+    reply = await world.run("craig", "request", text="Please add the Dragon Scale item")
+
+    assert reply.private
+    assert "couldn't be posted" in reply.text
+    assert "#bonus-bot-support" in reply.text
+    [record] = [r for r in map(json.loads, stream.getvalue().splitlines()) if "command" in r]
+    assert record["outcome"] == "error"
+    assert "Missing Access" in record["error"], "the cause's traceback is kept"
+    assert "Dragon Scale" not in stream.getvalue()

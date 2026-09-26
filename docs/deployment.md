@@ -139,7 +139,7 @@ merge of the pull request that adds it. Check it with `fly logs`: you should see
 | When | Do |
 |---|---|
 | The deploy token expires (a year after it was made; the Deploy workflow fails with an authentication error) | Repeat the `fly tokens create deploy ... \| gh secret set ...` step. Revoke the old one: `fly tokens list --app awt-party-bonus-bot`, then `fly tokens revoke <ID>`. |
-| AWT goes live | Set `DISCORD_TOKEN` and `DISCORD_GUILD_ID` to the AWT bot's token and AWT's server ID (step 3, without `--stage`: the bot restarts with them). Invite the AWT bot with only the four permissions in NF-11, as in [test-server.md](test-server.md). The test data stays in the database; if AWT should start empty, see [restore-runbook.md](restore-runbook.md) "Starting with an empty database". |
+| AWT goes live | Set `DISCORD_TOKEN` and `DISCORD_GUILD_ID` to the AWT bot's token and AWT's server ID (step 3, without `--stage`: the bot restarts with them). Invite the AWT bot with only the four permissions in NF-11, as in [test-server.md](test-server.md). If AWT's `#bonus-bot-support` is private, add the bot to it with View Channel and Send Messages on that channel only. The test data stays in the database; if AWT should start empty, see [restore-runbook.md](restore-runbook.md) "Starting with an empty database". |
 | The bot token leaks | Discord developer portal → the bot → **Reset Token**, then set the new one (step 3, without `--stage`). |
 | The storage key leaks or is lost | Delete it in B2, make a new one (B2 step 4) and set it (B2 step 5, without `--stage`). |
 

@@ -25,7 +25,7 @@ from awt_bonus.commands import (
     _requests,
 )
 from awt_bonus.commands._autocomplete import suggest
-from awt_bonus.commands._base import Context, Handler, Refused, Services, private
+from awt_bonus.commands._base import Context, Failed, Handler, Refused, Services, private
 from awt_bonus.commands._types import Choice, OptionValue, Reply
 from awt_bonus.ids import UserId
 from awt_bonus.ports import Clock, DiscordGateway
@@ -82,8 +82,9 @@ class App:
         """Run a command as ``user_id``.
 
         Logs one line with the command, the user, the outcome and the duration
-        (NF-8); never the options or the reply. Unexpected errors are logged with
-        their traceback and raised again.
+        (NF-8); never the options or the reply. Errors are logged with their
+        traceback: a ``Failed`` command still replies, saying what went wrong, and
+        anything unexpected is raised again.
         """
         started = time.perf_counter()
         try:
@@ -91,6 +92,11 @@ class App:
         except Refused as refused:
             log.info("command", extra=_fields(command, user_id, "refused", started))
             return private(*refused.lines)
+        except Failed as failed:
+            log.error(
+                "command failed", exc_info=True, extra=_fields(command, user_id, "error", started)
+            )
+            return private(*failed.lines)
         except Exception:
             log.exception("command failed", extra=_fields(command, user_id, "error", started))
             raise

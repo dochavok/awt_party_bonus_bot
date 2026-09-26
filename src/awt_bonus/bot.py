@@ -27,7 +27,7 @@ from awt_bonus.commands import App, OptionValue, Reply
 from awt_bonus.commands._requests import REQUEST_LENGTH
 from awt_bonus.ids import ChannelId, UserId
 from awt_bonus.logging_setup import configure_logging
-from awt_bonus.ports import Clock, Member, SystemClock, VoiceChannel
+from awt_bonus.ports import Clock, Member, PostFailed, SystemClock, VoiceChannel
 from awt_bonus.settings import Environment, Settings, load_settings
 from awt_bonus.startup import (
     StartupError,
@@ -108,9 +108,13 @@ class DiscordAdapter:
     async def post(self, channel_name: str, text: str) -> None:
         for channel in self._guild().text_channels:
             if channel.name == channel_name:
-                await channel.send(text, allowed_mentions=discord.AllowedMentions.none())
+                try:
+                    await channel.send(text, allowed_mentions=discord.AllowedMentions.none())
+                except discord.Forbidden as error:
+                    # E.g. a private channel the bot hasn't been added to.
+                    raise PostFailed(f"the bot can't post in #{channel_name}") from error
                 return
-        raise RuntimeError(f"no text channel called #{channel_name}")
+        raise PostFailed(f"there's no #{channel_name} channel")
 
 
 def _member(member: discord.Member) -> Member:

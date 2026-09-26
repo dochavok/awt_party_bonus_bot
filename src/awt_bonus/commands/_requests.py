@@ -1,7 +1,8 @@
 """/request (CT-9): a player asks the maintainer for something."""
 
-from awt_bonus.commands._base import Context, Refused, private
+from awt_bonus.commands._base import Context, Failed, Refused, private
 from awt_bonus.commands._types import Reply
+from awt_bonus.ports import PostFailed
 
 REQUEST_LENGTH = 1000
 """The longest request text allowed."""
@@ -26,5 +27,10 @@ async def request(ctx: Context) -> Reply:
         raise Refused("That request is too long for one message. Please shorten it.")
 
     channel = ctx.settings.request_channel
-    await ctx.discord.post(channel, post)
+    try:
+        await ctx.discord.post(channel, post)
+    except PostFailed as error:
+        raise Failed(
+            f"Your request couldn't be posted: {error}. Please tell the maintainer another way."
+        ) from error
     return private(f"Sent to #{channel} for the maintainer. Thanks!")
