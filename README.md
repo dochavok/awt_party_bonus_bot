@@ -1,7 +1,7 @@
 # awt_party_bonus_bot
 Discord bot to track bonuses to the party for AWT raids
 
-> **Status:** in development (requirements baseline v1.0). The bot isn't running yet; the commands below describe how it will work. See the [requirements](party-bonus-bot-requirements.md) for the full design.
+> **Status:** in development. Characters, entries, presence and the output commands work (milestone M3); `/guild`, Support from Discord roles, secret guilds and `/request` are still to come. See the [requirements](party-bonus-bot-requirements.md) for the full design.
 
 The bot works out the party bonuses (CM, CR, and more) that each character receives from everyone else in the voice channel. You record what your character **has**; the bot does the math.
 
@@ -57,3 +57,15 @@ Characters can't be deleted. Rename one instead, or use `/request` if it really 
 - **"If in the same range" bonuses** (Commanding Presence) are listed separately and aren't included in totals. Add them yourself when they apply.
 - **Only always-on bonuses are tracked.** Once-per-combat or daily abilities aren't.
 - You can only change your own characters.
+
+## Running the bot (for testing)
+
+On the private test server (TS-13), with the test bot's own token:
+
+```
+$env:DISCORD_TOKEN = "<test bot token>"
+$env:DISCORD_GUILD_ID = "<test server ID>"
+uv run python -m awt_bonus
+```
+
+The database goes to `var/awt-bonus.db` unless `DATABASE_URL` says otherwise.

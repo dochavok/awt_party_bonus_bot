@@ -1,0 +1,75 @@
+# AWT Party Bonus Bot: skills (requirements 8.2).
+# ---------------------------------------------------------------------------
+# Each key is the entry's permanent ID (CT-2): never change or remove one. To take
+# an entry out of the game, set `retired: true` (CT-6).
+# `card` is the card text quoted from the source; it's left out until copied.
+# The format is described in catalog/README.md.
+# ---------------------------------------------------------------------------
+
+entries:
+  # ------------------------------------------------------------ Holy Knight
+  holy_aura:
+    name: Holy Aura
+    kind: skill
+    tree: Holy Knight
+    tags: [aura]
+    gives: {CR vs fear: 2}
+    card: "Allies in your aura gain +2 vs. fear effects"
+
+  bolstering_aura:
+    name: Bolstering Aura
+    kind: skill
+    tree: Holy Knight
+    tags: [aura]
+    gives: {CM: 2}
+    card: "Allies in your aura gain +2 to combat rolls"
+
+  protective_aura:
+    name: Protective Aura
+    kind: skill
+    tree: Holy Knight
+    tags: [aura]
+    effect: "Resistance to damage from an Evil source"
+    card: "Allies in your aura gain Resistance to damage from an evil source"
+
+  devotion_3:
+    name: Devotion III
+    kind: skill
+    tree: Holy Knight
+    modifies: {tag: aura, add: 1}         # only skills named "Aura" are auras (Q1)
+    card: "Increase Aura bonuses by +1."
+
+  # ------------------------------------------------------------ Paladin
+  aura_of_defense:
+    name: Aura of Defense
+    kind: skill
+    tree: Paladin
+    tags: [aura]
+    gives: {CR would hurt: 5}
+    card: "Increase all allies CR by 5 if it would hurt"
+
+  aura_of_hope:
+    name: Aura of Hope
+    kind: skill
+    tree: Paladin
+    tags: [aura]
+    gives: {CM: 10}
+    card: "Increase all allies CM by 10"
+
+  # ------------------------------------------------------------ Commander
+  # The Presence skills aren't auras (Q1).
+  commanding_presence:
+    name: Commanding Presence
+    kind: skill
+    tree: Commander
+    gives: {CM: 5}
+    condition: "allies in the same range"   # position isn't tracked: never in totals (4.12)
+    card: "+5 to CM for all allies who are in the same range as you."
+
+  inspiring_presence:
+    name: Inspiring Presence
+    kind: skill
+    tree: Commander
+    gives: {CR: 5}
+    stacks: false
+    card: "Add +5 to all CRs made by allies (Does not stack)."

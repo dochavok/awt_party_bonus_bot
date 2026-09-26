@@ -1,0 +1,41 @@
+# AWT Party Bonus Bot: stats (requirements 8.1).
+# ---------------------------------------------------------------------------
+# What a bonus adds to. Each key is the stat's permanent ID and display name.
+#   kind: roll (CM, CR and CR subtypes) or combat_note (in hearts)
+#   parent: for a CR subtype, the stat whose total flows into it (rule 4.7)
+# The format is described in catalog/README.md.
+# ---------------------------------------------------------------------------
+
+stats:
+  CM:
+    kind: roll
+    description: "Combat modifier; attack and defence combined."
+  CR:
+    kind: roll
+    description: "Challenge roll."
+  CR vs fear:
+    kind: roll
+    parent: CR
+  CR stealth:
+    kind: roll
+    parent: CR
+  CR escape:
+    kind: roll
+    parent: CR
+    description: "Challenge rolls to escape combat."
+  CR would hurt:
+    kind: roll
+    parent: CR
+    description: "Applies when a failed CR would cause damage; players ask the DM."
+  Damage:
+    kind: combat_note
+    unit: hearts
+    description: "extra hearts dealt when attacking"
+  Damage reduction:
+    kind: combat_note
+    unit: hearts
+    description: "hearts mitigated when attacked"
+  Healing:
+    kind: combat_note
+    unit: hearts
+    description: "hearts healed at the end of each round"

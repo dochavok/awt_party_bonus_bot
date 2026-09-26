@@ -1,7 +1,9 @@
-"""Requirement IDs, DM questions and milestones, read from the documents (TF-3, TF-4).
+"""Requirement IDs and milestones, read from the requirements document (TF-3, TF-4).
 
-Tests are tagged with these, and the tags are checked against the documents so a
-test can never point at a requirement that doesn't exist.
+Tests are tagged with these, and the tags are checked against the document so a
+test can never point at a requirement that doesn't exist. Tests are also tagged with
+the DM rule questions they depend on, but dm-rule-questions.md is documentation
+for the DMs, so nothing checks those tags against it (TF-3).
 """
 
 import re
@@ -11,12 +13,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 REQUIREMENTS = ROOT / "party-bonus-bot-requirements.md"
-DM_QUESTIONS = ROOT / "dm-rule-questions.md"
 COVERAGE = ROOT / "tests" / "COVERAGE.md"
 
 _TABLE_ROW = re.compile(r"^\|\s*([A-Z]{2,3}-\d+[a-z]?)\s*\|(.*)\|\s*$")
 _RULE = re.compile(r"^(\d+)\.\s+\*\*")
-_QUESTION = re.compile(r"^##\s+(Q\d+)\.")
 _MILESTONE = re.compile(r"^\|\s*\*\*(M\d+):")
 
 
@@ -50,13 +50,6 @@ def requirements() -> dict[str, Requirement]:
             found[rule_id] = Requirement(rule_id, line, "M")
     found["9.1"] = Requirement("9.1", "The sample game (section 9.1)", "M")
     return found
-
-
-@cache
-def dm_questions() -> frozenset[str]:
-    """The DM rule question numbers, e.g. "Q7"."""
-    lines = DM_QUESTIONS.read_text(encoding="utf-8").splitlines()
-    return frozenset(m.group(1) for line in lines if (m := _QUESTION.match(line)))
 
 
 @cache
