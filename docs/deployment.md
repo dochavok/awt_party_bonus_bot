@@ -139,9 +139,44 @@ merge of the pull request that adds it. Check it with `fly logs`: you should see
 | When | Do |
 |---|---|
 | The deploy token expires (a year after it was made; the Deploy workflow fails with an authentication error) | Repeat the `fly tokens create deploy ... \| gh secret set ...` step. Revoke the old one: `fly tokens list --app awt-party-bonus-bot`, then `fly tokens revoke <ID>`. |
-| AWT goes live | Set `DISCORD_TOKEN` and `DISCORD_GUILD_ID` to the AWT bot's token and AWT's server ID (step 3, without `--stage`: the bot restarts with them). Invite the AWT bot with only the four permissions in NF-11, as in [test-server.md](test-server.md). If AWT's `#bonus-bot-support` is private, add the bot to it with View Channel and Send Messages on that channel only. The test data stays in the database; if AWT should start empty, see [restore-runbook.md](restore-runbook.md) "Starting with an empty database". |
+| AWT goes live | Follow "Going live at AWT" below. |
 | The bot token leaks | Discord developer portal → the bot → **Reset Token**, then set the new one (step 3, without `--stage`). |
 | The storage key leaks or is lost | Delete it in B2, make a new one (B2 step 4) and set it (B2 step 5, without `--stage`). |
+
+## Going live at AWT
+
+Until launch, Fly runs the **test bot** on the test server. Production is a second,
+separate bot, so the test bot keeps its own token and database for trying changes
+(TS-13). Nothing in the code or the repository changes.
+
+1. **Create the production bot.** Discord developer portal → **New Application**.
+   Give it the name, icon and description in [discord/](../discord/README.md). On
+   the **Bot** page, leave every privileged intent off (NF-6), turn **Public Bot**
+   off (so only you can invite it; worth doing for the test bot too), and click
+   **Reset Token**. Keep the token for step 4; never paste it into a chat or a file.
+2. **Invite it to AWT with only the four permissions (NF-11).** **OAuth2 → URL
+   Generator**: scopes `bot` and `applications.commands`; permissions View
+   Channels, Send Messages, Embed Links and Use Application Commands. Whoever opens
+   the link needs **Manage Server** on AWT; the link itself isn't secret.
+3. **Let it into `#bonus-bot-support`** if that channel is private: the channel's
+   **Permissions → +**, pick the bot, allow View Channel and Send Messages. On the
+   channel only, never through a role.
+4. **Point Fly at AWT** (separate PowerShell window). Without `--stage`, the bot
+   restarts with the new values:
+   ```
+   "DISCORD_TOKEN=$(Read-Host 'AWT bot token')" | fly secrets import --app awt-party-bonus-bot
+   fly secrets set DISCORD_GUILD_ID=<AWT server ID> --app awt-party-bonus-bot
+   ```
+   Between the two commands the bot has the new token and the old server ID, so
+   the logs may show a `startup refused` or two until the second lands.
+5. **Decide about the test data.** The database still holds whatever was done on
+   the test server. To start AWT empty, see [restore-runbook.md](restore-runbook.md),
+   "Starting with an empty database".
+6. **Check it.** `fly logs` shows `ready`; on AWT, try `/catalog` and `/request`,
+   and run the [TS-15 checklist](test-server.md) where it makes sense.
+
+From then on the test bot only runs when started by hand on a PC, with its own
+`var/` database; it can't clash with production, because its token is different.
 
 ## Costs
 
