@@ -182,6 +182,7 @@ There are no sessions to start or end. Each time a command runs, the bot looks a
 | OUT-6 | A player can look up anyone's character (subject to SG-3). | S |
 | OUT-7 | Output never uses pronouns for characters ("to Kael", not "to himself"). | M |
 | OUT-8 | **Live `/partybonus`:** a public `/partybonus` message that the bot keeps editing when people join or leave the voice channel, sit out or in, or change characters. Edits are batched over a few seconds (to stay within Discord's rate limits), and it stops updating once the channel has been empty for a while (e.g. 15 minutes). It isn't pinned, since pinning needs the *Manage Messages* permission (NF-11). | C |
+| OUT-9 | **`/help`**: a short guide for players getting started, in one private message. **Set up** (once per character): `/character register` (the level is optional and only used for level-based bonuses), `/guild join`, `/add`, `/catalog`, and `/request` for anything the character has that isn't in the catalog; and that Support comes from the Guild rank roles automatically, with nothing to add. **Game night:** being in the voice channel is how players are counted, with nothing to start; `/sitout` and `/sitin` for anyone running the game or watching; `/partybonus` (posted for everyone), `/mybonus` (only for the player) and `/breakdown`. Then a note that a player with several characters uses `/play` before the game. It ends with **the player's next step**, worked out from their data: with no character, register one; with characters but none current, choose one with `/play`; with a current character that has nothing added, add what it has with `/add` (and see `/catalog`); otherwise, that they're set up, and how to see the party's bonuses on game night. | S |
 
 ### 6.7 Administration and Review
 
@@ -210,6 +211,9 @@ Setup (players, for their own characters)
 /guild leave <character> <guild>
 /catalog [entry or guild]
 /request <text>
+
+Getting started
+/help                                 how to set up and play, and your next step
 ```
 
 Everyone has the same commands. There are no DM or admin commands: settings and the catalog live in the repository.
@@ -691,6 +695,6 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 | **M3: Characters and output** | `/character`, `/add`, `/remove`, voice presence, `/sitout` / `/sitin`, `/play`, `/partybonus`, `/mybonus`, `/breakdown`, `/catalog`, and the thin discord.py adapter (TS-8) for live testing on the private test server (TS-13). |
 | **M4: Guilds** | `/guild join/leave`, rank entries with several abilities, Support from Discord roles, secret guilds. Once the output layout is approved, the snapshot tests (TS-5) are created. |
 | **M5: Ops** | Docker, automatic deployment, persistent storage, nightly snapshots, restore runbook, settings file, `/request`. |
-| **M6: Extras** | Bogsy hand-off, buttons. |
+| **M6: Extras** | Bogsy hand-off, buttons, `/help` (OUT-9). |
 
 Each milestone from M2 on is done when all of its M1 tests pass, with no test changed except through the test-change rule (TF-5).
