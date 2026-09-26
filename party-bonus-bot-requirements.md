@@ -585,7 +585,7 @@ The functional tests are written **before any bot code** (milestone M1), from th
 
 | ID | Requirement | Pri |
 |---|---|---|
-| TS-5 | **Snapshot tests:** the text of `/partybonus`, `/mybonus` and `/breakdown` for the sample game is saved as reference files and compared on every run. The snapshots are **created in M3**, once the output layout exists and has been approved; M1 covers the same output with behaviour tests (TF-1). From then on, snapshots follow the test-change rule (TF-5): a mismatch means the output code is wrong unless a human confirms the layout should change. | M |
+| TS-5 | **Snapshot tests:** the text of `/partybonus`, `/mybonus` and `/breakdown` for the sample game is saved as reference files and compared on every run. The snapshots are **created in M4**, once the output layout exists and has been approved, and Support (HV-3) and the secret-guild output rules (6.4) are in place; M1 covers the same output with behaviour tests (TF-1). From then on, snapshots follow the test-change rule (TF-5): a mismatch means the output code is wrong unless a human confirms the layout should change. | M |
 | TS-6 | **Secrecy tests:** for the sample game, neither the public `/partybonus` nor any non-member's `/breakdown` or `/mybonus` contains a secret guild member's name next to a secret guild bonus, or lists secret guild members. | M |
 | TS-7 | **Message size:** a very large party splits across messages under Discord's 2,000-character limit and never cuts off mid-line (OUT-3b). | M |
 
@@ -684,8 +684,8 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 |---|---|
 | **M1: Functional tests** | The test harness (interface stubs, fake Discord, fake clock, milestone markers); mock data fixtures (TF-2a); the scenario runner and property tests for the engine; command-level functional tests for sections 6.1–6.7; the requirement coverage table; CI that runs them as expected failures and enforces the test-change rule (section 13.0). No bot logic. |
 | **M2: Engine and catalog** | Catalog format and loader with validation; stats; the calculation engine with every rule in section 4. Done when the engine scenario and property tests pass. |
-| **M3: Characters and output** | `/character`, `/add`, `/remove`, voice presence, `/sitout` / `/sitin`, `/play`, `/partybonus`, `/mybonus`, `/breakdown`, `/catalog`. Once the output layout is approved, the snapshot tests (TS-5) are created. |
-| **M4: Guilds** | `/guild join/leave`, rank entries with several abilities, Support from Discord roles, secret guilds. |
+| **M3: Characters and output** | `/character`, `/add`, `/remove`, voice presence, `/sitout` / `/sitin`, `/play`, `/partybonus`, `/mybonus`, `/breakdown`, `/catalog`. |
+| **M4: Guilds** | `/guild join/leave`, rank entries with several abilities, Support from Discord roles, secret guilds. Once the output layout is approved, the snapshot tests (TS-5) are created. |
 | **M5: Ops** | Docker, automatic deployment, persistent storage, nightly snapshots, restore runbook, settings file, `/request`. |
 | **M6: Extras** | Bogsy hand-off, buttons. |
 

@@ -28,7 +28,7 @@ rules, and checks that the generated part below is up to date.
 | NF-11 | The bot's permissions are chosen when it's invited to the server, in the Discord developer portal. | Set when inviting the bot (M5); checked on the private test server (TS-15). |
 | NF-12 | GitHub account and repository settings (two-factor authentication, branch protection, secrets). | Set up by the maintainer in M5. Dependabot's configuration is committed with the CI work. |
 | TF-1 | A rule for how tests are written (from the requirements, before the code, checking behaviour). | Human review of the M1 tests; the tags on every test (TF-3) show which requirement each one came from. |
-| TS-5 | The snapshot files can only be made once the output layout exists and is approved. | Created in M3 (TS-5 says so). Until then, the output is covered by the behaviour tests in `tests/commands/test_output.py`. |
+| TS-5 | The snapshot files can only be made once the output layout exists and is approved. | Created in M4 (TS-5 says so). Until then, the output is covered by the behaviour tests in `tests/commands/test_output.py`. |
 | TS-13 | Needs a second bot, token and Discord server. | Set up by hand for M3 live testing. |
 | TS-14 | Needs a real Discord server with roles and channels. | Set up by hand; see TS-15. |
 | TS-15 | A manual checklist by definition: it covers what only real Discord can show. | Run by hand on the private test server before each milestone that changes Discord behaviour. |
