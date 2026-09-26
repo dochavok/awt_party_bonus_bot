@@ -69,3 +69,5 @@ uv run python -m awt_bonus
 ```
 
 The database goes to `var/awt-bonus.db` unless `DATABASE_URL` says otherwise.
+
+Setting up the test server, and the checklist to run on it: [docs/test-server.md](docs/test-server.md).
