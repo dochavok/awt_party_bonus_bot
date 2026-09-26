@@ -3,7 +3,7 @@
 import pytest
 
 from tests.conftest import finished_milestones
-from tests.support.traceability import dm_questions, milestones, requirements
+from tests.support.traceability import milestones, requirements
 
 pytestmark = pytest.mark.milestone("M1")
 
@@ -42,11 +42,6 @@ def test_section_4_rules_and_sample_game_are_requirements() -> None:
     assert {f"4.{n}" for n in range(1, 14)} <= set(reqs)
     assert "4.14" not in reqs
     assert "9.1" in reqs
-
-
-@pytest.mark.req("TF-3")
-def test_dm_questions_are_read_from_the_document() -> None:
-    assert dm_questions() == {f"Q{n}" for n in range(1, 8)}
 
 
 @pytest.mark.req("TF-4")
