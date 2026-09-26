@@ -43,7 +43,7 @@ finished_milestones = ["M1"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = ["-ra", "--strict-markers", "--strict-config"]
+addopts = ["-rfEX", "--strict-markers", "--strict-config"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 xfail_strict = false

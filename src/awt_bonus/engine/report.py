@@ -185,8 +185,14 @@ class PartyReport:
 
     def recipient(self, name: str) -> RecipientReport:
         """The counted player with this character name (or Discord name). KeyError if none."""
-        raise NotImplementedError
+        for recipient in self.recipients:
+            if recipient.name == name:
+                return recipient
+        raise KeyError(name)
 
     def give(self, give_id: int) -> Give:
         """The give with this id. KeyError if none."""
-        raise NotImplementedError
+        for give in self.gives:
+            if give.id == give_id:
+                return give
+        raise KeyError(give_id)
