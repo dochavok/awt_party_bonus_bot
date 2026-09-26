@@ -1,0 +1,39 @@
+# /breakdown Chris, run by cole (the owner, a member): private, 1 message(s)
+--- message 1 of 1 ---
+**BREAKDOWN**: Chris (level not recorded): <#100>
+```
+CM = 2 + 2 + 3 + 5 + 3 + 5 + 2 + 1 = +23
+   +2   Support               from Ioseph (Guild Vanguard)
+   +2   Support               from Kael (Junior Adventurer)
+   +3   Seraph's Affection    from Ioseph
+   +5   Champion of Power     from Ioseph
+   +3   Bolstering Aura       from Crateris (2 + 1 Devotion III)
+   +5   Wills ward stone      from Crateris
+   +2   Leadership            (a Guild Thief is present)
+   +1   Rat Pack              (1 other member present)
+CR = 5 + 5 = +10
+   +5   Champion of Power     from Ioseph
+   +5   Inspiring Presence    from Mira
+CR vs fear = 10 (all CR) + 3 = +13
+   +3   Holy Aura             from Crateris (2 + 1 Devotion III)
+CR stealth = 10 (all CR) + 2 = +12
+   +2   Leadership            (a Guild Thief is present)
+CR escape = 10 (all CR) + 1 = +11
+   +1   Rat Pack              (1 other member present)
+-------------------------------------------------
+EFFECTS
+  Resistance to damage from an Evil source (Protective Aura) from Crateris
+-------------------------------------------------
+NOT APPLIED
+  Cult of the Dragon members only (Chris isn't one):
+    Cult of the Dragon
+  allies only (Chris is the giver):
+    Inspiring Presence
+-------------------------------------------------
+WHAT Chris GIVES
+  Rat Pack (Guild Thief) +1 CM, +1 CR escape, to other Guild of Thieves
+      members
+  Leadership (Guild Thief) +2 CM, +2 CR stealth, to all Guild of Thieves
+      members, doesn't stack
+  Inspiring Presence +5 all CR, doesn't stack
+```

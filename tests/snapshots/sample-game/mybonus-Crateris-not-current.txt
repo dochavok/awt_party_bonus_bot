@@ -1,0 +1,10 @@
+# /mybonus Crateris, run by cora (while playing Elowen): private, 1 message(s)
+--- message 1 of 1 ---
+**Crateris (level 22)**: <#100>
+NOTE: Crateris isn't your current character (you're playing Elowen).
+These totals show Crateris in Elowen's place. Use `/play Crateris` to switch.
+```
+CM  +12
+CR  +10
+```
+See how this was worked out: `/breakdown Crateris`

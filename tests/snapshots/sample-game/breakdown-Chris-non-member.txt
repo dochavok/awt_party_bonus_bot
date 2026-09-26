@@ -1,0 +1,35 @@
+# /breakdown Chris, run by isla (not a member): private, 1 message(s)
+--- message 1 of 1 ---
+**BREAKDOWN**: Chris (level not recorded): <#100>
+```
+CM = 2 + 2 + 3 + 5 + 3 + 5 + 3s = +23
+   +2   Support               from Ioseph (Guild Vanguard)
+   +2   Support               from Kael (Junior Adventurer)
+   +3   Seraph's Affection    from Ioseph
+   +5   Champion of Power     from Ioseph
+   +3   Bolstering Aura       from Crateris (2 + 1 Devotion III)
+   +5   Wills ward stone      from Crateris
+   +3   secret guild bonus    (givers not shown)
+CR = 5 + 5 = +10
+   +5   Champion of Power     from Ioseph
+   +5   Inspiring Presence    from Mira
+CR vs fear = 10 (all CR) + 3 = +13
+   +3   Holy Aura             from Crateris (2 + 1 Devotion III)
+CR stealth = 10 (all CR) + 2s = +12
+   +2   secret guild bonus    (givers not shown)
+CR escape = 10 (all CR) + 1s = +11
+   +1   secret guild bonus    (givers not shown)
+(s = secret guild bonus)
+-------------------------------------------------
+EFFECTS
+  Resistance to damage from an Evil source (Protective Aura) from Crateris
+-------------------------------------------------
+NOT APPLIED
+  Cult of the Dragon members only (Chris isn't one):
+    Cult of the Dragon
+  allies only (Chris is the giver):
+    Inspiring Presence
+-------------------------------------------------
+WHAT Chris GIVES
+  Inspiring Presence +5 all CR, doesn't stack
+```
