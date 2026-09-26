@@ -8,7 +8,7 @@ other guilds are listed by name, with the command to join.
 from collections import defaultdict
 
 from awt_bonus.catalog import Ability, Entry, EntryKind, Guild, Membership
-from awt_bonus.commands._base import Context, Refused, private
+from awt_bonus.commands._base import REQUEST_HINT, Context, Refused, private
 from awt_bonus.commands._types import Reply
 from awt_bonus.ids import GuildId
 from awt_bonus.output.describe import ability, entry_lines, guild_name, kind_label
@@ -32,7 +32,9 @@ async def catalog(ctx: Context) -> Reply:
     guild = ctx.catalog.guild_named(wanted)
     if guild is not None:
         return private(_guild(ctx, guild, who, joined))
-    raise Refused(f"There's no entry or guild called {wanted}. `/catalog` lists everything.")
+    raise Refused(
+        f"There's no entry or guild called {wanted}. `/catalog` lists everything.", REQUEST_HINT
+    )
 
 
 def _entry(ctx: Context, entry: Entry, who: str) -> Block:
@@ -131,6 +133,7 @@ def _everything(ctx: Context, who: str, joined: frozenset[GuildId]) -> list[Bloc
     for kind, heading in KIND_HEADINGS.items():
         if others[kind]:
             blocks.append(_group(ctx, heading, others[kind]))
+    blocks.append(text("", REQUEST_HINT))
     return blocks
 
 
