@@ -27,6 +27,12 @@ merging a milestone that changes Discord behaviour.
    - permissions: View Channels, Send Messages, Embed Links, Use Application
      Commands. Never Administrator.
 
+   Both the scopes and the permissions are ticked on this **URL Generator** page.
+   The **Bot** page has a "Bot Permissions" box too, but the invite URL doesn't use
+   it. If `bot` isn't ticked here, the slash commands still appear, but the bot
+   never joins the server, and every command fails with "the bot isn't in
+   server …". Check the bot is in the server's member list.
+
    Open the generated URL and add the bot to the test server.
 5. **Get the server ID.** Turn on **User Settings → Advanced → Developer Mode**,
    then right-click the server and choose **Copy Server ID**.
