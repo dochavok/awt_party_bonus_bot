@@ -34,15 +34,21 @@ Snapshots are named after the UTC time they were taken, e.g.
 `awt-bonus-20260927T080000Z.db`. They're in two places:
 
 - **Backblaze B2** (off-site, 30 days). Use this if the Fly volume is lost.
-  Download one with the bot's image, which asks for the read-only key without
-  showing it. From the repository folder, on an up-to-date `main`:
+  Download one with the bot's image. From the repository folder, on an
+  up-to-date `main`, type the read-only key at the prompts (it isn't kept in
+  PowerShell's history, and the last line clears it from the window):
   ```
   docker build -t awt-bonus .
-  docker run --rm -it -e BACKUP_BUCKET=awt-party-bonus-backups -e BACKUP_ENDPOINT_URL=https://s3.us-east-005.backblazeb2.com -v "$HOME\Downloads:/out" awt-bonus python -m awt_bonus.download list
-  docker run --rm -it -e BACKUP_BUCKET=awt-party-bonus-backups -e BACKUP_ENDPOINT_URL=https://s3.us-east-005.backblazeb2.com -v "$HOME\Downloads:/out" awt-bonus python -m awt_bonus.download get newest --to /out
+  $env:BACKUP_KEY_ID = Read-Host 'Read-only keyID'
+  $env:BACKUP_KEY = Read-Host 'Read-only applicationKey'
+  docker run --rm -e BACKUP_KEY_ID -e BACKUP_KEY -e BACKUP_BUCKET=awt-party-bonus-backups -e BACKUP_ENDPOINT_URL=https://s3.us-east-005.backblazeb2.com -v "$HOME\Downloads:/out" awt-bonus python -m awt_bonus.download list
+  docker run --rm -e BACKUP_KEY_ID -e BACKUP_KEY -e BACKUP_BUCKET=awt-party-bonus-backups -e BACKUP_ENDPOINT_URL=https://s3.us-east-005.backblazeb2.com -v "$HOME\Downloads:/out" awt-bonus python -m awt_bonus.download get newest --to /out
+  Remove-Item Env:BACKUP_KEY_ID, Env:BACKUP_KEY
   ```
   `list` shows the snapshots, newest first; `get` takes `newest` or a name from the
-  list, and saves it in your Downloads folder.
+  list, and saves it in your Downloads folder. (`-e BACKUP_KEY` with no value
+  passes the key from the window's environment, so it never appears in the
+  command.)
 - **On the volume** (`/data/snapshots/`, 30 days): the nightly snapshots, and the
   one taken before each migration (DB-4). List them with
   `fly ssh console --app awt-party-bonus-bot -C "ls -l /data/snapshots"`.

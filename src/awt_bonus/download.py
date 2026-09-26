@@ -7,9 +7,9 @@ Usage:
     python -m awt_bonus.download get <snapshot name> [--to <folder>]
 
 ``BACKUP_BUCKET`` and ``BACKUP_ENDPOINT_URL`` name the bucket (DB-6). Use a
-**read-only** key, not the bot's write-only one. If ``BACKUP_KEY_ID`` and
-``BACKUP_KEY`` aren't set, it asks for them without showing what's typed, so the
-key is never stored (NF-9).
+**read-only** key, not the bot's write-only one, in ``BACKUP_KEY_ID`` and
+``BACKUP_KEY`` (NF-9). If they aren't set, it asks for them, without showing what's
+typed.
 
 The B2 website won't download files stored with server-side encryption, which
 the snapshots are; this does.
@@ -88,8 +88,15 @@ def storage_from(environment: Environment, ask: Callable[[str], str]) -> S3Stora
     e = environment
     if not (e.backup_bucket and e.backup_endpoint_url):
         raise DownloadError("Set BACKUP_BUCKET and BACKUP_ENDPOINT_URL (see fly.toml).")
-    key_id = e.backup_key_id.get_secret_value() if e.backup_key_id else ask("Read-only keyID: ")
-    key = e.backup_key.get_secret_value() if e.backup_key else ask("Read-only applicationKey: ")
+    hidden = " (typing won't show; paste with right-click, then Enter): "
+    key_id = (
+        e.backup_key_id.get_secret_value() if e.backup_key_id else ask("Read-only keyID" + hidden)
+    )
+    key = (
+        e.backup_key.get_secret_value()
+        if e.backup_key
+        else ask("Read-only applicationKey" + hidden)
+    )
     return S3Storage(e.backup_bucket, e.backup_endpoint_url, key_id.strip(), key.strip())
 
 
@@ -110,6 +117,9 @@ def main(argv: list[str] | None = None, ask: Callable[[str], str] = getpass.getp
             print(f"Downloaded {download(storage, args.snapshot, args.to)}")
     except DownloadError as error:
         print(f"Not downloaded: {error}", file=sys.stderr)
+        return 1
+    except (KeyboardInterrupt, EOFError):
+        print("\nNot downloaded: stopped.", file=sys.stderr)
         return 1
     except (BotoCoreError, ClientError) as error:
         print(f"Not downloaded: the storage said: {error}", file=sys.stderr)
