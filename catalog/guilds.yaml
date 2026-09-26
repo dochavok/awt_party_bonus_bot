@@ -1,0 +1,180 @@
+# AWT Party Bonus Bot: guilds and their rank and boon entries (requirements 8.3).
+# ---------------------------------------------------------------------------
+# Joining a guild grants nothing by itself: a guild's bonuses come from the rank
+# and boon entries a member adds. Ranks that grant no party bonus aren't listed.
+# Guilds with no always-on bonuses to others aren't listed either.
+#
+# Each key is a permanent ID (CT-2): never change or remove one. To take an entry
+# out of the game, set `retired: true` (CT-6).
+# `card` is the card text quoted from the source; it's left out until copied.
+# The format is described in catalog/README.md.
+# ---------------------------------------------------------------------------
+
+guilds:
+  the_guild:
+    short_name: Guild
+    full_name: The Guild
+    membership: roles
+    roles: [Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend]
+    from_roles:                             # given once, whichever roles and however many (HV-3)
+      - {name: Support, gives: {CM: 2}}
+
+  goth:
+    short_name: GoTH
+    full_name: Guild of the Timeless Heroes
+    membership: open
+
+  thieves:
+    short_name: Thieves
+    full_name: Guild of Thieves
+    membership: open
+    secret: true                            # members are never revealed (SG-1)
+
+  pirates:
+    short_name: Pirates
+    full_name: Pirate Coalition
+    membership: open
+
+  cult:
+    short_name: Cult
+    full_name: Cult of the Dragon
+    membership: open
+
+  rangers:
+    short_name: Rangers
+    full_name: Ranger's Guild
+    membership: open
+
+  cookery:
+    short_name: Cookery
+    full_name: Order of Cookery
+    membership: open
+
+entries:
+  # ------------------------------------------------------------ GoTH boons
+  # Seraph's Affection replaces Nuyaru's Love (Q3).
+  nuyarus_love:
+    name: Nuyaru's Love
+    kind: boon
+    guild: goth
+    gives: {CM: 1}
+    card: "Provide a +1 Combat bonus to all allies excluding yourself."
+
+  seraphs_affection:
+    name: Seraph's Affection
+    kind: boon
+    guild: goth
+    gives: {CM: 3}
+    replaces: [nuyarus_love]
+    card: "Provide a +3 Combat bonus to all allies excluding yourself."
+
+  # ------------------------------------------------------------ Guild of Thieves ranks
+  # Every rank grants Rat Pack; a Guild Thief keeps it and also grants Leadership (Q6).
+  footpad:
+    name: Footpad
+    kind: rank
+    guild: thieves
+    abilities:
+      - &rat_pack
+        name: Rat Pack
+        audience: guild
+        gives: {CM: 1, CR escape: 1}        # street work and burglary rolls aren't tracked
+        card: >-
+          Thieves’ Guild Members gain +1 to any Street Work, Burglary, Escape or Combat
+          Rolls for each other Thieves’ Guild member present for the roll or combat
+          encounter. They must agree on how to split up the loot if successful, and
+          they all suffer the consequences of failure if caught.
+
+  burglar:
+    name: Burglar
+    kind: rank
+    guild: thieves
+    replaces: [footpad]
+    abilities:
+      - *rat_pack
+
+  guild_thief:
+    name: Guild Thief
+    kind: rank
+    guild: thieves
+    replaces: [footpad, burglar]
+    abilities:
+      - *rat_pack
+      - name: Leadership
+        audience: guild
+        includes_giver: true
+        stacks: false
+        gives: {CM: 2, CR stealth: 2}       # a stealth bonus counts toward CM and stealth CRs
+        card: >-
+          When you are present, all Thieves’ Guild members gain +2 on their stealth,
+          burglary & streetwork rolls
+
+  # ------------------------------------------------------------ Pirate Coalition
+  captain:
+    name: Captain
+    kind: rank
+    guild: pirates
+    ability: King of the Pirates
+    audience: guild
+    includes_giver: true
+    stacks: false
+    gives: {CM: 2}
+    card: "When you are present, all Pirate Coalition members gain +2 to Combat Rolls."
+
+  # ------------------------------------------------------------ Cult of the Dragon
+  # The recipient's level decides the band; the High Priest doesn't benefit (Q2).
+  high_priest:
+    name: High Priest
+    kind: rank
+    guild: cult
+    ability: Cult of the Dragon
+    audience: guild
+    stacks: false
+    unique: true                            # one holder at a time (HV-6)
+    level_rules:
+      - {when: "< 10", gives: {Damage: 1}}
+      - {when: ">= 10", gives: {CM: 10}}
+    card: "To other members, level under 10: +1 heart damage; level 10 or higher: +10 CM."
+
+  # ------------------------------------------------------------ Ranger's Guild
+  ranger_captain:
+    name: Ranger Captain
+    kind: rank
+    guild: rangers
+    ability: Wilderness Lore
+    includes_giver: true
+    effect: "Challenge rolls to resist natural effects are one roll category easier"
+    card: &wilderness_lore >-
+      When the Ranger makes any challenge roll to resist natural effects, such as
+      becoming lost or taking damage from weather, it is one roll category easier
+      for them and their allies.
+
+  master_ranger:
+    name: Master Ranger
+    kind: rank
+    guild: rangers
+    ability: Wilderness Lore
+    includes_giver: true
+    replaces: [ranger_captain]
+    effect: "Challenge rolls to resist natural effects are one roll category easier"
+    card: *wilderness_lore
+
+  # ------------------------------------------------------------ Order of Cookery
+  chef:
+    name: Chef
+    kind: rank
+    guild: cookery
+    ability: Proper Seasoning
+    includes_giver: true
+    effect: "+1 heart when Invigorated"
+    card: &proper_seasoning "You and your allies gain an additional +1 heart when they become Invigorated."
+
+  cookery_master:
+    name: Cookery Master
+    kind: rank
+    guild: cookery
+    ability: Proper Seasoning
+    includes_giver: true
+    replaces: [chef]
+    effect: "+1 heart when Invigorated"
+    card: *proper_seasoning

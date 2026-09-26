@@ -276,6 +276,7 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 | Element Savant | Title | No party bonus | Listed for completeness |
 | Joy-Maker | Title | No party bonus | Listed for completeness |
 | Story Teller | Title | No party bonus | Listed for completeness |
+| Spook Survivor | Title | No party bonus (its +2 CR vs fear is for the holder only) | Listed for completeness |
 
 Titles with no party bonus can still be added with `/add`; they show in `/catalog` and in what a character has, but never change totals.
 
