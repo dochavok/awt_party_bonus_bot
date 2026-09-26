@@ -110,7 +110,7 @@ Priority: **M** = must have (v1), **S** = should have, **C** = could have (later
 | CH-3 | **Current character:** each player has one **current** character, set with `/play <character>`. It stays until changed. A player's first registered character becomes current automatically, so most players (one character each) never need `/play`. Commands with no character named use the current character. | M |
 | CH-4 | **Optional level per character:** 1 up to a configurable maximum (currently 75). It can be left blank. | M |
 | CH-5 | Level-based bonuses only apply to characters with a recorded level. `/mybonus` notes any bonus missed because the level is missing. The note appears only when recording a level would get the character the bonus: a character outside the bonus's audience is told they're not in the audience, not that their level is missing. | M |
-| CH-6 | The date each level was last updated is stored and shown in `/breakdown`. | S |
+| CH-6 | The date each level was last updated is stored and shown in `/breakdown`. It's shown as a date-only Discord timestamp (NF-10), which Discord displays as an ordinary date in each reader's own format and time zone. | S |
 
 ### 6.2 The Catalog
 
@@ -415,6 +415,8 @@ CRATERIS GIVES
   Wills ward stone +5 CM
   Cult of the Dragon (High Priest)
 ```
+
+The "updated" date is a Discord timestamp (CH-6, NF-10), so each reader sees it as an ordinary date in their own format; it's shown here as 2026-09-20.
 
 `/mybonus Mira` (private; Mira is a Guild of Thieves member):
 

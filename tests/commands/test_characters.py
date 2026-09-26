@@ -5,6 +5,9 @@ Ioseph; newbie has no characters yet. Permission checks are in
 tests/nonfunctional/test_permissions.py.
 """
 
+import re
+from datetime import UTC, datetime
+
 import pytest
 
 from awt_bonus.settings import Settings
@@ -273,3 +276,15 @@ async def test_breakdown_shows_the_level(make_world: MakeWorld) -> None:
     world = await make_world("setup")
     reply = await world.run("craig", "breakdown", character="Crateris")
     assert mentions(reply.text, "level 22")
+
+
+@pytest.mark.req("CH-6", "NF-10", "OUT-3a")
+async def test_breakdown_shows_when_the_level_was_updated_as_a_discord_date(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("setup")
+    reply = await world.run("craig", "breakdown", character="Crateris")
+
+    updated = datetime(2026, 9, 20, 18, 0, tzinfo=UTC)  # from the setup fixture
+    assert re.search(rf"<t:{int(updated.timestamp())}:[dD]>", reply.text)  # date-only styles
+    assert "2026-09-20" not in reply.text  # never a raw date in the host's format
