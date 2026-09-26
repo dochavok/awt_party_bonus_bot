@@ -4,7 +4,7 @@
 # have, and the totals each counted player should receive. The test runner
 # loads this file, builds the engine inputs, and compares results with `expect`.
 #
-# These tests use their own catalog (below), not the real one in data/, so a
+# These tests use their own catalog (below), not the real one in catalog/, so a
 # change to a real catalog value doesn't break them. The values mirror the
 # starting catalog in the requirements (section 8).
 #
@@ -51,13 +51,19 @@ catalog:
     # GoTH boons
     Nuyaru's Love:       {kind: boon, guild: GoTH, gives: {CM: 1}}
     Seraph's Affection:  {kind: boon, guild: GoTH, gives: {CM: 3}, replaces: [Nuyaru's Love]}
-    # Guild ranks that grant a bonus
-    Guild Thief:         {kind: rank, guild: Thieves, ability: Leadership, audience: guild,
-                          includes_giver: true, stacks: false, gives: {CM: 2, CR stealth: 2}}
+    # Guild ranks that grant a bonus (a rank can grant several abilities)
+    Footpad:             {kind: rank, guild: Thieves,
+                          abilities: [{name: Rat Pack, audience: guild, gives: {CM: 1, CR escape: 1}}]}
+    Burglar:             {kind: rank, guild: Thieves, replaces: [Footpad],
+                          abilities: [{name: Rat Pack, audience: guild, gives: {CM: 1, CR escape: 1}}]}
+    Guild Thief:         {kind: rank, guild: Thieves, replaces: [Footpad, Burglar],   # keeps Rat Pack (Q6)
+                          abilities: [{name: Rat Pack, audience: guild, gives: {CM: 1, CR escape: 1}},
+                                      {name: Leadership, audience: guild, includes_giver: true,
+                                       stacks: false, gives: {CM: 2, CR stealth: 2}}]}
     Captain:             {kind: rank, guild: Pirates, ability: King of the Pirates, audience: guild,
                           includes_giver: true, stacks: false, gives: {CM: 2}}
     High Priest:         {kind: rank, guild: Cult, ability: Cult of the Dragon, audience: guild,
-                          stacks: false,
+                          stacks: false, unique: true,                     # one holder at a time (HV-6)
                           level_rules: [{when: "< 10", gives: {Damage: 1}},
                                         {when: ">= 10", gives: {CM: 10}}]}
     Ranger Captain:      {kind: rank, guild: Rangers, ability: Wilderness Lore, includes_giver: true,
@@ -68,7 +74,7 @@ catalog:
     # Items and titles
     Wills ward stone:    {kind: item, gives: {CM: 5}}
     NF pin:              {kind: item, gives: {CM: 1}}
-    Champion of Power:   {kind: title, gives: {CR: 5, CM: 5}}
+    Champion of Power:   {kind: title, gives: {CR: 5, CM: 5}, unique: true}  # one holder at a time (HV-6)
     Hero of Passion:     {kind: title, audience: holders, gives: {CM: 1}}   # amount to confirm (Q5)
     Helping Hands:       {kind: title, modifies: {all: true, add: 1}}           # scope to confirm (Q7)
     Helping Hands v2.0:  {kind: title, modifies: {all: true, add: 2}, replaces: [Helping Hands]}
@@ -83,7 +89,7 @@ catalog:
       full_name: The Guild
       membership: roles
       roles: [Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend]
-      automatic:
+      from_roles:                        # the only bonus not added with /add
         - {name: Support, gives: {CM: 2}}
     GoTH:
       full_name: Guild of the Timeless Heroes
@@ -92,8 +98,6 @@ catalog:
       full_name: Guild of Thieves
       membership: open
       secret: true
-      automatic:
-        - {name: Rat Pack, audience: guild, gives: {CM: 1, CR escape: 1}}
     Pirates:
       full_name: Pirate Coalition
       membership: open
@@ -252,7 +256,7 @@ scenarios:
     players:
       - {name: T1, guilds: [Thieves], has: [Guild Thief]}
       - {name: T2, guilds: [Thieves], has: [Guild Thief]}
-      - {name: T3, guilds: [Thieves]}
+      - {name: T3, guilds: [Thieves], has: [Footpad]}
       - {name: O}
     expect:
       T1: {CM: 4, CR stealth: 2, CR escape: 2}   # Rat Pack 1+1, Leadership 2 (once)
@@ -260,14 +264,27 @@ scenarios:
       T3: {CM: 4, CR stealth: 2, CR escape: 2}
       O:  {}
 
-  - name: Joining the Thieves grants Rat Pack only
-    rule: "4.9 (automatic ability)"
+  - name: Footpad and Burglar grant Rat Pack only
+    rule: "4.9"
     players:
-      - {name: F1, guilds: [Thieves]}
-      - {name: F2, guilds: [Thieves]}
+      - {name: F1, guilds: [Thieves], has: [Footpad]}
+      - {name: F2, guilds: [Thieves], has: [Burglar]}
     expect:
       F1: {CM: 1, CR escape: 1}
       F2: {CM: 1, CR escape: 1}
+
+  - name: Joining a guild grants nothing without a rank; a higher rank replaces the lower
+    rule: "4.5, 4.9, HV-2"
+    players:
+      - {name: J, guilds: [Thieves]}                            # joined, no rank yet
+      - {name: B, guilds: [Thieves], has: [Footpad, Burglar]}   # Burglar replaces Footpad
+      - {name: O}
+    expect:
+      J: {CM: 1, CR escape: 1}           # Rat Pack from B, counted once
+      B: {}                              # J gives nothing
+      O: {}
+    not_applied:
+      J: [{entry: Footpad, from: B, reason: replaced}]
 
   - name: King of the Pirates includes the Captain
     rule: "4.3"
@@ -309,8 +326,10 @@ scenarios:
       M1: {}
       M2: {}
 
-  - name: Two High Priests don't stack
-    rule: "4.4"
+  # HV-6 stops a second High Priest at /add. The engine doesn't enforce HV-6,
+  # so this guards against bad data that got in anyway (e.g. a database edit).
+  - name: Two High Priests (bad data) still count once
+    rule: "4.4, HV-6"
     players:
       - {name: HP1, level: 20, guilds: [Cult], has: [High Priest]}
       - {name: HP2, level: 20, guilds: [Cult], has: [High Priest]}
@@ -410,7 +429,7 @@ scenarios:
     expect: {}
 
   - name: Bots in the channel are ignored
-    rule: "SE-7"
+    rule: "SE-6"
     players:
       - {name: MusicBot, bot: true}
       - {name: A, has: [Test Buff]}
@@ -420,13 +439,29 @@ scenarios:
       B: {CM: 2}
 
   - name: No character set up still gives Support, and receives
-    rule: "SE-6"
+    rule: "SE-5"
     players:
       - {name: Dana, no_character: true, roles: [Junior Adventurer]}
       - {name: B, has: [Champion of Power]}
     expect:
       Dana: {CM: 5, CR: 5}
       B:    {CM: 2}
+    no_character: [Dana]
+
+  - name: No character set up misses guild-only and holder-only bonuses
+    rule: "SE-5, 4.8"
+    players:
+      - {name: Dana, no_character: true}
+      - {name: T1, guilds: [Thieves], has: [Footpad]}
+      - {name: T2, guilds: [Thieves], has: [Footpad]}
+      - {name: H1, has: [Hero of Passion]}
+      - {name: H2, has: [Hero of Passion]}
+    expect:
+      Dana: {}
+      T1: {CM: 1, CR escape: 1}          # Rat Pack from T2
+      T2: {CM: 1, CR escape: 1}
+      H1: {CM: 1}                        # HoP from H2
+      H2: {CM: 1}
     no_character: [Dana]
 
   # ---------------------------------------------------------------- SECTION 9
@@ -452,7 +487,7 @@ scenarios:
       - name: Mira
         level: 15
         guilds: [Thieves, Cult]
-        has: [Inspiring Presence]
+        has: [Footpad, Inspiring Presence]
       - {name: Dana, no_character: true}
       - {name: DM Sam, sitout: true}
       - {name: Bob, sitout: true}

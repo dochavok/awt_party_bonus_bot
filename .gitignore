@@ -1,0 +1,17 @@
+# Runtime files: the SQLite database and anything else the bot writes (keep the folder itself)
+var/*
+!var/.gitkeep
+
+# Secrets
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/

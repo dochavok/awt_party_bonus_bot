@@ -1,0 +1,51 @@
+# AWT Party Bonus Bot
+
+Discord bot that works out party bonuses for AWT games. The source of truth is
+[party-bonus-bot-requirements.md](party-bonus-bot-requirements.md). Open rule
+questions for the DMs are in [dm-rule-questions.md](dm-rule-questions.md).
+
+- Stack: Python 3.12+, discord.py, SQLite (SQLAlchemy + Alembic), pytest, Hypothesis, uv.
+- Milestones: requirements section 17. M1 writes the functional tests only; later milestones implement code to pass them.
+
+## The test-change rule (requirements TF-5): never break this
+
+Tests are written from the requirements, before the code. **A failing test means
+the code is wrong.** Never change, delete, skip, weaken or mark as expected-failure
+a test to make code pass. That includes anything under `tests/`: the engine
+scenarios (`tests/scenarios/engine-scenarios.yaml`) and their expected values,
+the fixtures in `tests/fixtures/`, and snapshot files.
+
+If you believe a test itself is wrong, stop and follow exactly this sequence:
+
+1. **Ask the human.** Explain which test, what it expects, what you think is wrong,
+   and which requirement it traces to. Do not continue until the human confirms
+   the test is wrong. Never decide this yourself.
+2. **Fix the requirements document** so it states how the bot should behave.
+3. **Fix the test** so it matches the corrected requirement. Commit steps 2 and 3
+   together; the commit message names the requirement changed.
+4. **Fix the code** until the test passes.
+
+If the human says the test is right, fix the code instead.
+
+Adding **new** tests for existing requirements is fine without this sequence.
+When a DM answers a question in `dm-rule-questions.md`, start at step 2.
+
+## Where things live
+
+- `catalog/`: the fixed catalog (stats, skills, guilds, items, titles) as YAML. Committed.
+- `config/settings.yaml`: bot settings. Committed; **never** put secrets here.
+- `var/`: the SQLite database and other runtime files. Git-ignored.
+- `tests/`: `scenarios/` (engine scenarios), `fixtures/` (mock data), and snapshot files.
+- Secrets (bot token, storage credentials) come only from environment variables.
+
+## Other conventions
+
+- Every test names the requirement ID(s) it checks (e.g. `HV-4`) and any DM
+  question it depends on (e.g. `Q7`).
+- **Requirement IDs are permanent** (TF-3): never renumber or reuse one. A removed
+  requirement keeps its row, marked *removed*.
+- **Catalog entries are retired, never deleted** (CT-6, CT-7): set `retired: true`
+  instead of removing an entry from `catalog/`.
+- Read YAML with `yaml.safe_load` only; validate the catalog with pydantic.
+- Store and compare all times in GMT (UTC).
+- Keep the calculation engine a pure function with no Discord or database code.

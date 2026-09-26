@@ -1,7 +1,7 @@
 # awt_party_bonus_bot
 Discord bot to track bonuses to the party for AWT raids
 
-> **Status:** in design. The commands below describe how the bot is planned to work; it hasn't been built yet. See the [requirements](party-bonus-bot-requirements.md) for the full design.
+> **Status:** in development (requirements baseline v1.0). The bot isn't running yet; the commands below describe how it will work. See the [requirements](party-bonus-bot-requirements.md) for the full design.
 
 The bot works out the party bonuses (CM, CR, and more) that each character receives from everyone else in the voice channel. You record what your character **has**; the bot does the math.
 
@@ -29,9 +29,11 @@ Your Guild rank role on Discord (Junior Adventurer through Guild Legend) gives *
 
 - **Join the voice channel.** Everyone in it is counted automatically.
 - **Running the game or just listening?** Use `/sitout` so your bonuses aren't counted. It lasts 12 hours; `/sitin` ends it early.
-- **See the party's bonuses:** `/partybonus`
-- **See your own totals:** `/mybonus` (only you see the reply)
+- **Show the party's bonuses:** `/partybonus` posts the table for everyone. Add `private:true` to just check it yourself.
+- **See your own totals:** `/mybonus`
 - **See how a total was worked out:** `/breakdown` for the whole party, or `/breakdown Crateris` for one character.
+
+Everything except `/partybonus` replies privately: only you see it.
 
 People joining or leaving? Just run the command again.
 
@@ -41,10 +43,13 @@ People joining or leaving? Just run the command again.
 |---|---|
 | Play a different character of yours | `/play <character>` (it stays until you switch again) |
 | Update your level | `/character level <character> <n>` |
+| Rename a character (e.g. fix a typo) | `/character rename <character> <new name>` |
 | Remove something | `/remove <character> <entry>` |
 | Leave a guild (also removes its ranks and boons) | `/guild leave <character> <guild>` |
 | Look up what a skill, item or guild gives | `/catalog <name>` |
-| Report something missing or wrong in the catalog | `/request <text>` |
+| Report something missing or wrong in the catalog, or ask for anything the bot can't do (e.g. removing a character) | `/request <text>` |
+
+Characters can't be deleted. Rename one instead, or use `/request` if it really needs removing.
 
 ## Good to know
 

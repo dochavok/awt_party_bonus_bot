@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "ask": [
+      "Edit(tests/**)",
+      "Edit(**/tests/**)"
+    ]
+  }
+}

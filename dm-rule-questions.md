@@ -60,8 +60,6 @@ The bot will keep a fixed list of items and titles that give always-on bonuses t
 | Hero of Passion (title) | +1 or more, to other HoP holders only | See Q5. |
 | Helping Hands / v2.0 (titles) | Raise the holder's buffs and heals by 1 / 2 | See Q7. |
 | Power Supporter, Charitable Adventurer, Element Savant, Joy-Maker, Story Teller (titles) | No party bonus | |
-| (unknown source) | 1 heart of healing at the end of each round, to allies | What gives this? |
-| (unknown source) | 2 hearts of damage reduction, to allies | See Q8. |
 
 **Question:** Please correct the table, and add every other item, pin or title that gives an always-on bonus to allies.
 
@@ -85,9 +83,11 @@ HoP is **Hero of Passion**, a title. It goes only to other HoP holders. It has b
 - *Rat Pack* (Footpad): "Thieves' Guild Members gain +1 to any Street Work, Burglary, Escape or Combat Rolls for each other Thieves' Guild member present…"
 - *Leadership* (Guild Leader, the highest-level Guild Thief present): "When you are present, all Thieves' Guild members gain +2 on their stealth, burglary & streetwork rolls."
 
-**Current assumption:** Yes, they stack. Every member gives Rat Pack whatever their rank, so a Guild Thief gives Rat Pack **and** Leadership. In the bot, joining the Guild of Thieves grants Rat Pack, and adding the *Guild Thief* rank adds Leadership on top.
+**How the bot handles it:** thieves add their rank: *Footpad*, *Burglar* or *Guild Thief*. Each higher rank replaces the lower ones, and every rank grants Rat Pack.
 
-**Alternative:** Guild Thief replaces Footpad, and a Guild Thief no longer gives Rat Pack.
+**Current assumption:** Yes, a Guild Thief keeps Rat Pack. A Guild Thief gives Rat Pack **and** Leadership.
+
+**Alternative:** a Guild Thief gives only Leadership, and no longer gives Rat Pack.
 
 ---
 
@@ -131,11 +131,3 @@ Read literally, the title gives **nothing on its own**. It only makes the holder
 **Current assumption in the bot (until answered):** reading **A**. It raises every always-on bonus the holder gives allies by +1 (v2.0: +2) on each number, adds to Devotion III, and v2.0 replaces Helping Hands. On its own it gives nothing.
 
 **Why it matters:** under reading A, Helping Hands can get large. A Paladin with Aura of Hope, Devotion III and Helping Hands v2.0 gives every ally **+13 CM** (10 + 1 + 2), where the player summaries would only have shown +2 healing.
-
----
-
-## Q8. Does any title give permanent damage mitigation?
-
-The original sample had a character giving **2 hearts of damage reduction** to allies, from an unknown source. There's also a heart of healing at the end of each round from an unknown source.
-
-**Question:** Does a title (or item) give allies permanent damage reduction or healing? If so, which one, how much, and to whom?
