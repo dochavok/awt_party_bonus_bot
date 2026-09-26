@@ -14,7 +14,8 @@ Part 1 (unless the same change edits the requirements document) fails a change t
     tests/support/, snapshots), or adds or changes any ``conftest.py``;
   - removes a finished milestone, or changes the pytest or coverage settings or the
     pytest plugins registered in pyproject.toml;
-  - changes this script, or changes or removes a CI workflow.
+  - changes this script, or changes or removes a CI workflow (updating only the
+    versions of the actions it uses, as Dependabot does, is allowed).
 Adding new tests, new scenarios and new test files is always allowed.
 tests/COVERAGE.md is exempt: it's documentation generated from the tests (TF-3).
 
@@ -100,6 +101,8 @@ def _change_problems(change: Change, old: Reader, new: Reader) -> list[str]:
     if path == THIS_SCRIPT and not added:
         return [f"{path}: the test-change check itself changed"]
     if path.startswith(WORKFLOWS) and not added:
+        if not deleted and _same_apart_from_action_versions(old(path), new(path)):
+            return []  # e.g. a Dependabot update of actions/checkout@v5 to @v6
         return [f"{path}: CI workflow {'deleted' if deleted else 'changed'}"]
     if path == "pyproject.toml" and not (added or deleted):
         return pyproject_problems(old(path) or "", new(path) or "")
@@ -113,6 +116,30 @@ def _change_problems(change: Change, old: Reader, new: Reader) -> list[str]:
     if path.endswith(".py") and not path.startswith("tests/support/"):
         return python_problems(path, old_text, new_text)
     return [f"{path}: changed"]
+
+
+def _without_action_versions(data: Any) -> Any:
+    """A parsed workflow with the version removed from every ``uses: owner/action@version``."""
+    if isinstance(data, dict):
+        return {
+            key: value.split("@")[0]
+            if key == "uses" and isinstance(value, str)
+            else _without_action_versions(value)
+            for key, value in data.items()
+        }
+    if isinstance(data, list):
+        return [_without_action_versions(item) for item in data]
+    return data
+
+
+def _same_apart_from_action_versions(old_text: str | None, new_text: str | None) -> bool:
+    if old_text is None or new_text is None:
+        return False
+    try:
+        old, new = yaml.safe_load(old_text), yaml.safe_load(new_text)
+    except yaml.YAMLError:
+        return False
+    return bool(_without_action_versions(old) == _without_action_versions(new))
 
 
 def _is_docstring(statement: ast.stmt) -> bool:

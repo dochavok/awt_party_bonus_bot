@@ -320,6 +320,39 @@ def test_refused_changes(description: str, changes: ChangeSpec) -> None:
     assert _check(changes), description
 
 
+WORKFLOW = _code("""
+    name: CI
+    jobs:
+      test-rule:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v5
+          - run: uv run python scripts/check_test_changes.py --base main
+""")
+
+
+def test_updating_only_action_versions_is_allowed() -> None:
+    old = {".github/workflows/ci.yml": WORKFLOW}
+    new = {".github/workflows/ci.yml": WORKFLOW.replace("@v5", "@v6")}
+    changes = [Change("M", ".github/workflows/ci.yml")]
+    assert violations(changes, old.get, new.get) == []
+
+
+@pytest.mark.parametrize(
+    ("description", "old", "new"),
+    [
+        ("skipped check", "- run: uv run", "- if: false\n        run: uv run"),
+        ("different action", "actions/checkout@v5", "someone/checkout@v5"),
+        ("different command", "--base main", "--base HEAD"),
+    ],
+)
+def test_other_workflow_changes_are_refused(description: str, old: str, new: str) -> None:
+    before = {".github/workflows/ci.yml": WORKFLOW}
+    after = {".github/workflows/ci.yml": WORKFLOW.replace(old, new)}
+    changes = [Change("M", ".github/workflows/ci.yml")]
+    assert violations(changes, before.get, after.get), description
+
+
 def test_refused_changes_are_allowed_with_a_requirements_change() -> None:
     changes: ChangeSpec = [
         ("M", "tests/fixtures/sample-game.yaml", "clock: 2027\n"),
