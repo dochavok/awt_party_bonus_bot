@@ -30,6 +30,8 @@ class Environment(BaseSettings):
     """``DATABASE_URL`` (DB-1). The default is the project's own ``var/`` folder (12.1)."""
     discord_token: SecretStr | None = None
     """``DISCORD_TOKEN``: the bot token (NF-9)."""
+    discord_guild_id: int | None = None
+    """``DISCORD_GUILD_ID``: the one server the bot serves (section 2)."""
 
 
 def load_settings(path: Path = Path("config/settings.yaml")) -> Settings:

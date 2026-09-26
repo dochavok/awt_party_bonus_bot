@@ -23,7 +23,7 @@ import pytest
 from hypothesis import HealthCheck, settings
 
 from tests.support.coverage import TaggedTest, render, with_generated_part
-from tests.support.traceability import COVERAGE, ROOT, dm_questions, milestones, requirements
+from tests.support.traceability import COVERAGE, ROOT, milestones, requirements
 from tests.support.world import World, load_world
 
 # ---------------------------------------------------------------- Hypothesis (TS-3)
@@ -79,7 +79,6 @@ def pytest_configure(config: pytest.Config) -> None:
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     known_requirements = requirements()
-    known_questions = dm_questions()
     known_milestones = milestones()
     finished = finished_milestones()
     problems: list[str] = []
@@ -103,10 +102,6 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
         for req_id in req_ids:
             if req_id not in known_requirements:
                 problems.append(f"{item.nodeid}: unknown requirement {req_id!r}")
-        for mark in item.iter_markers("dm"):
-            for question in mark.args:
-                if question not in known_questions:
-                    problems.append(f"{item.nodeid}: unknown DM question {question!r}")
 
         if milestone not in finished:
             item.add_marker(

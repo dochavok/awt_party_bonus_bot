@@ -131,3 +131,18 @@ Read literally, the title gives **nothing on its own**. It only makes the holder
 **Current assumption in the bot (until answered):** reading **A**. It raises every always-on bonus the holder gives allies by +1 (v2.0: +2) on each number, adds to Devotion III, and v2.0 replaces Helping Hands. On its own it gives nothing.
 
 **Why it matters:** under reading A, Helping Hands can get large. A Paladin with Aura of Hope, Devotion III and Helping Hands v2.0 gives every ally **+13 CM** (10 + 1 + 2), where the player summaries would only have shown +2 healing.
+
+---
+
+## Q8. If a character is summoned, do that character's bonuses count for the party?
+
+Through gameplay, another player's character can sometimes be brought into a game (summoned) even though that character's player isn't playing.
+
+**Questions:**
+- Does a summoned character **give** its party bonuses (auras, guild abilities, items, titles) to the party?
+- Does it **receive** the party's bonuses?
+- Does it count as a character here, or as a summon (which, like minions and allied NPCs, neither gives nor receives bonuses)?
+
+**Current assumption:** No. The bot counts only characters whose players are in the voice channel. A summoned character neither gives nor receives party bonuses, like the minions, summons and allied NPCs in section 2 of the requirements.
+
+**Why it matters:** the bot can't count a character whose player isn't in the voice channel. If summoned characters do count, the bot needs a way for someone in the game to bring them into the party.
