@@ -1,0 +1,17 @@
+# /mybonus Mira, run by maya (the owner, a member): private, 1 message(s)
+--- message 1 of 1 ---
+**Mira (level 15)**: <#100>
+```
+CM          +33
+CR          +10
+CR vs fear  +13
+CR stealth  +12
+CR escape   +11
+-------------------------------------------------
+Resistance to damage from an Evil source (Protective Aura)
+-------------------------------------------------
+Secret guild (Guild of Thieves), included above:
+  Rat Pack     +1 CM, +1 CR escape (1 other member present)
+  Leadership   +2 CM, +2 CR stealth (a Guild Thief is present)
+```
+See how this was worked out: `/breakdown Mira`

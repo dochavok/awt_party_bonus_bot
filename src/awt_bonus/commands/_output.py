@@ -77,7 +77,7 @@ async def _one_character(ctx: Context, show: render.RenderOne) -> Reply:
             f"{_players(ctx, character)} in {channel_mention(channel.id)}, "
             f"so {character.name} isn't in that party.",
         )
-    view = await _view(ctx, party)
+    view = await _view(ctx, party, detail_for=_own(ctx, character))
     notice = _notice(ctx, character, state.current if state is not None else None)
     return _reply(show(view, recipient, notice), party.report, private=True)
 
@@ -134,7 +134,13 @@ def _notice(ctx: Context, character: CharacterRecord, current: CharacterRecord |
 async def _gives_only(ctx: Context, character: CharacterRecord, why: str) -> Reply:
     """OUT-4: what the character gives, and why there are no totals."""
     report = await solo(ctx, character)
-    view = render.Party(report=report, catalog=ctx.catalog, channel=None)
+    view = render.Party(
+        report=report,
+        catalog=ctx.catalog,
+        channel=None,
+        guilds={character.owner: frozenset(character.guilds)},
+        detail_for=_own(ctx, character),
+    )
     recipient = report.recipients[0]
     return _reply(render.gives_only(view, recipient, why), report, private=True)
 
@@ -162,7 +168,13 @@ async def _chosen_channel(ctx: Context) -> VoiceChannel | None:
     return channel
 
 
-async def _view(ctx: Context, party: Party) -> render.Party:
+def _own(ctx: Context, character: CharacterRecord) -> UserId | None:
+    """The caller, if looking at their own character: secret guild detail is shown only
+    then, and only for that character's secret guilds (SG-5)."""
+    return ctx.user if character.owner == ctx.user else None
+
+
+async def _view(ctx: Context, party: Party, detail_for: UserId | None = None) -> render.Party:
     """Everything the output needs about a party, besides the report."""
     fixes: dict[UserId, str] = {}
     for user_id in party.report.no_character:
@@ -178,6 +190,7 @@ async def _view(ctx: Context, party: Party) -> render.Party:
         level_updated={name: c.level_updated_at for name, c in counted.items()},
         no_character_fix=fixes,
         guilds={c.owner: frozenset(c.guilds) for c in counted.values()},
+        detail_for=detail_for,
     )
 
 

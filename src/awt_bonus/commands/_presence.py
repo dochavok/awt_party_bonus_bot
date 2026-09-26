@@ -4,6 +4,8 @@ There are no sessions: each time an output command runs, the party is worked out
 whoever is in the voice channel, their sit-outs and their current characters.
 """
 
+import asyncio
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -65,6 +67,7 @@ async def build_party(
     states = await ctx.store.players(m.user_id for m in members if not m.is_bot)
     present: list[PresentPlayer] = []
     counted: dict[CharacterId, CharacterRecord] = {}
+    counted_players: list[UserId] = []
     for member in members:
         if member.is_bot:  # ignored and never listed (SE-6)
             present.append(PresentPlayer(member.user_id, member.display_name, is_bot=True))
@@ -74,8 +77,10 @@ async def build_party(
         record = state.current
         if substitute is not None and substitute.owner == member.user_id:
             record = substitute
-        if until is None and record is not None:
-            counted[record.id] = record
+        if until is None:
+            counted_players.append(member.user_id)
+            if record is not None:
+                counted[record.id] = record
         present.append(
             PresentPlayer(
                 user_id=member.user_id,
@@ -86,7 +91,7 @@ async def build_party(
         )
     report = compute(
         present,
-        {},  # Support from Discord roles (HV-3) comes with the Guilds milestone.
+        await roles(ctx, counted_players),
         {i: tuple(EntryId(e) for e in c.entries) for i, c in counted.items()},
         {i: tuple(GuildId(g) for g in c.guilds) for i, c in counted.items()},
         ctx.catalog,
@@ -99,11 +104,22 @@ async def solo(ctx: Context, character: CharacterRecord) -> PartyReport:
     player = PresentPlayer(character.owner, character.name, character=_ref(character))
     return compute(
         [player],
-        {},
+        await roles(ctx, [character.owner]),
         {character.id: character.entries},
         {character.id: character.guilds},
         ctx.catalog,
     )
+
+
+async def roles(ctx: Context, user_ids: Iterable[UserId]) -> dict[UserId, frozenset[str]]:
+    """Each player's Discord roles, for Support (HV-3).
+
+    Looked up one member at a time on every calculation (NF-6); the Discord
+    adapter remembers each answer for about a minute.
+    """
+    wanted = list(dict.fromkeys(user_ids))
+    members = await asyncio.gather(*(ctx.discord.member(u) for u in wanted))
+    return {u: m.roles for u, m in zip(wanted, members, strict=True) if m is not None}
 
 
 def _ref(record: CharacterRecord | None) -> CharacterRef | None:

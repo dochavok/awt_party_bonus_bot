@@ -1,0 +1,30 @@
+# /breakdown Crateris, run by cora: private, 1 message(s)
+--- message 1 of 1 ---
+**BREAKDOWN**: Crateris (level 22, updated <t:1789927200:d>): <#100>
+```
+CM = 2 + 2 + 3 + 5 = +12
+   +2   Support               from Ioseph (Guild Vanguard)
+   +2   Support               from Kael (Junior Adventurer)
+   +3   Seraph's Affection    from Ioseph
+   +5   Champion of Power     from Ioseph
+CR = 5 + 5 = +10
+   +5   Champion of Power     from Ioseph
+   +5   Inspiring Presence    from Chris, Mira (doesn't stack: counted once)
+CR vs fear = 10 (all CR) = +10
+CR stealth = 10 (all CR) = +10
+CR escape = 10 (all CR) = +10
+-------------------------------------------------
+NOT APPLIED
+  allies only (Crateris is the giver):
+    Cult of the Dragon, Holy Aura, Bolstering Aura, Protective Aura,
+    Wills ward stone
+-------------------------------------------------
+WHAT Crateris GIVES
+  Cult of the Dragon (High Priest): by the recipient's level (level
+      under 10: +1 heart damage; level 10 or higher: +10 CM), to other
+      Cult of the Dragon members, doesn't stack
+  Holy Aura +3 CR vs fear (2 + 1 Devotion III)
+  Bolstering Aura +3 CM (2 + 1 Devotion III)
+  Protective Aura: Resistance to damage from an Evil source
+  Wills ward stone +5 CM
+```

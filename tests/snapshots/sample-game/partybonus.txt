@@ -1,0 +1,22 @@
+# /partybonus, run by isla: public, 1 message(s)
+--- message 1 of 1 ---
+**PARTY BONUSES**: <#100> (6 counted)
+```
+CHARACTER   CM    CR    CR vs fear   CR stealth   CR escape
+Ioseph      +10   +5    +8           +5           +5
+Kael        +18   +10   +13          +10          +10
+Crateris    +12   +10   +10          +10          +10
+Chris       +23   +10   +13          +12          +11
+Mira        +33   +10   +13          +12          +11
+Dana*       +20   +10   +13          +10          +10
+-------------------------------------------------
+COMBAT NOTES
+Kael        Damage +1 heart (extra hearts dealt when attacking)
+-------------------------------------------------
+EFFECTS
+All but Crateris   Resistance to damage from an Evil source (Protective Aura)
+-------------------------------------------------
+NO CHARACTER SET UP (* only bonuses from Discord roles are counted)
+  Dana    no character registered: use /character register
+```
+Not counted: DM Sam (sitting out until <t:1790379600:t>), Bob (sitting out until <t:1790374500:t>)

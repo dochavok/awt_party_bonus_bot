@@ -21,6 +21,7 @@ from awt_bonus.engine import (
 )
 from awt_bonus.ids import ChannelId, GuildId, StatId, UserId
 from awt_bonus.output.describe import (
+    amount,
     amounts,
     band,
     channel_mention,
@@ -37,6 +38,9 @@ RULE = "-" * 49
 
 WIDTH = 72
 """Longer lines of prose in a code block are wrapped, so they read on a phone."""
+
+SECRET = "secret guild bonus"
+"""What a secret guild bonus is called when it can't be named (SG-4)."""
 
 type RenderOne = Callable[[Party, RecipientReport, Sequence[str]], list[Block]]
 """/mybonus or /breakdown <character>: the party, the character, and any OUT-2a notice."""
@@ -56,6 +60,21 @@ class Party:
     """For each counted player with no character: the command that fixes it (SE-5)."""
     guilds: Mapping[UserId, frozenset[GuildId]] = field(default_factory=dict)
     """The guilds each counted character belongs to, by player."""
+    detail_for: UserId | None = None
+    """The player whose own character is being viewed by them (SG-5). That character's
+    secret guild bonuses are shown in detail, for secret guilds it belongs to; every
+    other secret guild bonus is shown unnamed, with no givers (SG-3, SG-4)."""
+
+    def hidden(self, give: Give) -> bool:
+        """Whether a give is from a secret guild and must be shown unnamed (SG-4)."""
+        if give.secret_guild is None:
+            return False
+        if self.detail_for is None:
+            return True
+        return give.secret_guild not in self.guilds.get(self.detail_for, frozenset())
+
+    def bonus_name(self, give: Give) -> str:
+        return SECRET if self.hidden(give) else give.bonus
 
     def name_of(self, user_id: UserId) -> str:
         for recipient in self.report.recipients:
@@ -73,9 +92,13 @@ class Party:
         }
 
     def gives_by(self, user_id: UserId) -> list[Give]:
-        """Everything this player gives, replaced entries left out."""
+        """Everything this player gives, replaced entries and unnamed secret gives left out."""
         replaced = self.replaced()
-        return [g for g in self.report.gives if g.giver == user_id and g.id not in replaced]
+        return [
+            g
+            for g in self.report.gives
+            if g.giver == user_id and g.id not in replaced and not self.hidden(g)
+        ]
 
     def display_name(self, recipient: RecipientReport) -> str:
         """The name in tables; a player with no character is marked with * (SE-5)."""
@@ -115,10 +138,74 @@ def _contributions(
     return lines
 
 
+@dataclass(frozen=True)
+class _Line:
+    """One line of a recipient's working for one stat."""
+
+    amount: int
+    term: str
+    """How it's written in the sum: "3", or "3s" for unnamed secret guild bonuses."""
+    bonus: str
+    source: str
+    """Who gave it, e.g. "from <giver> (<Guild rank>)", "(1 other member present)"."""
+
+
+def _lines(party: Party, recipient: RecipientReport, stat: StatId) -> list[_Line]:
+    """The contributions to a stat. Secret guild bonuses come last: in detail, one line per
+    bonus with a count of givers (SG-5); otherwise all together, unnamed (SG-4)."""
+    lines: list[_Line] = []
+    detailed: dict[str, list[tuple[Give, int]]] = {}
+    hidden = 0
+    not_stacked = _not_stacked(party, recipient)
+    for give, n in _contributions(party, recipient, stat):
+        if party.hidden(give):
+            hidden += n
+        elif give.secret_guild is not None:
+            detailed.setdefault(give.bonus, []).append((give, n))
+        else:
+            givers = [party.name_of(give.giver), *not_stacked.get(give.id, [])]
+            source = f"from {', '.join(givers)}{_rank(give) if len(givers) == 1 else ''}"
+            source += adjusted(give, party.catalog)
+            if len(givers) > 1:
+                source += " (doesn't stack: counted once)"
+            lines.append(_Line(n, str(n), give.bonus, source))
+    for bonus, pairs in detailed.items():
+        n = sum(amount for _, amount in pairs)
+        lines.append(_Line(n, str(n), bonus, _count(recipient, [g for g, _ in pairs])))
+    if hidden:
+        lines.append(_Line(hidden, f"{hidden}s", SECRET, "(givers not shown)"))
+    return lines
+
+
+def _count(recipient: RecipientReport, gives: Sequence[Give]) -> str:
+    """How many members gave a secret guild bonus, never who (SG-5)."""
+    first = gives[0]
+    if not first.stacks:
+        rank = first.giver_rank[0] if first.giver_rank else None
+        if rank is None:
+            return "(from a member present)"
+        article = "an" if rank[0].lower() in "aeiou" else "a"
+        return f"({article} {rank} is present)"
+    others = len({g.giver for g in gives if g.giver != recipient.user_id})
+    included = any(g.giver == recipient.user_id for g in gives)
+    return f"({plural(others, 'other member')} present" + (
+        f", {recipient.name} included)" if included else ")"
+    )
+
+
+def _secret_note(party: Party, stats: Sequence[StatId]) -> list[str]:
+    """The key for "s" in the working, if any is used."""
+    for recipient in party.report.recipients:
+        for stat in stats:
+            if any(line.term.endswith("s") for line in _lines(party, recipient, stat)):
+                return [f"(s = {SECRET})"]
+    return []
+
+
 def _working(party: Party, recipient: RecipientReport, stat: StatId) -> str:
     """E.g. "CM 2+3+5 = +10" or "CR vs fear 5+3 = +8" (OUT-3)."""
     catalog = party.catalog
-    terms = [str(n) for _, n in _contributions(party, recipient, stat)]
+    terms = [line.term for line in _lines(party, recipient, stat)]
     parent = catalog.stats[stat].parent
     if parent is not None and recipient.totals.get(parent, 0):
         terms.insert(0, str(recipient.totals[parent]))
@@ -231,6 +318,9 @@ def gives_text(give: Give, catalog: Catalog) -> str:
 
 def conditional_line(party: Party, recipient_give: Give, values: Mapping[StatId, int]) -> str:
     """E.g. "+5 CM from Vex (Commanding Presence): allies in the same range" (rule 4.12)."""
+    if recipient_give.secret_guild is not None:
+        name = party.bonus_name(recipient_give)
+        return f"{amounts(values, party.catalog)} ({name}): {recipient_give.condition}"
     giver = party.name_of(recipient_give.giver)
     return (
         f"{amounts(values, party.catalog)} from {giver} ({recipient_give.bonus}): "
@@ -307,12 +397,12 @@ def _effects(party: Party) -> list[str]:
     for recipient in party.report.recipients:
         for give_id in recipient.effects:
             give = party.report.give(give_id)
-            key = (give.effect or "", give.bonus)
+            key = (give.effect or "", party.bonus_name(give))
             if recipient not in grouped.setdefault(key, []):
                 grouped[key].append(recipient)
     if not grouped:
         return []
-    labels = {key: who(party, receiving) for key, receiving in grouped.items()}
+    labels = {key: _who(party, receiving, key[1] == SECRET) for key, receiving in grouped.items()}
     width = max(len(label) for label in labels.values()) + 3
     lines = [f"{labels[key]:<{width}}{key[0]} ({key[1]})" for key in grouped]
     return [RULE, "EFFECTS", *lines]
@@ -331,10 +421,19 @@ def _conditional(party: Party) -> list[str]:
             lines_for[key] = line
     if not grouped:
         return []
-    labels = {key: who(party, receiving) for key, receiving in grouped.items()}
+    labels = {
+        key: _who(party, receiving, party.report.give(key[0]).secret_guild is not None)
+        for key, receiving in grouped.items()
+    }
     width = max(len(label) for label in labels.values()) + 3
     lines = [f"{labels[key]:<{width}}{lines_for[key]}" for key in grouped]
     return [RULE, "CONDITIONAL BONUSES (not in totals: add them when they apply)", *lines]
+
+
+def _who(party: Party, receiving: Sequence[RecipientReport], secret: bool) -> str:
+    """Who receives something; for a secret guild bonus, never who the members are (SG-3)."""
+    label = who(party, receiving)
+    return label if not secret or label == "All" else "Each member present"
 
 
 def _optional(block: Block | None) -> Block:
@@ -356,6 +455,7 @@ def party_breakdown(party: Party) -> list[Block]:
     for group in groups:
         if group.gives[0].effect is None or group.gives[0].amounts or group.gives[0].level_rules:
             blocks.append(code(*_group_lines(party, group), ""))
+    blocks.append(code(*_secret_block(party)))
     for group in groups:
         if group.gives[0].effect is not None and not (
             group.gives[0].amounts or group.gives[0].level_rules
@@ -365,6 +465,41 @@ def party_breakdown(party: Party) -> list[Block]:
     blocks.append(code(*no_character(party)))
     blocks.append(_optional(not_counted(party)))
     return [b for b in blocks if b.lines]
+
+
+def _secret_block(party: Party) -> list[str]:
+    """Every secret guild bonus in play as one unnamed block, givers never shown (SG-4)."""
+    received: list[tuple[tuple[StatId, int], ...]] = []
+    effects: dict[str, None] = {}
+    conditional: dict[str, None] = {}
+    for recipient in party.report.recipients:
+        totals: dict[StatId, int] = {}
+        for applied in recipient.applied:
+            if party.hidden(party.report.give(applied.give)):
+                for stat, n in applied.amounts.items():
+                    totals[stat] = totals.get(stat, 0) + n
+        if totals:
+            received.append(tuple((s, totals[s]) for s in party.catalog.stat_order if s in totals))
+        for give_id in recipient.effects:
+            give = party.report.give(give_id)
+            if party.hidden(give) and give.effect is not None:
+                effects[give.effect] = None
+        for bonus in recipient.conditional:
+            give = party.report.give(bonus.give)
+            if party.hidden(give):
+                conditional[f"{amounts(bonus.amounts, party.catalog)}: {bonus.condition}"] = None
+    if not (received or effects or conditional):
+        return []
+    header = SECRET[0].upper() + SECRET[1:]
+    lines = []
+    if received and len(set(received)) == 1:
+        each = names(amount(stat, n, party.catalog) for stat, n in received[0])
+        lines += wrapped(f"{header}: {each} to each member present", indent=2)
+    elif received:
+        lines.append(f"{header}: amounts vary by member (see the working)")
+    lines += [f"{header}, effect: {effect}" for effect in effects]
+    lines += [f"{header}, only for {c} (not in totals)" for c in conditional]
+    return [*lines, "    (givers not shown)", ""]
 
 
 @dataclass
@@ -380,7 +515,7 @@ def _groups(party: Party) -> list[_Group]:
     replaced = party.replaced()
     groups: dict[str, _Group] = {}
     ordered = sorted(
-        (g for g in party.report.gives if g.id not in replaced),
+        (g for g in party.report.gives if g.id not in replaced and not party.hidden(g)),
         key=lambda g: (g.source.kind is not SourceKind.ROLE, g.id),
     )
     for give in ordered:
@@ -479,7 +614,7 @@ def _totals(party: Party) -> list[str]:
             and (catalog.stats[stat].parent is None or _differs(recipient, stat, catalog))
         ]
         rows.append([party.display_name(recipient), *(items or ["no bonuses"])])
-    return _flow(rows, per_line=3)
+    return _flow(rows, per_line=3) + _secret_note(party, stats)
 
 
 def _differs(recipient: RecipientReport, stat: StatId, catalog: Catalog) -> bool:
@@ -538,7 +673,7 @@ def mybonus(party: Party, recipient: RecipientReport, notice: Sequence[str]) -> 
     width = max(len(row[0]) for row in rows) + 2
     lines = [f"{label:<{width}}{value}" for label, value in rows]
     effects = [
-        f"{party.report.give(g).effect} ({party.report.give(g).bonus})"
+        f"{party.report.give(g).effect} ({party.bonus_name(party.report.give(g))})"
         for g in dict.fromkeys(recipient.effects)
     ]
     if effects:
@@ -547,6 +682,7 @@ def mybonus(party: Party, recipient: RecipientReport, notice: Sequence[str]) -> 
         lines += [RULE, "CONDITIONAL BONUSES (not in totals: add them when they apply)"]
         for c in recipient.conditional:
             lines += wrapped(conditional_line(party, party.report.give(c.give), c.amounts))
+    lines += _secret_detail(party, recipient)
     blocks.append(code(*lines))
     footer = []
     missed = _no_level(recipient)
@@ -565,6 +701,28 @@ def mybonus(party: Party, recipient: RecipientReport, notice: Sequence[str]) -> 
         footer.append(f"See how this was worked out: `/breakdown {recipient.name}`")
     blocks.append(text(*footer))
     return [b for b in blocks if b.lines]
+
+
+def _secret_detail(party: Party, recipient: RecipientReport) -> list[str]:
+    """A member's own secret guild bonuses, with how many gave them, not who (SG-5)."""
+    by_guild: dict[GuildId, dict[str, list[tuple[Give, Mapping[StatId, int]]]]] = {}
+    for applied in recipient.applied:
+        give = party.report.give(applied.give)
+        if give.secret_guild is not None and not party.hidden(give):
+            bonuses = by_guild.setdefault(give.secret_guild, {})
+            bonuses.setdefault(give.bonus, []).append((give, applied.amounts))
+    lines: list[str] = []
+    for guild, bonuses in by_guild.items():
+        lines += [RULE, f"Secret guild ({guild_name(guild, party.catalog)}), included above:"]
+        width = max(len(bonus) for bonus in bonuses) + 3
+        for bonus, pairs in bonuses.items():
+            summed: dict[StatId, int] = {}
+            for _, values in pairs:
+                for stat, n in values.items():
+                    summed[stat] = summed.get(stat, 0) + n
+            count = _count(recipient, [g for g, _ in pairs])
+            lines += wrapped(f"  {bonus:<{width}}{amounts(summed, party.catalog)} {count}")
+    return lines
 
 
 def _title(recipient: RecipientReport) -> str:
@@ -595,6 +753,8 @@ def character_breakdown(
     ]
     for stat in stats:
         lines += _stat_lines(party, recipient, stat)
+    if any(line.term.endswith("s") for stat in stats for line in _lines(party, recipient, stat)):
+        lines.append(f"(s = {SECRET})")
     if not stats:
         lines.append("Receives no bonuses to totals.")
     effects = list(dict.fromkeys(recipient.effects))
@@ -602,7 +762,10 @@ def character_breakdown(
         lines += [RULE, "EFFECTS"]
         for give_id in effects:
             give = party.report.give(give_id)
-            lines.append(f"  {give.effect} ({give.bonus}) from {party.name_of(give.giver)}")
+            if give.secret_guild is not None:
+                lines.append(f"  {give.effect} ({party.bonus_name(give)})")
+            else:
+                lines.append(f"  {give.effect} ({give.bonus}) from {party.name_of(give.giver)}")
     if recipient.conditional:
         lines += [RULE, "CONDITIONAL BONUSES (not in totals: add them when they apply)"]
         for c in recipient.conditional:
@@ -627,21 +790,15 @@ def _breakdown_title(party: Party, recipient: RecipientReport) -> str:
 
 def _stat_lines(party: Party, recipient: RecipientReport, stat: StatId) -> list[str]:
     catalog = party.catalog
-    contributions = _contributions(party, recipient, stat)
-    terms = [str(n) for _, n in contributions]
+    contributions = _lines(party, recipient, stat)
+    terms = [line.term for line in contributions]
     parent = catalog.stats[stat].parent
     if parent is not None and recipient.totals.get(parent, 0):
         terms.insert(0, f"{recipient.totals[parent]} (all {parent})")
     shown = total(stat, recipient.totals.get(stat, 0), catalog)
     lines = [f"{stat} = {' + '.join(terms)} = {shown}"]
-    not_stacked = _not_stacked(party, recipient)
-    for give, n in contributions:
-        givers = [party.name_of(give.giver), *not_stacked.get(give.id, [])]
-        from_text = f"from {', '.join(givers)}{_rank(give) if len(givers) == 1 else ''}"
-        extra = adjusted(give, catalog)
-        if len(givers) > 1:
-            extra += " (doesn't stack: counted once)"
-        lines.append(f"   {n:+d}   {give.bonus:<22}{from_text}{extra}")
+    for line in contributions:
+        lines.append(f"   {line.amount:+d}   {line.bonus:<22}{line.source}")
     return lines
 
 
@@ -667,9 +824,9 @@ def _not_applied(party: Party, recipient: RecipientReport) -> list[str]:
     """
     reasons: dict[str, list[str]] = {}
     for n in recipient.not_applied:
-        if n.reason in (Reason.REPLACED, Reason.NOT_STACKED):
-            continue
         give = party.report.give(n.give)
+        if n.reason in (Reason.REPLACED, Reason.NOT_STACKED) or give.secret_guild is not None:
+            continue  # secret guild bonuses are never listed here (SG-3)
         why = _reason(party, recipient, give, n.reason)
         if give.bonus not in reasons.setdefault(why, []):
             reasons[why].append(give.bonus)

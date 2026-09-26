@@ -134,4 +134,9 @@ guilds:
     roles: [Junior Adventurer, Guild Veteran]
     from_roles:                # given once by a player with any of the roles (HV-3)
       - {name: Support, gives: {CM: 2}}
+    how_to_join: "Check out the Patreon: <https://...>"   # optional (CT-5)
 ```
+
+`how_to_join` is optional text telling players how to join. For a guild whose
+membership comes from roles, `/catalog` and `/guild join` show it instead of the
+join command. `<...>` around a link stops Discord showing a preview.

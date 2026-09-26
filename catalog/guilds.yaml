@@ -18,6 +18,9 @@ guilds:
     roles: [Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend]
     from_roles:                             # given once, whichever roles and however many (HV-3)
       - {name: Support, gives: {CM: 2}}
+    how_to_join: >-
+      The Guild's ranks come with the AWT Patreon. Check it out:
+      <https://www.patreon.com/adventuresfromthewizardstower>
 
   goth:
     short_name: GoTH

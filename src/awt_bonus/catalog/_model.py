@@ -145,6 +145,8 @@ class Guild:
     """Bonuses a player gives once for having any of ``roles``, e.g. Support (HV-3)."""
     secret: bool
     """Members are never revealed (SG-1)."""
+    how_to_join: str | None = None
+    """What to tell players about joining, e.g. a Patreon link, instead of /guild join (CT-5)."""
 
 
 class Catalog:

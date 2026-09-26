@@ -1,0 +1,13 @@
+# /mybonus Mira, run by isla (not a member): private, 1 message(s)
+--- message 1 of 1 ---
+**Mira (level 15)**: <#100>
+```
+CM          +33
+CR          +10
+CR vs fear  +13
+CR stealth  +12
+CR escape   +11
+-------------------------------------------------
+Resistance to damage from an Evil source (Protective Aura)
+```
+See how this was worked out: `/breakdown Mira`

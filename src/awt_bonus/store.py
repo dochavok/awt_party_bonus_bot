@@ -165,6 +165,15 @@ class Store:
         async with self._connect() as connection:
             await connection.execute(statement)
 
+    async def leave_guild(self, character_id: CharacterId, guild_id: GuildId) -> None:
+        """End a guild membership (HV-2). The caller removes the guild's entries."""
+        table = schema.character_guild
+        statement = delete(table).where(
+            table.c.character_id == character_id, table.c.guild_id == guild_id
+        )
+        async with self._connect() as connection:
+            await connection.execute(statement)
+
     async def set_current(self, owner: UserId, character_id: CharacterId | None) -> None:
         """Set (or clear) the player's current character (CH-3)."""
         statement = sqlite_insert(schema.player).values(

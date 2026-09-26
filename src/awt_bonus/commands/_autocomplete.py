@@ -3,7 +3,7 @@ still checks what it's given when it runs (HV-4)."""
 
 from collections.abc import Iterable, Mapping
 
-from awt_bonus.catalog import Catalog, Entry
+from awt_bonus.catalog import Catalog, Entry, Membership
 from awt_bonus.commands._types import Choice, OptionValue
 from awt_bonus.ids import UserId
 from awt_bonus.output.describe import kind_label
@@ -44,16 +44,43 @@ async def suggest(
         if command == "remove":
             held = [] if character is None else list(character.entries)
             entries = [catalog.entries[e] for e in held if e in catalog.entries]
-        else:
-            has = set() if character is None else set(character.entries)
-            entries = [e for e in catalog.entries.values() if not e.retired and e.id not in has]
-        return _matching(((_label(e, catalog), e.name) for e in entries), typed)
+            return _matching(((_label(e, catalog), e.name) for e in entries), typed)
+        # Entries the character already has are offered too, marked, after the rest.
+        has = set() if character is None else set(character.entries)
+        entries = [e for e in _available(catalog, character) if not e.retired]
+        entries.sort(key=lambda e: e.id in has)
+        return _matching(
+            (
+                (
+                    _label(e, catalog, has=character.name if character and e.id in has else ""),
+                    e.name,
+                )
+                for e in entries
+            ),
+            typed,
+        )
     if option == "entry" and command == "catalog":
-        entries = [e for e in catalog.entries.values() if not e.retired]
+        current = await store.current_character(user)
+        entries = [e for e in _available(catalog, current) if not e.retired]
         pairs = [(_label(e, catalog), e.name) for e in entries]
         pairs += [(f"{g.full_name} (guild)", g.full_name) for g in catalog.guilds.values()]
         return _matching(pairs, typed)
+    if option == "guild" and command in {"guild join", "guild leave"}:
+        character = await _character(store, user, options)
+        joined = set() if character is None else set(character.guilds)
+        guilds = [
+            g
+            for g in catalog.guilds.values()
+            if g.membership is Membership.OPEN and (g.id in joined) == (command == "guild leave")
+        ]
+        return _matching(((g.full_name, g.full_name) for g in guilds), typed)
     return []
+
+
+def _available(catalog: Catalog, character: CharacterRecord | None) -> list[Entry]:
+    """Entries the character can use: guild entries only for its guilds (HV-1, CT-8)."""
+    guilds = set() if character is None else set(character.guilds)
+    return [e for e in catalog.entries.values() if e.guild is None or e.guild in guilds]
 
 
 async def _character(
@@ -69,9 +96,10 @@ async def _character(
     return await store.current_character(user)
 
 
-def _label(entry: Entry, catalog: Catalog) -> str:
-    """E.g. "Holy Aura (Holy Knight skill)" (HV-1)."""
-    return f"{entry.name} ({kind_label(entry, catalog)})"
+def _label(entry: Entry, catalog: Catalog, has: str = "") -> str:
+    """E.g. "Holy Aura (Holy Knight skill)", or "(Holy Knight skill; Crateris has it)" (HV-1)."""
+    held = f"; {has} has it" if has else ""
+    return f"{entry.name} ({kind_label(entry, catalog)}{held})"
 
 
 def _matching(pairs: Iterable[tuple[str, str]], typed: str) -> list[Choice]:

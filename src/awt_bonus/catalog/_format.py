@@ -168,6 +168,8 @@ class GuildSpec(_Spec):
     """Bonuses a player gives once for having any of the roles, e.g. Support (HV-3)."""
     secret: StrictBool = False
     """Members are never revealed (SG-1)."""
+    how_to_join: StrictStr | None = None
+    """What to tell players about joining, shown instead of /guild join (CT-5)."""
 
     @model_validator(mode="after")
     def _membership(self) -> Self:
