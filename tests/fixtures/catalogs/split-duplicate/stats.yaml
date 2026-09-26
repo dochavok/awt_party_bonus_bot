@@ -1,0 +1,4 @@
+# Invalid (CT-7): the ID shield_song is defined in both skills.yaml and items.yaml.
+# IDs must be unique across all the catalog files.
+stats:
+  CM: {kind: roll}

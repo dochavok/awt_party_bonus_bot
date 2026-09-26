@@ -1,0 +1,8 @@
+# Invalid (CT-7): Shield Song gives a stat, "XP", that isn't defined.
+stats:
+  CM: {kind: roll}
+
+entries:
+  shield_song: {name: Shield Song, kind: skill, tree: Bard, gives: {XP: 1}}
+
+guilds: {}

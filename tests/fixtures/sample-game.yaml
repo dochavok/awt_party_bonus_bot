@@ -1,0 +1,120 @@
+# The sample game from requirements section 9.1 (TF-2a).
+# ---------------------------------------------------------------------------
+# AWT Voice holds exactly the section 9.1 party: Ioseph, Kael, Crateris, Chris,
+# Mira and Dana (no character) are counted; DM Sam and Bob are sitting out.
+#
+# Also on the server, outside AWT Voice, for other tests. None of them changes
+# the section 9 numbers:
+#   - Tavern (another voice channel): Tamsin (Holy Aura) and Ulric (nothing), for SE-1.
+#   - Vic plays Vex and isn't in any voice channel, for OUT-4.
+#   - Rowan is sitting out but isn't in any voice channel, for SE-4.
+#   - Crateris's player also owns Elowen (not current), for OUT-2a.
+# DM Sam and Bob have characters with bonuses, so if sit-outs were ignored the
+# totals would change.
+#
+# Player display names differ from character names on purpose, so tests can
+# tell which one the bot used.
+# ---------------------------------------------------------------------------
+
+requirements: ["9.1"]
+clock: 2026-09-25T20:00:00Z
+catalog: catalog.yaml
+
+discord:
+  voice_channels:
+    - {id: 100, name: AWT Voice}
+    - {id: 101, name: Tavern}
+  text_channels:
+    - {id: 200, name: bonus-bot-support}
+  members:
+    - {handle: isla,  id: 1001, name: Isla,   roles: [Guild Vanguard],    voice: AWT Voice}
+    - {handle: kit,   id: 1002, name: Kit,    roles: [Junior Adventurer], voice: AWT Voice}
+    - {handle: cora,  id: 1003, name: Cora,                               voice: AWT Voice}
+    - {handle: cole,  id: 1004, name: Cole,                               voice: AWT Voice}
+    - {handle: maya,  id: 1005, name: Maya,                               voice: AWT Voice}
+    - {handle: dana,  id: 1006, name: Dana,                               voice: AWT Voice}
+    - {handle: sam,   id: 1007, name: DM Sam, roles: [Guild Champion],    voice: AWT Voice}
+    - {handle: bob,   id: 1008, name: Bob,    roles: [Guild Legend],      voice: AWT Voice}
+    - {handle: tess,  id: 1009, name: Tess,                               voice: Tavern}
+    - {handle: ulf,   id: 1010, name: Ulf,                                voice: Tavern}
+    - {handle: vic,   id: 1011, name: Vic}
+    - {handle: rowan, id: 1012, name: Rowan}
+
+players:
+  - member: isla
+    characters:
+      - name: Ioseph
+        level: 34
+        level_updated: 2026-09-01T18:00:00Z
+        guilds: [goth]
+        has: [nuyarus_love, seraphs_affection, champion_of_power]
+
+  - member: kit
+    characters:
+      - name: Kael
+        level: 8
+        level_updated: 2026-09-10T18:00:00Z
+        guilds: [cult]
+
+  - member: cora
+    current: Crateris
+    characters:
+      - name: Crateris
+        level: 22
+        level_updated: 2026-09-20T18:00:00Z
+        guilds: [cult]
+        has: [high_priest, holy_aura, bolstering_aura, protective_aura, devotion_3, wills_ward_stone]
+      - name: Elowen
+        level: 12
+        level_updated: 2026-09-15T18:00:00Z
+
+  - member: cole
+    characters:
+      - name: Chris
+        guilds: [thieves]
+        has: [guild_thief, inspiring_presence]
+
+  - member: maya
+    characters:
+      - name: Mira
+        level: 15
+        level_updated: 2026-09-18T18:00:00Z
+        guilds: [thieves, cult]
+        has: [footpad, inspiring_presence]
+
+  # Dana: in the channel, no Guild rank role, no character registered.
+
+  - member: sam
+    sitout_until: 2026-09-25T23:40:00Z
+    characters:
+      - name: Sable
+        level: 40
+        level_updated: 2026-08-01T18:00:00Z
+        has: [aura_of_hope]
+
+  - member: bob
+    sitout_until: 2026-09-25T22:15:00Z
+    characters:
+      - name: Bram
+        level: 30
+        level_updated: 2026-08-01T18:00:00Z
+        has: [wills_ward_stone, bolstering_aura]
+
+  - member: tess
+    characters:
+      - name: Tamsin
+        has: [holy_aura]
+
+  - member: ulf
+    characters:
+      - name: Ulric
+
+  - member: vic
+    characters:
+      - name: Vex
+        level: 40
+        level_updated: 2026-09-01T18:00:00Z
+        has: [aura_of_hope, commanding_presence]
+
+  - member: rowan
+    sitout_until: 2026-09-26T01:00:00Z

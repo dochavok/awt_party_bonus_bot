@@ -1,0 +1,11 @@
+# Invalid (CT-7): the format is wrong.
+#   - Fireball's kind, "spell", isn't one of skill, boon, rank, item or title (CT-4);
+#   - Shield Song's amount isn't a number.
+stats:
+  CM: {kind: roll}
+
+entries:
+  fireball:    {name: Fireball, kind: spell, gives: {CM: 1}}
+  shield_song: {name: Shield Song, kind: skill, tree: Bard, gives: {CM: lots}}
+
+guilds: {}

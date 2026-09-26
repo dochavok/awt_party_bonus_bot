@@ -1,0 +1,46 @@
+# Level edge cases (TS-2, CH-4, CH-5, rule 4.10) in one voice channel, Crypt (TF-2a).
+# ---------------------------------------------------------------------------
+#   Helia   High Priest, level 22 (the giver)
+#   Tenna   Cult member, level exactly 10  -> the ">= 10" band: +10 CM
+#   Nix     Cult member, level 9           -> the "< 10" band: +1 heart damage
+#   Nola    Cult member, no level          -> misses the bonus; /mybonus notes it
+#   Otto    not in the Cult, level 20      -> not in the audience
+#   Opal    not in the Cult, no level      -> not in the audience; no level note
+# ---------------------------------------------------------------------------
+
+requirements: [TS-2, CH-4, CH-5, "4.10"]
+clock: 2026-09-25T20:00:00Z
+catalog: catalog.yaml
+
+discord:
+  voice_channels:
+    - {id: 400, name: Crypt}
+  text_channels:
+    - {id: 200, name: bonus-bot-support}
+  members:
+    - {handle: hana, id: 3001, name: Hana, voice: Crypt}
+    - {handle: tom,  id: 3002, name: Tom,  voice: Crypt}
+    - {handle: nick, id: 3003, name: Nick, voice: Crypt}
+    - {handle: noor, id: 3004, name: Noor, voice: Crypt}
+    - {handle: olly, id: 3005, name: Olly, voice: Crypt}
+    - {handle: opie, id: 3006, name: Opie, voice: Crypt}
+
+players:
+  - member: hana
+    characters:
+      - {name: Helia, level: 22, level_updated: 2026-09-20T18:00:00Z, guilds: [cult], has: [high_priest]}
+  - member: tom
+    characters:
+      - {name: Tenna, level: 10, level_updated: 2026-09-20T18:00:00Z, guilds: [cult]}
+  - member: nick
+    characters:
+      - {name: Nix, level: 9, level_updated: 2026-09-20T18:00:00Z, guilds: [cult]}
+  - member: noor
+    characters:
+      - {name: Nola, guilds: [cult]}
+  - member: olly
+    characters:
+      - {name: Otto, level: 20, level_updated: 2026-09-20T18:00:00Z}
+  - member: opie
+    characters:
+      - {name: Opal}

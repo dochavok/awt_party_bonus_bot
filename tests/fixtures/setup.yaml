@@ -1,0 +1,64 @@
+# Setup commands, ownership and permissions (sections 6.1-6.4, NF-4, TS-9) (TF-2a).
+# ---------------------------------------------------------------------------
+#   craig    owns Crateris (current; Cult High Priest) and Elowen
+#   ioan     owns Ioseph (GoTH; Nuyaru's Love; holds Champion of Power)
+#   cole     owns Chris (Guild of Thieves, Guild Thief)
+#   olga     owns Olga (has Old Charm, a retired entry)
+#   newbie   has a Guild rank role but no characters yet
+#   mallory  owns Mal, and has every powerful-sounding Discord role; used to
+#            check that roles never let anyone change another player's characters
+# craig, ioan and olga are in AWT Voice.
+# ---------------------------------------------------------------------------
+
+requirements: [CH-1, CH-2, CH-3, HV-1, HV-2, HV-4, HV-6, NF-4, TS-9]
+clock: 2026-09-25T20:00:00Z
+catalog: catalog.yaml
+
+discord:
+  voice_channels:
+    - {id: 100, name: AWT Voice}
+  text_channels:
+    - {id: 200, name: bonus-bot-support}
+  members:
+    - {handle: craig,   id: 4001, name: Craig,   voice: AWT Voice}
+    - {handle: ioan,    id: 4002, name: Ioan,    roles: [Guild Vanguard], voice: AWT Voice}
+    - {handle: cole,    id: 4003, name: Cole}
+    - {handle: olga,    id: 4004, name: Olga P,  voice: AWT Voice}
+    - {handle: newbie,  id: 4005, name: Newbie,  roles: [Junior Adventurer]}
+    - {handle: mallory, id: 4006, name: Mallory,
+       roles: [Guild Legend, Admin, Moderator, Server Owner, DM]}
+
+players:
+  - member: craig
+    current: Crateris
+    characters:
+      - name: Crateris
+        level: 22
+        level_updated: 2026-09-20T18:00:00Z
+        guilds: [cult]
+        has: [high_priest, holy_aura]
+      - name: Elowen
+        level: 12
+        level_updated: 2026-09-15T18:00:00Z
+
+  - member: ioan
+    characters:
+      - name: Ioseph
+        level: 34
+        level_updated: 2026-09-01T18:00:00Z
+        guilds: [goth]
+        has: [nuyarus_love, champion_of_power]
+
+  - member: cole
+    characters:
+      - {name: Chris, guilds: [thieves], has: [guild_thief]}
+
+  - member: olga
+    characters:
+      - {name: Olga, has: [old_charm]}
+
+  - member: mallory
+    characters:
+      - {name: Mal}
+
+  # newbie: no characters yet.
