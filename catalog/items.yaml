@@ -1,0 +1,102 @@
+# AWT Party Bonus Bot: items and titles (requirements 8.4).
+# ---------------------------------------------------------------------------
+# Each key is the entry's permanent ID (CT-2): never change or remove one. To take
+# an entry out of the game, set `retired: true` (CT-6).
+# `card` is the card text quoted from the source; it's left out until copied.
+# The format is described in catalog/README.md.
+# ---------------------------------------------------------------------------
+
+entries:
+  # ------------------------------------------------------------ items
+  wills_ward_stone:
+    name: Wills ward stone
+    kind: item
+    gives: {CM: 5}                          # to confirm (Q4)
+    card: "+5 CM"
+
+  nf_pin:
+    name: NF (nobuFest pin)
+    kind: item
+    gives: {CM: 1}                          # to confirm (Q4)
+    card: "+1 to CM"
+
+  # ------------------------------------------------------------ titles
+  champion_of_power:
+    name: Champion of Power
+    kind: title
+    gives: {CR: 5, CM: 5}                   # to confirm (Q4)
+    unique: true                            # one holder at a time (HV-6)
+    card: "+5 to all challenge rolls. +5 to cm."
+
+  hero_of_passion:
+    name: Hero of Passion
+    kind: title
+    audience: holders                       # to other Hero of Passion holders only
+    gives: {CM: 1}                          # amount to confirm (Q5)
+    card: "+1 CM"
+
+  # Modifiers: raise every number of every bonus the holder gives (scope to confirm, Q7).
+  helping_hands:
+    name: Helping Hands
+    kind: title
+    modifies: {all: true, add: 1}
+    card: "Anytime you buff or heal an ally/allies the numerical value is increased by 1"
+
+  helping_hands_v2:
+    name: Helping Hands v2.0
+    kind: title
+    modifies: {all: true, add: 2}
+    replaces: [helping_hands]               # replaces rather than adds (Q7)
+    card: >-
+      Helping Hand Title. If you already had the title you increase its effects by +2.
+      Well done Adventurers!
+
+  # No always-on party bonus: listed so they can be added and shown (8.4). What they
+  # give is self-only, for one ally, or once per combat or weekend, so it isn't tracked.
+  power_supporter:
+    name: Power Supporter
+    kind: title
+    card: >-
+      This title grants you a permanent +1 <3 of True Damage. and an aura that boosts
+      one of your allies existing resistance(the same resistance cannot be added more
+      than once) by 1<3.
+
+  charitable_adventurer:
+    name: Charitable Adventurer
+    kind: title
+    card: >-
+      Whenever you want to pass an item to another adventurer it can be done without
+      tasking. 1/combat When you pass an item to an adventurer this way they gain a +1
+      to their rolls, as long as they use that item and must continue using it unless
+      its consumable, for the rest of the current combat
+
+  element_savant:
+    name: Element Savant
+    kind: title
+    card: >-
+      1/combat you can change your or an allies damage to a element type you have
+      access to.
+
+  joy_maker:
+    name: Joy-Maker
+    kind: title
+    card: >-
+      1/combat if something you do makes a fellow ally or allies laugh or smile(please
+      try to let it be natural and not forced) that/those allies will gain a +5 to
+      their roll.
+
+  story_teller:
+    name: Story Teller
+    kind: title
+    card: >-
+      1/weekend if you tell a short story to any of the Members of the guild hall and
+      it pleases them you can gain a minor loot roll(must be done at a faire no online
+      interactions accepted. loot roll is determined by the DM)
+
+  spook_survivor:
+    name: Spook Survivor
+    kind: title
+    card: >-
+      Your experience with spooks and terrors has given you a thick skin. you gain a +2
+      to CRs vs Fear based effects if an effect does not give you a CR you get a Hard CR
+      with your +2 to prevent it.

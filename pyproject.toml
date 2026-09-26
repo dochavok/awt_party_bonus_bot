@@ -39,7 +39,7 @@ module-name = "awt_bonus"
 # finishing a milestone isn't a test change under TF-6.
 # ---------------------------------------------------------------------------
 [tool.awt_bonus]
-finished_milestones = ["M1"]
+finished_milestones = ["M1", "M2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -59,7 +59,7 @@ The bot will keep a fixed list of items and titles that give always-on bonuses t
 | Champion of Power (title) | +5 to all challenge rolls, +5 CM to allies | Is that right? |
 | Hero of Passion (title) | +1 or more, to other HoP holders only | See Q5. |
 | Helping Hands / v2.0 (titles) | Raise the holder's buffs and heals by 1 / 2 | See Q7. |
-| Power Supporter, Charitable Adventurer, Element Savant, Joy-Maker, Story Teller (titles) | No party bonus | |
+| Power Supporter, Charitable Adventurer, Element Savant, Joy-Maker, Story Teller, Spook Survivor (titles) | No party bonus | |
 
 **Question:** Please correct the table, and add every other item, pin or title that gives an always-on bonus to allies.
 
