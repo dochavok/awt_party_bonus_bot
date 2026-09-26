@@ -684,7 +684,7 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 |---|---|
 | **M1: Functional tests** | The test harness (interface stubs, fake Discord, fake clock, milestone markers); mock data fixtures (TF-2a); the scenario runner and property tests for the engine; command-level functional tests for sections 6.1–6.7; the requirement coverage table; CI that runs them as expected failures and enforces the test-change rule (section 13.0). No bot logic. |
 | **M2: Engine and catalog** | Catalog format and loader with validation; stats; the calculation engine with every rule in section 4. Done when the engine scenario and property tests pass. |
-| **M3: Characters and output** | `/character`, `/add`, `/remove`, voice presence, `/sitout` / `/sitin`, `/play`, `/partybonus`, `/mybonus`, `/breakdown`, `/catalog`. |
+| **M3: Characters and output** | `/character`, `/add`, `/remove`, voice presence, `/sitout` / `/sitin`, `/play`, `/partybonus`, `/mybonus`, `/breakdown`, `/catalog`, and the thin discord.py adapter (TS-8) for live testing on the private test server (TS-13). |
 | **M4: Guilds** | `/guild join/leave`, rank entries with several abilities, Support from Discord roles, secret guilds. Once the output layout is approved, the snapshot tests (TS-5) are created. |
 | **M5: Ops** | Docker, automatic deployment, persistent storage, nightly snapshots, restore runbook, settings file, `/request`. |
 | **M6: Extras** | Bogsy hand-off, buttons. |
