@@ -18,6 +18,7 @@ merging a milestone that changes Discord behaviour.
 3. **Create the test bot (TS-13).** It has its own token and database, so testing
    never touches AWT's data.
    - At <https://discord.com/developers/applications>, click **New Application**.
+   - Give it the name, icon and description in [discord/](../discord/README.md).
    - Open **Bot** and click **Reset Token**. Copy the token and keep it private:
      never commit it or paste it into a chat (NF-9).
    - No privileged intents are needed; leave them all off (NF-6).
