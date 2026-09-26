@@ -152,4 +152,4 @@ token from the environment, so it never appears in the command.)
 
 | Date | Who | Snapshot | Where to | Time taken | Notes |
 |---|---|---|---|---|---|
-| | | | | | |
+| 2026-09-26 | Craig | `awt-bonus-20260926T221141Z.db` from B2 (2 characters, 1 entry, 1 guild membership, 4 audit records) | A fresh Docker volume on a PC, run as the test bot on the test server (the "new host" path) | Not timed end to end; the Fly bot was offline about 8 minutes (22:21–22:29 UTC), including fixing the runbook as we went | Everything checked on the test server was restored. Found and fixed: the B2 website won't download encrypted snapshots (now `python -m awt_bonus.download`), and hidden key prompts inside Docker looked frozen (the key now comes from `Read-Host`). A timed run before AWT goes live would give a clean figure. |
