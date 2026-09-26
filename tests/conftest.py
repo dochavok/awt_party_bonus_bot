@@ -22,7 +22,8 @@ from pathlib import Path
 import pytest
 from hypothesis import HealthCheck, settings
 
-from tests.support.traceability import ROOT, dm_questions, milestones, requirements
+from tests.support.coverage import TaggedTest, render, with_generated_part
+from tests.support.traceability import COVERAGE, ROOT, dm_questions, milestones, requirements
 from tests.support.world import World, load_world
 
 # ---------------------------------------------------------------- Hypothesis (TS-3)
@@ -58,6 +59,15 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=None,
         help="Fail the run if an expected failure had another cause, or a test passed "
         "unexpectedly (e.g. NotImplementedError during M1).",
+    )
+    parser.addoption(
+        "--write-coverage",
+        nargs="?",
+        const=str(COVERAGE),
+        default=None,
+        metavar="PATH",
+        help="Regenerate the tests-per-requirement part of tests/COVERAGE.md (or PATH) "
+        "from the collected tests. Use with --collect-only on the whole suite.",
     )
 
 
@@ -107,6 +117,31 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
     if problems:
         raise pytest.UsageError("Test tagging problems:\n  " + "\n  ".join(problems))
+
+
+def tagged_tests(items: list[pytest.Item]) -> list[TaggedTest]:
+    return [
+        TaggedTest(
+            nodeid=item.nodeid.split("[")[0],
+            milestone=next(item.iter_markers("milestone")).args[0],
+            reqs=tuple(arg for mark in item.iter_markers("req") for arg in mark.args),
+            questions=tuple(arg for mark in item.iter_markers("dm") for arg in mark.args),
+        )
+        for item in items
+    ]
+
+
+def pytest_collection_finish(session: pytest.Session) -> None:
+    target = session.config.getoption("--write-coverage")
+    if target is None:
+        return
+    path = Path(target)
+    source = path if path.exists() else COVERAGE
+    text = with_generated_part(
+        source.read_text(encoding="utf-8"), render(tagged_tests(session.items))
+    )
+    path.write_text(text, encoding="utf-8", newline="\n")
+    session.config.get_terminal_writer().line(f"Wrote {path}")
 
 
 @pytest.hookimpl(wrapper=True)
