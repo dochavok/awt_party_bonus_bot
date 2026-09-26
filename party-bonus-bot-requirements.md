@@ -160,7 +160,7 @@ There are no sessions to start or end. Each time a command runs, the bot looks a
 
 | ID | Requirement | Pri |
 |---|---|---|
-| SE-1 | **Which channel:** `/partybonus` and `/breakdown` use the voice channel the caller is in. `channel:<voice channel>` picks one explicitly. `/mybonus` uses the voice channel the character's player is in. | M |
+| SE-1 | **Which channel:** `/partybonus` and the party `/breakdown` use the voice channel the caller is in. `/mybonus <character>` and `/breakdown <character>` use the voice channel the character's player is in. `channel:<voice channel>` picks one explicitly. | M |
 | SE-2 | **`/sitout`** leaves the caller uncounted for **12 hours** (configurable). `/sitin` ends it early. Players only sit **themselves** out, e.g. because they're running the game or just listening in. Remembering to do it is each player's responsibility. | M |
 | SE-3 | **One character per player:** each player is counted with their **current** character (CH-3). Players play one character per event; a player switching characters runs `/play` first. | M |
 | SE-4 | `/partybonus` and `/breakdown` end with a *not counted* line listing everyone in the voice channel who is sitting out, with the time it ends. People sitting out who aren't in that voice channel aren't listed. | M |
@@ -177,7 +177,7 @@ There are no sessions to start or end. Each time a command runs, the bot looks a
 | OUT-3 | **`/breakdown`** (whole party): for **each bonus in play**, its name and source (skill tree, guild, boon, rank, item or title), what it gives and to whom, and **every contributing character** with their rank or level where it matters. Then: effects, the working for each character's totals (e.g. `CM 2+2+3+5 = +12`), and the *not counted* line. Secret guilds follow SG-4. | M |
 | OUT-3a | **`/breakdown <character>`**: each stat that character receives, the sum written out, and every contribution with the bonus name, giver and value (including modifiers, e.g. "Holy Aura +3 (2 + 1 Devotion III)"). Then: bonuses **not applied** to them, with the reason (every bonus or effect shown in the party `/breakdown` that this character doesn't receive, e.g. not in the guild, doesn't hold the title, is the giver, or has no level recorded; replaced entries and not-stacked duplicates aren't listed, and secret guild bonuses follow SG-3), and what the character **gives**. | M |
 | OUT-3b | Discord messages are limited to 2,000 characters (4,096 in an embed). Longer output is split across several messages or pages, never cut off. | M |
-| OUT-4 | If the player isn't in a voice channel, `/mybonus` and `/breakdown <character>` show what the character **gives**, and explain that no party is present. | M |
+| OUT-4 | If the character's player isn't in a voice channel, or is sitting out, `/mybonus` and `/breakdown <character>` show what the character **gives**, and explain why there are no totals (no party present, or sitting out until when). | M |
 | OUT-5 | **Who sees replies.** `/partybonus` posts **publicly** by default, so the whole party sees the table; `private:true` makes it a private check instead (e.g. when rerunning it as people join). Every other reply is **always private** (only the person who ran the command sees it), with no option: `/mybonus`, `/breakdown` (party or character), `/catalog`, and all setup commands. | M |
 | OUT-6 | A player can look up anyone's character (subject to SG-3). | S |
 | OUT-7 | Output never uses pronouns for characters ("to Kael", not "to himself"). | M |
