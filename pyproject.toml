@@ -1,0 +1,94 @@
+[project]
+name = "awt-party-bonus-bot"
+version = "0.1.0"
+description = "Discord bot that works out party bonuses for AWT games"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "alembic>=1.20.0",
+    "discord-py>=2.4",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "pyyaml>=6.0.3",
+    "sqlalchemy[asyncio]>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.168.1",
+    "mypy>=2.3.1",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.9",
+    "types-pyyaml>=6.0.12.20260906",
+]
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "awt_bonus"
+
+# ---------------------------------------------------------------------------
+# Milestones (requirements TF-4). The ONE place that says which milestones are
+# finished. Tests for finished milestones must pass; tests for any other
+# milestone run as expected failures. Kept outside tests/ on purpose, so
+# finishing a milestone isn't a test change under TF-6.
+# ---------------------------------------------------------------------------
+[tool.awt_bonus]
+finished_milestones = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+xfail_strict = false
+markers = [
+    "milestone(name): the milestone that implements what this test checks (TF-4), e.g. milestone('M3')",
+    "req(*ids): the requirement IDs this test checks (TF-3), e.g. req('HV-4') or req('4.6')",
+    "dm(*questions): the DM rule questions this test depends on (TF-3), e.g. dm('Q7')",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["awt_bonus"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F",  # pycodestyle, pyflakes
+    "I",            # import order
+    "B",            # bugbear
+    "UP",           # pyupgrade
+    "SIM",          # simplify
+    "RUF",          # ruff-specific
+    "PT",           # pytest style
+    "ASYNC",        # async pitfalls
+    "DTZ",          # no naive datetimes (NF-10: everything in GMT/UTC)
+    "S506",         # unsafe yaml.load (section 12: yaml.safe_load only)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["DTZ001"]  # tests may build naive datetimes to prove they're rejected
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src", "tests"]
+mypy_path = "src"
+plugins = ["pydantic.mypy"]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
