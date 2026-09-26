@@ -263,6 +263,32 @@ def build_tree(client: discord.Client, app: App, guild: discord.Object) -> app_c
         )
 
     tree.add_command(group)
+
+    guilds = app_commands.Group(name="guild", description="Your characters' guilds")
+
+    @guilds.command(name="join", description="A character joins a guild")
+    @app_commands.autocomplete(
+        character=completer("guild join", "character"), guild=completer("guild join", "guild")
+    )
+    async def guild_join(interaction: discord.Interaction, character: str, guild: str) -> None:
+        await _answer(
+            interaction,
+            runner(interaction, "guild join", character=character, guild=guild),
+            private=True,
+        )
+
+    @guilds.command(name="leave", description="A character leaves a guild")
+    @app_commands.autocomplete(
+        character=completer("guild leave", "character"), guild=completer("guild leave", "guild")
+    )
+    async def guild_leave(interaction: discord.Interaction, character: str, guild: str) -> None:
+        await _answer(
+            interaction,
+            runner(interaction, "guild leave", character=character, guild=guild),
+            private=True,
+        )
+
+    tree.add_command(guilds)
     for command in tree.get_commands():
         tree.remove_command(command.name)
         tree.add_command(command, guild=guild)

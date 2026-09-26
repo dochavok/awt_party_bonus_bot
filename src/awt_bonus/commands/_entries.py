@@ -4,7 +4,7 @@ from awt_bonus.catalog import Entry
 from awt_bonus.commands._base import Context, Refused, private
 from awt_bonus.commands._types import Reply
 from awt_bonus.ids import EntryId
-from awt_bonus.output.describe import entry_lines, kind_label, names
+from awt_bonus.output.describe import entry_lines, guild_name, kind_label, names
 from awt_bonus.store import CharacterRecord
 
 
@@ -26,6 +26,12 @@ async def add(ctx: Context) -> Reply:
         raise Refused(f"{character.name} already has {entry.name}.")
     if entry.retired:
         raise Refused(f"{entry.name} is retired, so it can't be added any more.")
+    if entry.guild is not None and entry.guild not in character.guilds:
+        guild = guild_name(entry.guild, ctx.catalog)
+        raise Refused(
+            f"{entry.name} is a {guild} {entry.kind.value}, and {character.name} isn't a member. "
+            f"Join first: `/guild join {character.name} {guild}`"
+        )
     if entry.unique:
         holders = [c for c in await ctx.store.holders_of(entry.id) if c.id != character.id]
         if holders:

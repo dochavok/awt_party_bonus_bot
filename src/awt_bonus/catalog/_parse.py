@@ -322,4 +322,5 @@ def _guild(key: str, spec: GuildSpec, bands: Bands) -> Guild:
             _ability(a.name, a, frozenset(a.tags), a.card, bands) for a in spec.from_roles
         ),
         secret=spec.secret,
+        how_to_join=spec.how_to_join,
     )
