@@ -9,8 +9,13 @@ updates:
     directory: /
     schedule:
       interval: weekly
-  # The Dockerfile's base images (python, uv), pinned by digest.
+  # The Dockerfile's base images (python, uv), pinned by digest. Python itself stays
+  # on 3.12 (requires-python, .python-version): only its image's digest is updated,
+  # for security fixes. Moving to a newer Python is a deliberate change, not a bot's.
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]

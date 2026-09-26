@@ -15,8 +15,13 @@ them.
 ## What you need
 
 - The Fly.io account (the GitHub login), with `flyctl` installed.
-- The Backblaze B2 account, to download a snapshot. The bot's own key can only
-  upload, so downloading is done on the B2 website.
+- Docker Desktop, to download a snapshot from Backblaze B2 (below). The B2 website
+  won't download the snapshots, because they're stored with server-side encryption.
+- A **read-only B2 key**. The bot's own key can only upload, on purpose. In B2:
+  **Application Keys** → **Add a New Application Key**: name `awt-restore`, only the
+  `awt-party-bonus-backups` bucket, **Read Only**, prefix `snapshots/`,
+  list-all-bucket-names off. B2 shows the key once: keep it in a password manager,
+  or delete the key after the restore and make a new one next time.
 - For a new host: the Discord bot token (or reset it in the Discord developer
   portal) and a new B2 upload key. See [deployment.md](deployment.md).
 
@@ -28,9 +33,16 @@ Commands are for PowerShell, in the repository folder. `APP` is
 Snapshots are named after the UTC time they were taken, e.g.
 `awt-bonus-20260927T080000Z.db`. They're in two places:
 
-- **Backblaze B2** (off-site, 30 days): the B2 website → **Browse Files** →
-  `awt-party-bonus-backups` → `snapshots/` → pick a file → **Download**. Use this if
-  the Fly volume is lost.
+- **Backblaze B2** (off-site, 30 days). Use this if the Fly volume is lost.
+  Download one with the bot's image, which asks for the read-only key without
+  showing it. From the repository folder, on an up-to-date `main`:
+  ```
+  docker build -t awt-bonus .
+  docker run --rm -it -e BACKUP_BUCKET=awt-party-bonus-backups -e BACKUP_ENDPOINT_URL=https://s3.us-east-005.backblazeb2.com -v "$HOME\Downloads:/out" awt-bonus python -m awt_bonus.download list
+  docker run --rm -it -e BACKUP_BUCKET=awt-party-bonus-backups -e BACKUP_ENDPOINT_URL=https://s3.us-east-005.backblazeb2.com -v "$HOME\Downloads:/out" awt-bonus python -m awt_bonus.download get newest --to /out
+  ```
+  `list` shows the snapshots, newest first; `get` takes `newest` or a name from the
+  list, and saves it in your Downloads folder.
 - **On the volume** (`/data/snapshots/`, 30 days): the nightly snapshots, and the
   one taken before each migration (DB-4). List them with
   `fly ssh console --app awt-party-bonus-bot -C "ls -l /data/snapshots"`.
@@ -56,7 +68,7 @@ as offline in Discord.
 fly ssh console --app awt-party-bonus-bot -C "/app/.venv/bin/python -m awt_bonus.restore /data/snapshots/<snapshot file> --database /data/awt-bonus.db"
 ```
 
-**A snapshot downloaded from B2:** copy it onto the volume first, then restore it:
+**A snapshot downloaded from B2** (step 1): copy it onto the volume first, then restore it:
 
 ```
 fly ssh sftp shell --app awt-party-bonus-bot
@@ -117,8 +129,9 @@ Restoring into a fresh Docker volume on a PC tries the "new host" path without
 touching Fly. Only one bot may run with a token, so put the Fly bot in maintenance
 mode (step 2) first, and take it out afterwards (step 4).
 
+First download a snapshot from B2 into your Downloads folder, as in step 1. Then:
+
 ```
-docker build -t awt-bonus .
 docker volume create awt-bonus-drill
 docker run --rm -v awt-bonus-drill:/data -v "$HOME\Downloads:/restore:ro" awt-bonus python -m awt_bonus.restore /restore/<snapshot file> --database /data/awt-bonus.db
 $env:DISCORD_TOKEN = Read-Host 'Bot token'
