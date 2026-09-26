@@ -13,7 +13,7 @@ directly (TS-8). Every reply is private except ``/partybonus`` (OUT-5).
 from collections.abc import Mapping
 
 from awt_bonus.catalog import Catalog
-from awt_bonus.commands import _catalog, _characters, _entries, _presence
+from awt_bonus.commands import _catalog, _characters, _entries, _output, _presence
 from awt_bonus.commands._autocomplete import suggest
 from awt_bonus.commands._base import Context, Handler, Refused, Services, private
 from awt_bonus.commands._types import Choice, OptionValue, Reply
@@ -41,6 +41,9 @@ HANDLERS: Mapping[str, Handler] = {
     "sitout": _presence.sitout,
     "sitin": _presence.sitin,
     "catalog": _catalog.catalog,
+    "partybonus": _output.partybonus,
+    "mybonus": _output.mybonus,
+    "breakdown": _output.breakdown,
     "guild join": _later,
     "guild leave": _later,
     "request": _later,

@@ -70,7 +70,8 @@ class _Packer:
 
     def add_block(self, lines: Sequence[str], code: bool) -> None:
         # Start a new message rather than split a block that would fit in one.
-        if self.lines and not self._fits(lines, code):
+        fits_alone = _Packer(self.limit)._fits(lines, code)
+        if self.lines and fits_alone and not self._fits(lines, code):
             self._flush()
         for line in lines:
             self._add_line(line, code)

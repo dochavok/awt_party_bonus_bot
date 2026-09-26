@@ -6,7 +6,7 @@ Output never uses pronouns for characters (OUT-7): it names them, or says "the g
 from collections.abc import Iterable, Mapping
 from datetime import datetime
 
-from awt_bonus.catalog import Ability, AudienceKind, Catalog, Entry, EntryKind, LevelBand, StatKind
+from awt_bonus.catalog import Ability, AudienceKind, Catalog, Entry, EntryKind, StatKind
 from awt_bonus.ids import ChannelId, GuildId, StatId
 
 
@@ -57,9 +57,8 @@ def total(stat: StatId, n: int, catalog: Catalog) -> str:
     return f"{n:+d}"
 
 
-def band(level_band: LevelBand) -> str:
+def band(low: int | None, high: int | None) -> str:
     """A level band, e.g. "level under 10", "level 10 or higher", "level 5 to 9"."""
-    low, high = level_band.min_level, level_band.max_level
     if low is None and high is None:
         return "any level"
     if low is None:
@@ -118,7 +117,10 @@ def ability(
     who = audience(bonus.audience, bonus.includes_giver, guild, entry_name, catalog)
     parts: list[str] = []
     if bonus.level_rules:
-        rules = "; ".join(f"{band(b)}: {amounts(b.gives, catalog)}" for b in bonus.level_rules)
+        rules = "; ".join(
+            f"{band(b.min_level, b.max_level)}: {amounts(b.gives, catalog)}"
+            for b in bonus.level_rules
+        )
         parts.append(f"{who}, by the recipient's level: {rules}")
     elif bonus.gives:
         parts.append(f"{amounts(bonus.gives, catalog)} {who}")
