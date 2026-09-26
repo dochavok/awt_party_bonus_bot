@@ -1,7 +1,7 @@
 """/add and /remove: what characters have (requirements 6.3)."""
 
 from awt_bonus.catalog import Entry
-from awt_bonus.commands._base import Context, Refused, private
+from awt_bonus.commands._base import REQUEST_HINT, Context, Refused, private
 from awt_bonus.commands._types import Reply
 from awt_bonus.ids import EntryId
 from awt_bonus.output.describe import entry_lines, guild_name, kind_label, names
@@ -20,7 +20,8 @@ async def add(ctx: Context) -> Reply:
     entry = ctx.catalog.entry_named(wanted)
     if entry is None:
         raise Refused(
-            f"{wanted} isn't in the catalog. `/catalog` lists everything that can be added."
+            f"{wanted} isn't in the catalog. `/catalog` lists everything that can be added.",
+            REQUEST_HINT,
         )
     if entry.id in character.entries:
         raise Refused(f"{character.name} already has {entry.name}.")

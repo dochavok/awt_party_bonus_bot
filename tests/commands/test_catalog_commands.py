@@ -163,3 +163,23 @@ async def test_the_request_channel_is_configurable(make_world: MakeWorld) -> Non
     await app.run(world.user("craig"), "request", {"text": "Please remove my character Elowen"})
 
     assert [channel for channel, _ in world.discord.posts] == ["maintainer-inbox"]
+
+
+@M4
+@pytest.mark.req("CT-8", "CT-9")
+@pytest.mark.parametrize(
+    ("command", "options"),
+    [
+        ("catalog", {}),
+        ("catalog", {"entry": "Mega Aura of Doom"}),
+        ("add", {"character": "Elowen", "entry": "Mega Aura of Doom"}),
+    ],
+    ids=["catalog-list", "catalog-not-found", "add-not-found"],
+)
+async def test_catalog_says_how_to_request_a_missing_entry(
+    make_world: MakeWorld, command: str, options: dict[str, str]
+) -> None:
+    world = await make_world("setup")
+    reply = await world.run("craig", command, **options)
+    assert "/request" in reply.text
+    assert reply.private

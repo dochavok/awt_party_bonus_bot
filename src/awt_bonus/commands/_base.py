@@ -116,6 +116,10 @@ def _blocks(items: tuple[Block | str, ...]) -> list[Block]:
     return [text(item) if isinstance(item, str) else item for item in items]
 
 
+REQUEST_HINT = "Missing something, or something wrong? Ask for it with `/request <text>`."
+"""How to ask the maintainer for a missing or wrong catalog entry (CT-8, CT-9)."""
+
+
 def no_character_hint() -> str:
     return "You have no character yet. Register one with `/character register <name>`."
 
