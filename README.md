@@ -7,6 +7,8 @@ The bot works out the party bonuses (CM, CR, and more) that each character recei
 
 ## First-time setup (once per character)
 
+In Discord, `/help` shows these steps and tells you your own next step.
+
 1. **Register your character.** The level is optional; it's only used for the Cult of the Dragon's bonus, so add it if your character is in the Cult:
    ```
    /character register name:Crateris level:22
