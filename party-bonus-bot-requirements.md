@@ -1,6 +1,6 @@
 # AWT Party Bonus Bot: Requirements
 
-**Version:** 1.0 (baseline for development; changes from here follow the test-change rule, section 13.0)
+**Version:** 1.1 (baseline for development; changes from here follow the test-change rule, section 13.0)
 **Date:** 2026-09-25
 **Owner:** Craig
 **Server:** Adventures from the Wizards Tower (AWT)
@@ -109,8 +109,8 @@ Priority: **M** = must have (v1), **S** = should have, **C** = could have (later
 | CH-2 | A player can **rename** their own characters, e.g. to fix a typo or free a name. Characters **can't be deleted**: a character that's no longer played simply isn't made current, and counts for nothing. A player who really needs one removed asks with `/request` (CT-9), and the maintainer removes it from the database. | M |
 | CH-3 | **Current character:** each player has one **current** character, set with `/play <character>`. It stays until changed. A player's first registered character becomes current automatically, so most players (one character each) never need `/play`. Commands with no character named use the current character. | M |
 | CH-4 | **Optional level per character:** 1 up to a configurable maximum (currently 75). It can be left blank. | M |
-| CH-5 | Level-based bonuses only apply to characters with a recorded level. `/mybonus` notes any bonus missed because the level is missing. | M |
-| CH-6 | The date each level was last updated is stored and shown in `/breakdown`. | S |
+| CH-5 | Level-based bonuses only apply to characters with a recorded level. `/mybonus` notes any bonus missed because the level is missing. The note appears only when recording a level would get the character the bonus: a character outside the bonus's audience is told they're not in the audience, not that their level is missing. | M |
+| CH-6 | The date each level was last updated is stored and shown in `/breakdown`. It's shown as a date-only Discord timestamp (NF-10), which Discord displays as an ordinary date in each reader's own format and time zone. | S |
 
 ### 6.2 The Catalog
 
@@ -134,7 +134,7 @@ The catalog lives in the repository as data files: `catalog/stats.yaml`, `catalo
 |---|---|---|
 | HV-1 | **`/add <character> <entry>`** gives a character a skill, boon, rank, item or title from the catalog. **`/remove`** takes away anything the character has, with no restrictions. In practice it's mostly used for items that are lost or given away. `/remove`'s autocomplete lists what the character has. Autocomplete for `/add` shows entries labeled with their kind and tree or guild, e.g. "Holy Aura (Holy Knight skill)". **Guild entries (ranks and boons) appear only for guilds the character belongs to.** If `entry` is filled in before `character`, autocomplete uses the player's current character. | M |
 | HV-2 | **`/guild join <character> <guild>`** and **`/guild leave`** set a character's guild membership. Joining grants nothing by itself; ranks and boons are then added with `/add`, and the reply to `/guild join` says so for guilds with ranks (e.g. *"Now add your rank: `/add Chris Footpad`"*). Leaving **removes the character's ranks and boons from that guild**, and the reply lists what was removed. | M |
-| HV-3 | **Support** comes from Discord roles, not from `/guild join`. The player's highest Guild rank role sets the rank, and it applies to every character that player owns. Roles are checked each time totals are calculated. | M |
+| HV-3 | **Support** comes from Discord roles, not from `/guild join`. A player with **any** of the Guild rank roles (Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend) gives Support, **once**, whichever of these roles they have and however many. The role doesn't change the amount. Support applies to whichever character the player is counted with, or to the player with no character set up (SE-5). `/breakdown` shows the giver's Guild rank role next to their name; a player with more than one has them all shown. Roles are checked each time totals are calculated. | M |
 | HV-4 | **Checks when adding.** Autocomplete isn't a lock (a player can type any text), so the bot checks when the command runs. Adding a rank or boon from a guild the character isn't in is **refused**, with the command to join, e.g. *"High Priest is a Cult of the Dragon rank, and Crateris isn't a member. Join first: `/guild join Crateris Cult of the Dragon`"*. Adding Devotion III with no auras only **warns**. Rank itself is never checked: players add the ranks they've earned. | M |
 | HV-5 | **Audit log.** Every change to a character (entries, guilds, level, name) is written to the audit log, with who made it and when. There's no command to read it; the maintainer can read it from the database if a dispute comes up. | M |
 | HV-6 | **One holder at a time.** Some entries can be held by only **one character** on the server at a time: today **High Priest** and **Champion of Power**. `/add` **refuses** such an entry while another character holds it, naming the holder, e.g. *"Champion of Power is held by Ioseph. Only one character can hold it at a time."* The title passes on when the current holder `/remove`s it (or leaves the guild, for a guild rank). If the holder can't or won't, the new holder asks with `/request` (CT-9), and the maintainer removes it in the database (AD-2). | M |
@@ -163,7 +163,7 @@ There are no sessions to start or end. Each time a command runs, the bot looks a
 | SE-1 | **Which channel:** `/partybonus` and `/breakdown` use the voice channel the caller is in. `channel:<voice channel>` picks one explicitly. `/mybonus` uses the voice channel the character's player is in. | M |
 | SE-2 | **`/sitout`** leaves the caller uncounted for **12 hours** (configurable). `/sitin` ends it early. Players only sit **themselves** out, e.g. because they're running the game or just listening in. Remembering to do it is each player's responsibility. | M |
 | SE-3 | **One character per player:** each player is counted with their **current** character (CH-3). Players play one character per event; a player switching characters runs `/play` first. | M |
-| SE-4 | `/partybonus` and `/breakdown` end with a *not counted* line listing everyone sitting out, with the time it ends. | M |
+| SE-4 | `/partybonus` and `/breakdown` end with a *not counted* line listing everyone in the voice channel who is sitting out, with the time it ends. People sitting out who aren't in that voice channel aren't listed. | M |
 | SE-5 | **No character set up:** a member in the voice channel with no usable character is still **counted as a player**, under their Discord name. They **give** only Support (from Discord roles). They **receive** bonuses like anyone else, except level-based, guild-only and holder-only ones (e.g. Hero of Passion). `/partybonus` and `/breakdown` list them in a **NO CHARACTER SET UP** section with the fix (`/character register` or `/play`). | M |
 | SE-6 | Bots in the voice channel (e.g. music bots) are ignored and never listed. | M |
 
@@ -173,9 +173,9 @@ There are no sessions to start or end. Each time a command runs, the bot looks a
 |---|---|---|
 | OUT-1 | **`/partybonus`**: a table of the roll-stat totals each counted character receives (CM, CR, and only the CR subtypes that differ from CR for someone), then combat notes (with their descriptions), effects, conditional bonuses (with their conditions, not in totals), and the *not counted* line. Totals only. | M |
 | OUT-2 | **`/mybonus [character]`**: totals for one character (roll stats, combat notes, effects, and conditional bonuses listed separately), plus a single line about any bonus missed because the level is missing. Totals only. | M |
-| OUT-2a | **Not-current character notice:** when `/mybonus <character>` or `/breakdown <character>` names a character who isn't its player's current character, the bot works out the totals **as if that character were playing in place of the current one**, and shows a notice at the top, e.g. *"Crateris isn't your current character (you're playing Chris). These totals show Crateris in Chris's place. Use `/play Crateris` to switch."* | M |
+| OUT-2a | **Not-current character notice:** when `/mybonus <character>` or `/breakdown <character>` names a character who isn't its player's current character, the bot works out the totals **as if that character were playing in place of the current one**, and shows a notice at the top, e.g. *"Crateris isn't your current character (you're playing Chris). These totals show Crateris in Chris's place. Use `/play Crateris` to switch."* When someone other than the character's player runs the command, the totals are worked out the same way, and the notice reads e.g. *"Crateris isn't currently being played (Elowen is). These totals show Crateris in Elowen's place."* The `/play` hint is shown only to the character's own player. | M |
 | OUT-3 | **`/breakdown`** (whole party): for **each bonus in play**, its name and source (skill tree, guild, boon, rank, item or title), what it gives and to whom, and **every contributing character** with their rank or level where it matters. Then: effects, the working for each character's totals (e.g. `CM 2+2+3+5 = +12`), and the *not counted* line. Secret guilds follow SG-4. | M |
-| OUT-3a | **`/breakdown <character>`**: each stat that character receives, the sum written out, and every contribution with the bonus name, giver and value (including modifiers, e.g. "Holy Aura +3 (2 + 1 Devotion III)"). Then: bonuses **not applied** to them, with the reason, and what the character **gives**. | M |
+| OUT-3a | **`/breakdown <character>`**: each stat that character receives, the sum written out, and every contribution with the bonus name, giver and value (including modifiers, e.g. "Holy Aura +3 (2 + 1 Devotion III)"). Then: bonuses **not applied** to them, with the reason (every bonus or effect shown in the party `/breakdown` that this character doesn't receive, e.g. not in the guild, doesn't hold the title, is the giver, or has no level recorded; replaced entries and not-stacked duplicates aren't listed, and secret guild bonuses follow SG-3), and what the character **gives**. | M |
 | OUT-3b | Discord messages are limited to 2,000 characters (4,096 in an embed). Longer output is split across several messages or pages, never cut off. | M |
 | OUT-4 | If the player isn't in a voice channel, `/mybonus` and `/breakdown <character>` show what the character **gives**, and explain that no party is present. | M |
 | OUT-5 | **Who sees replies.** `/partybonus` posts **publicly** by default, so the whole party sees the table; `private:true` makes it a private check instead (e.g. when rerunning it as people join). Every other reply is **always private** (only the person who ran the command sees it), with no option: `/mybonus`, `/breakdown` (party or character), `/catalog`, and all setup commands. | M |
@@ -405,8 +405,8 @@ CR stealth = 10 (all CR) = +10
 CR escape = 10 (all CR) = +10
 -------------------------------------------------
 NOT APPLIED
-  Holy Aura, Bolstering Aura, Wills ward stone    allies only (Crateris is the giver)
-  Cult of the Dragon                              allies only (Crateris is the giver)
+  Holy Aura, Bolstering Aura, Protective Aura, Wills ward stone    allies only (Crateris is the giver)
+  Cult of the Dragon                                               allies only (Crateris is the giver)
 -------------------------------------------------
 CRATERIS GIVES
   Holy Aura +3 CR vs fear (2 + 1 Devotion III)
@@ -415,6 +415,8 @@ CRATERIS GIVES
   Wills ward stone +5 CM
   Cult of the Dragon (High Priest)
 ```
+
+The "updated" date is a Discord timestamp (CH-6, NF-10), so each reader sees it as an ordinary date in their own format; it's shown here as 2026-09-20.
 
 `/mybonus Mira` (private; Mira is a Guild of Thieves member):
 
@@ -460,7 +462,7 @@ These totals show Crateris in Elowen's place. Use /play Crateris to switch.
 | NF-5 | **Privacy:** Discord IDs, display names and game data only. Doesn't read message content. Secret guild membership is protected as in section 6.4. |
 | NF-6 | **Intents:** `Guilds` and `GuildVoiceStates` (both non-privileged). Roles for present players are looked up individually, so no privileged intents are needed. Results are cached for about 60 s. |
 | NF-7 | **Quality (see section 13):** type-checked; the calculation engine has at least 90% branch coverage, including every rule in section 4 and the numbers in section 9; CI on every push. |
-| NF-8 | **Operations:** structured logs; nightly off-site database snapshots (section 12.1). |
+| NF-8 | **Operations:** structured logs, written to standard output as **JSON lines** (one JSON object per line) so the host collects them. Every line has `time` (UTC, ISO 8601), `level` and `event`. Each command logs one line with the command name, the Discord user ID, the outcome (`ok`, `refused` or `error`) and its duration; startup, shutdown, reconnects, migrations and snapshots are logged too, and errors include the traceback. Logs never contain the bot token, storage credentials, reply text or message content. Nightly off-site database snapshots (section 12.1). |
 | NF-9 | **Security:** the bot token and storage credentials live only in environment variables or the host's secret store. |
 | NF-10 | **Time zones:** every time the bot stores or checks (sit-out expiry, level "last updated", audit log, snapshots) is in **GMT (UTC)**, never the host's local time. Times shown to players use Discord timestamps (`<t:…>`), which Discord displays in each reader's own time zone. |
 | NF-11 | **Least privilege:** the bot is invited with only View Channels, Send Messages, Embed Links and Use Application Commands. Never Administrator. |
@@ -484,8 +486,10 @@ Support isn't stored. It's worked out on each calculation from the player's curr
 **Calculation engine:** a pure function with no Discord or database code:
 
 ```
-compute(counted_players, player_roles, character_entries, character_guilds, catalog) -> PartyReport
+compute(present_players, player_roles, character_entries, character_guilds, catalog) -> PartyReport
 ```
+
+`present_players` lists every member in the voice channel: Discord user ID and name, whether it's a bot, the end of any **active** sit-out, and the character they're counted with (ID, name and level), or none. The caller checks sit-outs against the clock and applies the OUT-2a substitution before calling, so the engine never needs a clock, Discord or the database.
 
 0. **Who is counted:** members in the voice channel (excluding bots), minus anyone with an active sit-out. Each counted player uses their current character, or a stand-in with no character if none is set up. For OUT-2a, the named character replaces its player's current character.
 1. **Work out memberships:** each character's guilds, plus the Guild rank from their player's Discord roles.
@@ -531,8 +535,8 @@ compute(counted_players, player_roles, character_entries, character_guilds, cata
 | ID | Requirement | Pri |
 |---|---|---|
 | DB-1 | The database path is set by configuration (`DATABASE_URL`), never hard-coded. | M |
-| DB-2 | The database must be on **persistent** storage. The bot refuses to start if the path is on a known temporary filesystem, or if it can't write a test file. | M |
-| DB-3 | SQLite runs in **WAL mode** with a busy timeout. Only **one** bot process uses the file at a time. | M |
+| DB-2 | The database must be on **persistent** storage. The bot refuses to start if the path is on a known temporary filesystem, or if it can't write a test file next to the database. Known temporary filesystems: on Linux, a tmpfs or ramfs mount, or a path under `/tmp`, `/var/tmp` or `/dev/shm`; on Windows, a path under `%TEMP%`. The default location, the project's own `var/` folder next to the code (section 12.1), is persistent and passes the check; only the system's `/var/tmp` is temporary. The check runs at bot startup, not whenever the database is opened, so tests can use temporary database files (TS-11). | M |
+| DB-3 | SQLite runs in **WAL mode** with a busy timeout. Only **one** bot process uses the file at a time: the bot takes an exclusive lock on a file next to the database at startup and refuses to start if another process holds it. | M |
 | DB-4 | **Schema changes** only happen through Alembic migrations. They run automatically at startup, after a snapshot is taken first. | M |
 | DB-5 | **Continuous replication:** Litestream streams every change to object storage, so at most seconds of changes are lost instead of up to a day. Not needed at launch: losing a day of character changes costs players a few minutes of re-entering. | C |
 | DB-6 | **Nightly snapshots:** a full `sqlite3 .backup` copy goes to the same object storage every night and is kept for 30 days. | M |
@@ -565,7 +569,7 @@ The functional tests are written **before any bot code** (milestone M1), from th
 | TF-3 | **Traceability.** Every test names the requirement ID(s) it checks (e.g. `HV-4`), and the rule questions it depends on (e.g. `Q7`). A coverage table lists every requirement and its tests; every *must have* requirement has at least one. **Requirement IDs are permanent from M1 onward:** they're never renumbered or reused. A removed requirement keeps its row, marked *removed*, so tests and past discussions never point at the wrong thing. | M |
 | TF-4 | **Milestone markers.** Each test is marked with the milestone that implements it. CI treats tests for unfinished milestones as expected failures, and requires every test for a finished milestone to pass. The 90% coverage threshold applies from M2. | M |
 | TF-5 | **The test-change rule.** A failing test means the **code** is wrong, unless a human confirms the **test** is wrong. A test is **never** changed to make code pass. When a test is believed to be wrong, the only allowed sequence is:<br>1. **Confirm with a human** that the test is wrong, explaining why (Claude Code must stop and ask; it never decides this alone).<br>2. **Fix the requirements document** so it states how the bot should behave.<br>3. **Fix the test** so it matches the corrected requirement.<br>4. **Fix the code** until the test passes.<br>Steps 2 and 3 are committed together, and the commit message names the requirement changed. The same sequence applies when a DM answer changes a rule, starting at step 2. | M |
-| TF-6 | **Enforcement.** The rule is written into `CLAUDE.md`, which Claude Code reads in every session. Claude Code asks for permission before editing any test file. CI fails any change to test files that doesn't also change the requirements document, unless it only adds new tests. | M |
+| TF-6 | **Enforcement.** The rule is written into `CLAUDE.md`, which Claude Code reads in every session. Claude Code asks for permission before editing or overwriting any test file, the pytest settings, the CI workflows or the test-change check. CI fails any change that alters or removes an **existing** test, scenario, fixture or test-harness file, adds a `conftest.py`, removes a finished milestone, changes the pytest settings, or changes the test-change check or CI workflows (updating only the versions of the actions a workflow uses, as Dependabot does, is allowed), unless the same change also edits the requirements document. Adding new tests, new scenarios and new test files is allowed. CI also fails if the bot's code refers to the tests or the test data. The CI check is a required status check on `main`. | M |
 
 ### 13.1 Calculation Engine
 

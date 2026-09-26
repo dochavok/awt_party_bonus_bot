@@ -1,0 +1,6 @@
+# A valid catalog split across the four catalog files, as in catalog/ (6.2).
+# Each file is part of one catalog: it may hold any of `stats`, `entries` and
+# `guilds`, and the loader merges them.
+stats:
+  CM: {kind: roll}
+  CR: {kind: roll}

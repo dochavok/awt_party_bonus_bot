@@ -1,0 +1,274 @@
+# AWT Party Bonus Bot: test catalog for the command-level tests (TF-2a).
+# ---------------------------------------------------------------------------
+# Same schema as the catalog in tests/scenarios/engine-scenarios.yaml, and as the
+# real catalog in catalog/ (requirements 6.2). The command tests use this file,
+# not the real catalog, so changing a real catalog value never breaks them.
+#
+# Differences from the scenario catalog, to exercise more of the format:
+#   - keys are permanent IDs that differ from the display names (CT-2);
+#     `name` is the display name (it defaults to the key when left out);
+#   - `card` holds the card text quoted from the source (CT-4, CT-8);
+#   - guilds have `short_name` and `full_name` (CT-5).
+# Values mirror the starting catalog (requirements section 8).
+# Card text is quoted from the source where the requirements or the DM
+# questions quote it, and is test text otherwise.
+# ---------------------------------------------------------------------------
+
+stats:
+  CM:               {kind: roll}
+  CR:               {kind: roll}
+  CR vs fear:       {kind: roll, parent: CR}
+  CR stealth:       {kind: roll, parent: CR}
+  CR escape:        {kind: roll, parent: CR}
+  CR would hurt:    {kind: roll, parent: CR}
+  Damage:           {kind: combat_note, unit: hearts, description: "extra hearts dealt when attacking"}
+  Damage reduction: {kind: combat_note, unit: hearts, description: "hearts mitigated when attacked"}
+  Healing:          {kind: combat_note, unit: hearts, description: "hearts healed at the end of each round"}
+
+entries:
+  # ------------------------------------------------------------ skills (8.2)
+  holy_aura:
+    name: Holy Aura
+    kind: skill
+    tree: Holy Knight
+    tags: [aura]
+    gives: {CR vs fear: 2}
+    card: "Test card text: allies gain +2 to challenge rolls against fear."
+  bolstering_aura:
+    name: Bolstering Aura
+    kind: skill
+    tree: Holy Knight
+    tags: [aura]
+    gives: {CM: 2}
+    card: "Test card text: allies gain +2 CM."
+  protective_aura:
+    name: Protective Aura
+    kind: skill
+    tree: Holy Knight
+    tags: [aura]
+    effect: "Resistance to damage from an Evil source"
+    card: "Test card text: allies resist damage from an Evil source."
+  devotion_3:
+    name: Devotion III
+    kind: skill
+    tree: Holy Knight
+    modifies: {tag: aura, add: 1}
+    card: "Increase Aura bonuses by +1."
+  aura_of_defense:
+    name: Aura of Defense
+    kind: skill
+    tree: Paladin
+    tags: [aura]
+    gives: {CR would hurt: 5}
+    card: "Test card text: allies gain +5 to challenge rolls that would hurt them."
+  aura_of_hope:
+    name: Aura of Hope
+    kind: skill
+    tree: Paladin
+    tags: [aura]
+    gives: {CM: 10}
+    card: "Test card text: allies gain +10 CM."
+  commanding_presence:
+    name: Commanding Presence
+    kind: skill
+    tree: Commander
+    gives: {CM: 5}
+    condition: "allies in the same range"
+    card: "+5 to CM for all allies who are in the same range as you."
+  inspiring_presence:
+    name: Inspiring Presence
+    kind: skill
+    tree: Commander
+    gives: {CR: 5}
+    stacks: false
+    card: "Add +5 to all CRs made by allies (Does not stack)."
+
+  # ------------------------------------------------------------ GoTH boons (8.3)
+  nuyarus_love:
+    name: Nuyaru's Love
+    kind: boon
+    guild: goth
+    gives: {CM: 1}
+    card: "Provide a +1 Combat bonus to all allies excluding yourself."
+  seraphs_affection:
+    name: Seraph's Affection
+    kind: boon
+    guild: goth
+    gives: {CM: 3}
+    replaces: [nuyarus_love]
+    card: "Provide a +3 Combat bonus to all allies excluding yourself."
+
+  # ------------------------------------------------------------ guild ranks (8.3)
+  footpad:
+    name: Footpad
+    kind: rank
+    guild: thieves
+    abilities:
+      - name: Rat Pack
+        audience: guild
+        gives: {CM: 1, CR escape: 1}
+        card: "Thieves' Guild Members gain +1 to any Street Work, Burglary, Escape or Combat Rolls for each other Thieves' Guild member present."
+  burglar:
+    name: Burglar
+    kind: rank
+    guild: thieves
+    replaces: [footpad]
+    abilities:
+      - name: Rat Pack
+        audience: guild
+        gives: {CM: 1, CR escape: 1}
+        card: "Thieves' Guild Members gain +1 to any Street Work, Burglary, Escape or Combat Rolls for each other Thieves' Guild member present."
+  guild_thief:
+    name: Guild Thief
+    kind: rank
+    guild: thieves
+    replaces: [footpad, burglar]
+    abilities:
+      - name: Rat Pack
+        audience: guild
+        gives: {CM: 1, CR escape: 1}
+        card: "Thieves' Guild Members gain +1 to any Street Work, Burglary, Escape or Combat Rolls for each other Thieves' Guild member present."
+      - name: Leadership
+        audience: guild
+        includes_giver: true
+        stacks: false
+        gives: {CM: 2, CR stealth: 2}
+        card: "When you are present, all Thieves' Guild members gain +2 on their stealth, burglary & streetwork rolls."
+  captain:
+    name: Captain
+    kind: rank
+    guild: pirates
+    ability: King of the Pirates
+    audience: guild
+    includes_giver: true
+    stacks: false
+    gives: {CM: 2}
+    card: "Test card text: all Pirate Coalition members gain +2 CM."
+  high_priest:
+    name: High Priest
+    kind: rank
+    guild: cult
+    ability: Cult of the Dragon
+    audience: guild
+    stacks: false
+    unique: true
+    level_rules:
+      - {when: "< 10", gives: {Damage: 1}}
+      - {when: ">= 10", gives: {CM: 10}}
+    card: "Test card text: other Cult members under level 10 deal +1 heart damage; level 10 or higher gain +10 CM."
+  ranger_captain:
+    name: Ranger Captain
+    kind: rank
+    guild: rangers
+    ability: Wilderness Lore
+    includes_giver: true
+    effect: "Challenge rolls to resist natural effects are one roll category easier"
+    card: "Test card text: you and your allies resist natural effects more easily."
+  master_ranger:
+    name: Master Ranger
+    kind: rank
+    guild: rangers
+    ability: Wilderness Lore
+    includes_giver: true
+    replaces: [ranger_captain]
+    effect: "Challenge rolls to resist natural effects are one roll category easier"
+    card: "Test card text: you and your allies resist natural effects more easily."
+  chef:
+    name: Chef
+    kind: rank
+    guild: cookery
+    ability: Proper Seasoning
+    includes_giver: true
+    effect: "+1 heart when Invigorated"
+    card: "Test card text: you and your allies gain +1 heart when Invigorated."
+  cookery_master:
+    name: Cookery Master
+    kind: rank
+    guild: cookery
+    ability: Proper Seasoning
+    includes_giver: true
+    replaces: [chef]
+    effect: "+1 heart when Invigorated"
+    card: "Test card text: you and your allies gain +1 heart when Invigorated."
+
+  # ------------------------------------------------------------ items and titles (8.4)
+  wills_ward_stone:
+    name: Wills ward stone
+    kind: item
+    gives: {CM: 5}
+    card: "Test card text: allies gain +5 CM."
+  nf_pin:
+    name: NF (nobuFest pin)
+    kind: item
+    gives: {CM: 1}
+    card: "Test card text: allies gain +1 CM."
+  champion_of_power:
+    name: Champion of Power
+    kind: title
+    gives: {CR: 5, CM: 5}
+    unique: true
+    card: "Test card text: allies gain +5 to all challenge rolls and +5 CM."
+  hero_of_passion:
+    name: Hero of Passion
+    kind: title
+    audience: holders
+    gives: {CM: 1}
+    card: "Test card text: other Heroes of Passion gain +1 CM."
+  helping_hands:
+    name: Helping Hands
+    kind: title
+    modifies: {all: true, add: 1}
+    card: "Anytime you buff or heal an ally/allies the numerical value is increased by 1."
+  helping_hands_v2:
+    name: Helping Hands v2.0
+    kind: title
+    modifies: {all: true, add: 2}
+    replaces: [helping_hands]
+    card: "Anytime you buff or heal an ally/allies the numerical value is increased by 2."
+  power_supporter:       {name: Power Supporter, kind: title, card: "Test card text: no party bonus."}
+  charitable_adventurer: {name: Charitable Adventurer, kind: title, card: "Test card text: no party bonus."}
+  element_savant:        {name: Element Savant, kind: title, card: "Test card text: no party bonus."}
+  joy_maker:             {name: Joy-Maker, kind: title, card: "Test card text: no party bonus."}
+  story_teller:          {name: Story Teller, kind: title, card: "Test card text: no party bonus."}
+
+  # ------------------------------------------------------------ test-only
+  old_charm:
+    name: Old Charm
+    kind: item
+    gives: {CM: 1}
+    retired: true
+    card: "Test card text: a retired item that gives allies +1 CM."
+
+guilds:
+  the_guild:
+    short_name: Guild
+    full_name: The Guild
+    membership: roles
+    roles: [Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend]
+    from_roles:
+      - {name: Support, gives: {CM: 2}}
+  goth:
+    short_name: GoTH
+    full_name: Guild of the Timeless Heroes
+    membership: open
+  thieves:
+    short_name: Thieves
+    full_name: Guild of Thieves
+    membership: open
+    secret: true
+  pirates:
+    short_name: Pirates
+    full_name: Pirate Coalition
+    membership: open
+  cult:
+    short_name: Cult
+    full_name: Cult of the Dragon
+    membership: open
+  rangers:
+    short_name: Rangers
+    full_name: Ranger's Guild
+    membership: open
+  cookery:
+    short_name: Cookery
+    full_name: Order of Cookery
+    membership: open

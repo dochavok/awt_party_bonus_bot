@@ -1,0 +1,10 @@
+# Invalid (CT-7): the ID shield_song appears twice. yaml.safe_load would silently
+# keep only the second, so the loader must detect duplicate keys itself.
+stats:
+  CM: {kind: roll}
+
+entries:
+  shield_song: {name: Shield Song, kind: skill, tree: Bard, gives: {CM: 1}}
+  shield_song: {name: Shield Chant, kind: skill, tree: Bard, gives: {CM: 2}}
+
+guilds: {}

@@ -1,0 +1,3 @@
+entries:
+  brave_banner: {name: Brave Banner, kind: item, gives: {CR: 1}, card: "Allies gain +1 CR."}
+  champion:     {name: Champion, kind: title, gives: {CM: 1}, unique: true, card: "Allies gain +1 CM."}

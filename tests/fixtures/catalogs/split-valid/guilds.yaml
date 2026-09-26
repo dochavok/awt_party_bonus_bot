@@ -1,0 +1,10 @@
+guilds:
+  watch: {short_name: Watch, full_name: The City Watch, membership: open}
+
+entries:
+  sergeant:
+    name: Sergeant
+    kind: rank
+    guild: watch
+    abilities:
+      - {name: Drill, audience: guild, gives: {CM: 1}, card: "Watch members gain +1 CM."}

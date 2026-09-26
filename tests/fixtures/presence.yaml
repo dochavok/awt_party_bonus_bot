@@ -1,0 +1,73 @@
+# Presence edge cases (TS-2, section 6.5), one voice channel per case (TF-2a).
+# ---------------------------------------------------------------------------
+#   Hall        the same skill from two characters (Holy Aura twice)
+#   Stage       two givers of a bonus that doesn't stack (Inspiring Presence twice)
+#   Den         a player with no character but a Guild rank role (Rook), and a bot
+#               that has a Guild rank role (Jukebox), which must still be ignored
+#   Quiet Room  everyone sitting out
+#   Empty Room  nobody at all
+#   Porch       a sit-out that has already ended (Eve), and a player whose
+#               characters exist but none is current (Fay)
+# ---------------------------------------------------------------------------
+
+requirements: [TS-2, SE-2, SE-5, SE-6]
+clock: 2026-09-25T20:00:00Z
+catalog: catalog.yaml
+
+discord:
+  voice_channels:
+    - {id: 300, name: Hall}
+    - {id: 301, name: Stage}
+    - {id: 302, name: Den}
+    - {id: 303, name: Quiet Room}
+    - {id: 304, name: Empty Room}
+    - {id: 305, name: Porch}
+  text_channels:
+    - {id: 200, name: bonus-bot-support}
+  members:
+    - {handle: ada,     id: 2001, name: Ada,     voice: Hall}
+    - {handle: ben,     id: 2002, name: Ben,     voice: Hall}
+    - {handle: cal,     id: 2003, name: Cal,     voice: Hall}
+    - {handle: dot,     id: 2004, name: Dot,     voice: Stage}
+    - {handle: eli,     id: 2005, name: Eli,     voice: Stage}
+    - {handle: fin,     id: 2006, name: Fin,     voice: Stage}
+    - {handle: rook,    id: 2007, name: Rook,    roles: [Junior Adventurer], voice: Den}
+    - {handle: jukebox, id: 2008, name: Jukebox, roles: [Guild Legend], bot: true, voice: Den}
+    - {handle: gwen,    id: 2009, name: Gwen,    voice: Den}
+    - {handle: gus,     id: 2010, name: Gus,     roles: [Guild Veteran], voice: Quiet Room}
+    - {handle: hal,     id: 2011, name: Hal,     voice: Quiet Room}
+    - {handle: eve,     id: 2012, name: Eve,     voice: Porch}
+    - {handle: fay,     id: 2013, name: Fay,     voice: Porch}
+    - {handle: ned,     id: 2014, name: Ned,     voice: Porch}
+
+players:
+  # Hall: Aria and Bryn both give Holy Aura; Cato gives nothing.
+  - {member: ada, characters: [{name: Aria, has: [holy_aura]}]}
+  - {member: ben, characters: [{name: Bryn, has: [holy_aura]}]}
+  - {member: cal, characters: [{name: Cato}]}
+
+  # Stage: Dara and Esme both give Inspiring Presence, which doesn't stack.
+  - {member: dot, characters: [{name: Dara, has: [inspiring_presence]}]}
+  - {member: eli, characters: [{name: Esme, has: [inspiring_presence]}]}
+  - {member: fin, characters: [{name: Finn}]}
+
+  # Den: Rook has no character but has a Guild rank role; Jukebox is a bot.
+  - {member: gwen, characters: [{name: Gwyneth, has: [champion_of_power]}]}
+
+  # Quiet Room: both players are sitting out.
+  - member: gus
+    sitout_until: 2026-09-26T02:00:00Z
+    characters: [{name: Gideon, has: [aura_of_hope]}]
+  - member: hal
+    sitout_until: 2026-09-25T21:00:00Z
+    characters: [{name: Hollis, has: [bolstering_aura]}]
+
+  # Porch: Eve's sit-out ended an hour ago, so Eve is counted again.
+  - member: eve
+    sitout_until: 2026-09-25T19:00:00Z
+    characters: [{name: Evander, has: [bolstering_aura]}]
+  # Fay has characters, but none is current.
+  - member: fay
+    current: null
+    characters: [{name: Fern, has: [aura_of_hope]}, {name: Faye}]
+  - {member: ned, characters: [{name: Nell}]}

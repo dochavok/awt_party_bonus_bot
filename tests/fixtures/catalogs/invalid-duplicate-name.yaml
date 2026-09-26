@@ -1,0 +1,9 @@
+# Invalid (CT-7): two different IDs share the display name "Shield Song".
+stats:
+  CM: {kind: roll}
+
+entries:
+  shield_song:   {name: Shield Song, kind: skill, tree: Bard, gives: {CM: 1}}
+  shield_song_2: {name: Shield Song, kind: item, gives: {CM: 2}}
+
+guilds: {}

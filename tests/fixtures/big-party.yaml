@@ -1,0 +1,81 @@
+# A very large party (TS-7, OUT-3b, NF-2): 20 counted characters in Great Hall,
+# each with as many bonuses as the test catalog allows, so the output is long
+# enough that it has to be split across messages (TF-2a).
+# ---------------------------------------------------------------------------
+# One-holder entries (Champion of Power, High Priest) are left out, since only
+# one character can hold each.
+# ---------------------------------------------------------------------------
+
+requirements: [TS-7, OUT-3b, NF-2]
+clock: 2026-09-25T20:00:00Z
+catalog: catalog.yaml
+
+discord:
+  voice_channels:
+    - {id: 500, name: Great Hall}
+  text_channels:
+    - {id: 200, name: bonus-bot-support}
+  members:
+    - {handle: p01, id: 5001, name: Player 01, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p02, id: 5002, name: Player 02, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p03, id: 5003, name: Player 03, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p04, id: 5004, name: Player 04, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p05, id: 5005, name: Player 05, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p06, id: 5006, name: Player 06, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p07, id: 5007, name: Player 07, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p08, id: 5008, name: Player 08, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p09, id: 5009, name: Player 09, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p10, id: 5010, name: Player 10, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p11, id: 5011, name: Player 11, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p12, id: 5012, name: Player 12, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p13, id: 5013, name: Player 13, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p14, id: 5014, name: Player 14, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p15, id: 5015, name: Player 15, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p16, id: 5016, name: Player 16, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p17, id: 5017, name: Player 17, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p18, id: 5018, name: Player 18, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p19, id: 5019, name: Player 19, roles: [Guild Legend], voice: Great Hall}
+    - {handle: p20, id: 5020, name: Player 20, roles: [Guild Legend], voice: Great Hall}
+
+# Every hero has the same guilds and entries (YAML anchors keep this short).
+x-hero-guilds: &guilds [thieves, cult, goth, rangers, cookery, pirates]
+x-hero-has: &has
+  - holy_aura
+  - bolstering_aura
+  - protective_aura
+  - devotion_3
+  - aura_of_defense
+  - aura_of_hope
+  - commanding_presence
+  - inspiring_presence
+  - nuyarus_love
+  - seraphs_affection
+  - footpad
+  - ranger_captain
+  - chef
+  - wills_ward_stone
+  - nf_pin
+  - hero_of_passion
+  - helping_hands
+
+players:
+  - {member: p01, characters: [{name: Hero Aldric,     level: 11, guilds: *guilds, has: *has}]}
+  - {member: p02, characters: [{name: Hero Brunhilde,  level: 12, guilds: *guilds, has: *has}]}
+  - {member: p03, characters: [{name: Hero Cassius,    level: 13, guilds: *guilds, has: *has}]}
+  - {member: p04, characters: [{name: Hero Desdemona,  level: 14, guilds: *guilds, has: *has}]}
+  - {member: p05, characters: [{name: Hero Evangeline, level: 15, guilds: *guilds, has: *has}]}
+  - {member: p06, characters: [{name: Hero Fitzgerald, level: 16, guilds: *guilds, has: *has}]}
+  - {member: p07, characters: [{name: Hero Guinevere,  level: 17, guilds: *guilds, has: *has}]}
+  - {member: p08, characters: [{name: Hero Horatio,    level: 18, guilds: *guilds, has: *has}]}
+  - {member: p09, characters: [{name: Hero Isadora,    level: 19, guilds: *guilds, has: *has}]}
+  - {member: p10, characters: [{name: Hero Jebediah,   level: 20, guilds: *guilds, has: *has}]}
+  - {member: p11, characters: [{name: Hero Katarina,   level: 21, guilds: *guilds, has: *has}]}
+  - {member: p12, characters: [{name: Hero Leopold,    level: 22, guilds: *guilds, has: *has}]}
+  - {member: p13, characters: [{name: Hero Maximilian, level: 23, guilds: *guilds, has: *has}]}
+  - {member: p14, characters: [{name: Hero Nathaniel,  level: 24, guilds: *guilds, has: *has}]}
+  - {member: p15, characters: [{name: Hero Octavia,    level: 25, guilds: *guilds, has: *has}]}
+  - {member: p16, characters: [{name: Hero Peregrine,  level: 26, guilds: *guilds, has: *has}]}
+  - {member: p17, characters: [{name: Hero Quintessa,  level: 27, guilds: *guilds, has: *has}]}
+  - {member: p18, characters: [{name: Hero Rosalind,   level: 28, guilds: *guilds, has: *has}]}
+  - {member: p19, characters: [{name: Hero Sebastian,  level: 29, guilds: *guilds, has: *has}]}
+  - {member: p20, characters: [{name: Hero Theodora,   level: 30, guilds: *guilds, has: *has}]}

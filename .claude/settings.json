@@ -2,7 +2,19 @@
   "permissions": {
     "ask": [
       "Edit(tests/**)",
-      "Edit(**/tests/**)"
+      "Edit(**/tests/**)",
+      "Write(tests/**)",
+      "Write(**/tests/**)",
+      "Edit(pyproject.toml)",
+      "Write(pyproject.toml)",
+      "Edit(scripts/**)",
+      "Write(scripts/**)",
+      "Edit(.github/**)",
+      "Write(.github/**)",
+      "Edit(**/conftest.py)",
+      "Write(**/conftest.py)",
+      "Edit(.claude/settings.json)",
+      "Write(.claude/settings.json)"
     ]
   }
 }

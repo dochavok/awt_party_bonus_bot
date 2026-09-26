@@ -1,0 +1,23 @@
+# A small valid catalog (CT-7, TS-4). The other files in this folder each break
+# one rule, starting from this one.
+stats:
+  CM:         {kind: roll}
+  CR:         {kind: roll}
+  CR vs fear: {kind: roll, parent: CR}
+  Damage:     {kind: combat_note, unit: hearts}
+
+entries:
+  shield_song:  {name: Shield Song, kind: skill, tree: Bard, gives: {CM: 1}, card: "Allies gain +1 CM."}
+  battle_hymn:  {name: Battle Hymn, kind: skill, tree: Bard, gives: {CM: 2}, replaces: [shield_song],
+                 card: "Allies gain +2 CM."}
+  brave_banner: {name: Brave Banner, kind: item, gives: {CR vs fear: 1}, card: "Allies gain +1 CR vs fear."}
+  old_lamp:     {name: Old Lamp, kind: item, gives: {CR: 1}, retired: true, card: "Allies gain +1 CR."}
+  sergeant:
+    name: Sergeant
+    kind: rank
+    guild: watch
+    abilities:
+      - {name: Drill, audience: guild, gives: {CM: 1}, card: "Watch members gain +1 CM."}
+
+guilds:
+  watch: {short_name: Watch, full_name: The City Watch, membership: open}

@@ -1,0 +1,2 @@
+entries:
+  shield_song: {name: Shield Song, kind: skill, tree: Bard, gives: {CM: 1}}
