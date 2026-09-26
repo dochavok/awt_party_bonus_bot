@@ -46,7 +46,12 @@ When a DM answers a question in `dm-rule-questions.md`, start at step 2.
 - `uv run ruff check`, `uv run ruff format --check`, `uv run mypy`.
 - After adding tests: `uv run pytest --collect-only -q --write-coverage` regenerates
   `tests/COVERAGE.md`.
-- `python scripts/check_test_changes.py --base main`: the TF-6 check CI runs.
+- `uv run python scripts/check_test_changes.py --base main`: the TF-6 check CI runs.
+  Without a requirements change it refuses any change to an existing test, scenario,
+  fixture or harness file, a new `conftest.py`, removing a finished milestone,
+  changing the pytest settings, and changes to the check or the CI workflows. It
+  always refuses bot code that refers to the tests or names test characters. New
+  tests, scenarios and test files are always fine.
 - On this PC uv needs `--system-certs` to reach PyPI (e.g. `uv sync --system-certs`).
 
 ## Other conventions

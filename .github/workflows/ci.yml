@@ -6,8 +6,10 @@
 #               run as expected failures; tests for finished milestones must pass.
 #               The finished list is [tool.awt_bonus] finished_milestones in
 #               pyproject.toml. From M2, the engine needs 90% branch coverage.
-#   test-rule   the test-change rule (TF-6): existing test files may only change
-#               together with the requirements document.
+#   test-rule   the test-change rule (TF-6): existing tests, scenarios, fixtures,
+#               the test harness, the pytest settings, this workflow and the check
+#               itself only change together with the requirements document; and
+#               the bot's code never refers to the tests. See the script's header.
 #   catalog     from M2, the real catalog is checked, including that no entry in
 #               the previous version has disappeared (CT-7).
 
@@ -65,15 +67,16 @@ jobs:
           fi
           uv run pytest "${args[@]}"
 
+  # A required status check on main (TF-6). Keep the job ID "test-rule": branch
+  # protection refers to it, and a change to this file needs a requirements change.
   test-rule:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
       - name: Work out what to compare with
         id: base
         env:
@@ -92,7 +95,7 @@ jobs:
           echo "Comparing $base..HEAD"
           echo "base=$base" >> "$GITHUB_OUTPUT"
       - name: Test-change rule (TF-6)
-        run: python scripts/check_test_changes.py --base "${{ steps.base.outputs.base }}"
+        run: uv run python scripts/check_test_changes.py --base "${{ steps.base.outputs.base }}"
 
   catalog:
     runs-on: ubuntu-latest
