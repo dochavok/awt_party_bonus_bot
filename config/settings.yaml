@@ -1,0 +1,12 @@
+# Bot settings (requirements AD-1). Changing one is a commit and an automatic deploy.
+# Never put secrets here: the bot token and storage keys come only from environment
+# variables (NF-9).
+
+# The text channel /request posts to (CT-9), by name, without the "#".
+request_channel: bonus-bot-support
+
+# How long /sitout lasts, in hours (SE-2).
+sitout_hours: 12
+
+# The highest level a character can record (CH-4).
+max_level: 75

@@ -10,10 +10,20 @@ Command logic runs against the ports (the clock and Discord), never discord.py
 directly (TS-8). Every reply is private except ``/partybonus`` (OUT-5).
 """
 
+import logging
+import time
 from collections.abc import Mapping
 
 from awt_bonus.catalog import Catalog
-from awt_bonus.commands import _catalog, _characters, _entries, _guilds, _output, _presence
+from awt_bonus.commands import (
+    _catalog,
+    _characters,
+    _entries,
+    _guilds,
+    _output,
+    _presence,
+    _requests,
+)
 from awt_bonus.commands._autocomplete import suggest
 from awt_bonus.commands._base import Context, Handler, Refused, Services, private
 from awt_bonus.commands._types import Choice, OptionValue, Reply
@@ -24,10 +34,7 @@ from awt_bonus.store import Store
 
 __all__ = ["App", "Choice", "OptionValue", "Reply"]
 
-
-async def _later(ctx: Context) -> Reply:
-    """Commands that arrive in a later milestone (section 17)."""
-    raise NotImplementedError
+log = logging.getLogger(__name__)
 
 
 HANDLERS: Mapping[str, Handler] = {
@@ -46,7 +53,7 @@ HANDLERS: Mapping[str, Handler] = {
     "breakdown": _output.breakdown,
     "guild join": _guilds.join,
     "guild leave": _guilds.leave,
-    "request": _later,
+    "request": _requests.request,
 }
 
 
@@ -72,20 +79,37 @@ class App:
         command: str,
         options: Mapping[str, OptionValue] | None = None,
     ) -> Reply:
-        """Run a command as ``user_id``."""
+        """Run a command as ``user_id``.
+
+        Logs one line with the command, the user, the outcome and the duration
+        (NF-8); never the options or the reply. Unexpected errors are logged with
+        their traceback and raised again.
+        """
+        started = time.perf_counter()
+        try:
+            reply = await self._run(user_id, command, options)
+        except Refused as refused:
+            log.info("command", extra=_fields(command, user_id, "refused", started))
+            return private(*refused.lines)
+        except Exception:
+            log.exception("command failed", extra=_fields(command, user_id, "error", started))
+            raise
+        log.info("command", extra=_fields(command, user_id, "ok", started))
+        return reply
+
+    async def _run(
+        self, user_id: UserId, command: str, options: Mapping[str, OptionValue] | None
+    ) -> Reply:
         handler = HANDLERS.get(command)
         if handler is None:
-            return private(f"There's no /{command} command.")
+            raise Refused(f"There's no /{command} command.")
         ctx = Context(
             services=self._services,
             user=user_id,
             options=dict(options or {}),
             now=self._services.clock.now(),
         )
-        try:
-            return await handler(ctx)
-        except Refused as refused:
-            return private(*refused.lines)
+        return await handler(ctx)
 
     async def autocomplete(
         self,
@@ -100,3 +124,13 @@ class App:
         return await suggest(
             services.store, services.catalog, user_id, command, option, typed, options or {}
         )
+
+
+def _fields(command: str, user_id: UserId, outcome: str, started: float) -> dict[str, object]:
+    """What the log line for one command holds (NF-8)."""
+    return {
+        "command": command,
+        "user_id": user_id,
+        "outcome": outcome,
+        "duration_ms": round((time.perf_counter() - started) * 1000, 1),
+    }

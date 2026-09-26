@@ -1,7 +1,7 @@
 # awt_party_bonus_bot
 Discord bot to track bonuses to the party for AWT raids
 
-> **Status:** in development. Characters, entries, presence and the output commands work (milestone M3); `/guild`, Support from Discord roles, secret guilds and `/request` are still to come. See the [requirements](party-bonus-bot-requirements.md) for the full design.
+> **Status:** in development. Every command in the requirements works, including `/guild`, Support from Discord roles, secret guilds and `/request`; automatic deployment is being set up (milestone M5). See the [requirements](party-bonus-bot-requirements.md) for the full design.
 
 The bot works out the party bonuses (CM, CR, and more) that each character receives from everyone else in the voice channel. You record what your character **has**; the bot does the math.
 
@@ -68,6 +68,8 @@ $env:DISCORD_GUILD_ID = "<test server ID>"
 uv run python -m awt_bonus
 ```
 
-The database goes to `var/awt-bonus.db` unless `DATABASE_URL` says otherwise.
+The database goes to `var/awt-bonus.db` unless `DATABASE_URL` says otherwise, and snapshots of it to `var/snapshots/`. Settings (the `/request` channel, sit-out hours, maximum level) are in [config/settings.yaml](config/settings.yaml). The bot logs one JSON object per line.
+
+To restore a snapshot, with the bot stopped: `uv run python -m awt_bonus.restore var/snapshots/<file>`.
 
 Setting up the test server, and the checklist to run on it: [docs/test-server.md](docs/test-server.md).

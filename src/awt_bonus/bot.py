@@ -8,28 +8,40 @@ test server (TS-13, TS-15).
 
 import asyncio
 import logging
+import os
+import signal
+import sys
 from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 import discord
 from discord import app_commands
+from pydantic import ValidationError
 
-from awt_bonus.catalog import load_catalog
+from awt_bonus.backup import Uploader, run_nightly, uploader_from
+from awt_bonus.catalog import Catalog, CatalogError, load_catalog
 from awt_bonus.commands import App, OptionValue, Reply
+from awt_bonus.commands._requests import REQUEST_LENGTH
 from awt_bonus.ids import ChannelId, UserId
+from awt_bonus.logging_setup import configure_logging
 from awt_bonus.ports import Clock, Member, SystemClock, VoiceChannel
-from awt_bonus.settings import Environment, Settings
+from awt_bonus.settings import Environment, Settings, load_settings
+from awt_bonus.startup import (
+    StartupError,
+    acquire_instance_lock,
+    check_database_location,
+    database_path,
+    migrate_database,
+)
 from awt_bonus.store import Store
 
 log = logging.getLogger(__name__)
 
 ROLE_CACHE = timedelta(seconds=60)
 """How long a member's roles are remembered before they're looked up again (NF-6)."""
-
-DEFAULT_SETTINGS = Settings(request_channel="bonus-bot-support", sitout_hours=12, max_level=75)
-"""The settings in AD-1, used until config/settings.yaml exists."""
 
 CATALOG_DIR = Path("catalog")
 
@@ -121,16 +133,21 @@ async def _answer(
     try:
         reply = await run()
     except Exception:
-        log.exception("command failed")
+        # App.run has already logged it, with the traceback (NF-8).
         await interaction.followup.send("Sorry, something went wrong.", ephemeral=True)
         return
-    for message in reply.messages:
-        await interaction.followup.send(
-            message, ephemeral=reply.private, allowed_mentions=discord.AllowedMentions.none()
-        )
+    try:
+        for message in reply.messages:
+            await interaction.followup.send(
+                message, ephemeral=reply.private, allowed_mentions=discord.AllowedMentions.none()
+            )
+    except discord.HTTPException:
+        log.exception("reply failed")
 
 
-def build_tree(client: discord.Client, app: App, guild: discord.Object) -> app_commands.CommandTree:
+def build_tree(
+    client: discord.Client, app: App, guild: discord.Object, settings: Settings
+) -> app_commands.CommandTree:
     """Every command in section 7 that this milestone has, for one server."""
     tree = app_commands.CommandTree(client)
 
@@ -194,7 +211,7 @@ def build_tree(client: discord.Client, app: App, guild: discord.Object) -> app_c
     async def play(interaction: discord.Interaction, character: str) -> None:
         await _answer(interaction, runner(interaction, "play", character=character), private=True)
 
-    @tree.command(name="sitout", description="Don't count me for 12 hours")
+    @tree.command(name="sitout", description=f"Don't count me for {settings.sitout_hours:g} hours")
     async def sitout(interaction: discord.Interaction) -> None:
         await _answer(interaction, runner(interaction, "sitout"), private=True)
 
@@ -289,6 +306,14 @@ def build_tree(client: discord.Client, app: App, guild: discord.Object) -> app_c
         )
 
     tree.add_command(guilds)
+
+    @tree.command(name="request", description="Ask the maintainer to add or fix something")
+    @app_commands.describe(text="What's missing or wrong, or what you need")
+    async def request(
+        interaction: discord.Interaction, text: app_commands.Range[str, 1, REQUEST_LENGTH]
+    ) -> None:
+        await _answer(interaction, runner(interaction, "request", text=text), private=True)
+
     for command in tree.get_commands():
         tree.remove_command(command.name)
         tree.add_command(command, guild=guild)
@@ -298,39 +323,145 @@ def build_tree(client: discord.Client, app: App, guild: discord.Object) -> app_c
 # ---------------------------------------------------------------- running the bot
 
 
+@dataclass(frozen=True)
+class _Prepared:
+    """Everything startup checked, for the client to use."""
+
+    environment: Environment
+    guild_id: int
+    token: str
+    settings: Settings
+    catalog: Catalog
+    db_path: Path
+    uploader: Uploader | None
+
+    @property
+    def snapshot_dir(self) -> Path:
+        return self.db_path.parent / "snapshots"
+
+
 class _Client(discord.Client):
-    def __init__(self, environment: Environment, guild_id: int) -> None:
+    def __init__(self, prepared: _Prepared) -> None:
+        # The bot never plays audio, so the voice libraries aren't needed (NF-6).
+        discord.VoiceClient.warn_nacl = False
+        discord.VoiceClient.warn_dave = False
         super().__init__(intents=intents(), allowed_mentions=discord.AllowedMentions.none())
-        self._environment = environment
-        self._guild_id = guild_id
+        self._prepared = prepared
         self.store: Store | None = None
+        self._nightly: asyncio.Task[None] | None = None
 
     async def setup_hook(self) -> None:
+        p = self._prepared
         clock = SystemClock()
-        self.store = await Store.open(self._environment.database_url)
+        self.store = await Store.open(p.environment.database_url)
         app = App(
             store=self.store,
-            discord=DiscordAdapter(self, self._guild_id, clock),
+            discord=DiscordAdapter(self, p.guild_id, clock),
             clock=clock,
-            catalog=load_catalog(CATALOG_DIR),
-            settings=DEFAULT_SETTINGS,
+            catalog=p.catalog,
+            settings=p.settings,
         )
-        guild = discord.Object(id=self._guild_id)
-        tree = build_tree(self, app, guild)
+        guild = discord.Object(id=p.guild_id)
+        tree = build_tree(self, app, guild, p.settings)
         await tree.sync(guild=guild)
-        log.info("commands synced")
+        log.info("commands synced", extra={"guild_id": p.guild_id})
+        self._nightly = asyncio.create_task(
+            run_nightly(p.db_path, p.snapshot_dir, clock, p.uploader)
+        )
+
+    async def on_ready(self) -> None:
+        log.info("ready", extra={"guild_id": self._prepared.guild_id})
+
+    async def on_disconnect(self) -> None:
+        log.warning("gateway disconnected")
+
+    async def on_resumed(self) -> None:
+        log.info("gateway resumed")
 
     async def close(self) -> None:
+        if self._nightly is not None:
+            self._nightly.cancel()
         if self.store is not None:
             await self.store.close()
+            self.store = None
         await super().close()
+
+
+def _prepare() -> _Prepared:
+    """Read and check everything the bot needs before it touches the database."""
+    try:
+        environment = Environment()
+    except ValidationError as error:
+        # Name the variables only: the values may be secret (NF-8).
+        names = ", ".join(str(e["loc"][0]).upper() for e in error.errors())
+        raise StartupError(f"These environment variables aren't valid: {names}.") from None
+    token, guild_id = environment.discord_token, environment.discord_guild_id
+    if token is None or guild_id is None:
+        raise StartupError("Set DISCORD_TOKEN and DISCORD_GUILD_ID (NF-9).")
+    settings = load_settings()
+    try:
+        catalog = load_catalog(CATALOG_DIR)
+    except CatalogError as error:
+        raise StartupError(f"The catalog is invalid: {error}") from None
+    db_path = database_path(environment.database_url)
+    check_database_location(db_path)
+    uploader = uploader_from(environment)
+    if uploader is None:
+        log.warning("no object storage configured: snapshots stay on this host")
+    return _Prepared(
+        environment=environment,
+        guild_id=guild_id,
+        token=token.get_secret_value(),
+        settings=settings,
+        catalog=catalog,
+        db_path=db_path,
+        uploader=uploader,
+    )
+
+
+async def _run() -> int:
+    """Start the bot (DB-2, DB-3, DB-4), and run it until it's stopped."""
+    try:
+        prepared = _prepare()
+        lock = acquire_instance_lock(prepared.db_path)
+    except StartupError as error:
+        log.error("startup refused", extra={"reason": str(error)})
+        return 1
+    with lock:
+        try:
+            await migrate_database(
+                prepared.environment.database_url, prepared.snapshot_dir, SystemClock()
+            )
+        except StartupError as error:
+            log.error("startup refused", extra={"reason": str(error)})
+            return 1
+        except Exception:
+            log.exception("migration failed; the snapshot taken before it is the way back")
+            return 1
+        client = _Client(prepared)
+        if sys.platform != "win32":
+            loop = asyncio.get_running_loop()
+            for stop in (signal.SIGTERM, signal.SIGINT):
+                loop.add_signal_handler(stop, lambda: asyncio.ensure_future(client.close()))
+        async with client:
+            try:
+                await client.start(prepared.token)
+            except discord.LoginFailure:
+                log.error("startup refused", extra={"reason": "Discord rejected DISCORD_TOKEN."})
+                return 1
+    return 0
 
 
 def main() -> None:
     """Run the bot: ``uv run python -m awt_bonus``. Needs DISCORD_TOKEN and DISCORD_GUILD_ID."""
-    logging.basicConfig(level=logging.INFO)
-    environment = Environment()
-    if environment.discord_token is None or environment.discord_guild_id is None:
-        raise SystemExit("Set DISCORD_TOKEN and DISCORD_GUILD_ID (NF-9).")
-    client = _Client(environment, environment.discord_guild_id)
-    asyncio.run(client.start(environment.discord_token.get_secret_value()))
+    configure_logging()
+    log.info("startup", extra={"version": os.environ.get("GIT_SHA", "dev")})
+    try:
+        code = asyncio.run(_run())
+    except KeyboardInterrupt:
+        code = 0
+    except Exception:
+        log.exception("crashed")  # the host restarts the bot (NF-3)
+        code = 1
+    log.info("shutdown", extra={"exit_code": code})
+    raise SystemExit(code)
