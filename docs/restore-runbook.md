@@ -17,11 +17,15 @@ them.
 - The Fly.io account (the GitHub login), with `flyctl` installed.
 - Docker Desktop, to download a snapshot from Backblaze B2 (below). The B2 website
   won't download the snapshots, because they're stored with server-side encryption.
-- A **read-only B2 key**. The bot's own key can only upload, on purpose. In B2:
-  **Application Keys** → **Add a New Application Key**: name `awt-restore`, only the
-  `awt-party-bonus-backups` bucket, **Read Only**, prefix `snapshots/`,
-  list-all-bucket-names off. B2 shows the key once: keep it in a password manager,
-  or delete the key after the restore and make a new one next time.
+- The **read-only B2 key**, `awt-restore`. The bot's own key can only upload, on
+  purpose. Craig keeps the current key in "Access". Keep it private: never in the
+  repository, a chat or a plain file.
+
+  **Last resort, if the key is lost:** in B2, **Application Keys**, delete
+  `awt-restore` and add a new one with the same settings: name `awt-restore`, only
+  the `awt-party-bonus-backups` bucket, **Read Only**, prefix `snapshots/`,
+  list-all-bucket-names off. B2 shows the new key once; keep it where the old one
+  was. Nothing else uses this key, so nothing else needs changing.
 - For a new host: the Discord bot token (or reset it in the Discord developer
   portal) and a new B2 upload key. See [deployment.md](deployment.md).
 
