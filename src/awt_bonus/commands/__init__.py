@@ -5,44 +5,46 @@ Command names are as in section 7, e.g. "partybonus", "character register",
 "guild join". Option names: ``character``, ``entry``, ``guild``, ``name``,
 ``level`` (a number, or "clear" for ``/character level``), ``new``, ``channel``
 (a voice channel ID), ``private``, ``export`` and ``text``.
+
+Command logic runs against the ports (the clock and Discord), never discord.py
+directly (TS-8). Every reply is private except ``/partybonus`` (OUT-5).
 """
 
 from collections.abc import Mapping
-from dataclasses import dataclass
 
 from awt_bonus.catalog import Catalog
-from awt_bonus.engine import PartyReport
+from awt_bonus.commands import _catalog, _characters, _entries, _presence
+from awt_bonus.commands._autocomplete import suggest
+from awt_bonus.commands._base import Context, Handler, Refused, Services, private
+from awt_bonus.commands._types import Choice, OptionValue, Reply
 from awt_bonus.ids import UserId
 from awt_bonus.ports import Clock, DiscordGateway
 from awt_bonus.settings import Settings
 from awt_bonus.store import Store
 
-type OptionValue = str | int | bool | None
+__all__ = ["App", "Choice", "OptionValue", "Reply"]
 
 
-@dataclass(frozen=True)
-class Reply:
-    messages: tuple[str, ...]
-    """The reply, split into messages of at most 2,000 characters (OUT-3b)."""
-    private: bool
-    """True if only the person who ran the command sees it (OUT-5)."""
-    report: PartyReport | None = None
-    """The calculation the reply was made from, for output commands; None otherwise."""
-
-    @property
-    def text(self) -> str:
-        """All the messages, joined by newlines."""
-        return "\n".join(self.messages)
+async def _later(ctx: Context) -> Reply:
+    """Commands that arrive in a later milestone (section 17)."""
+    raise NotImplementedError
 
 
-@dataclass(frozen=True)
-class Choice:
-    """One autocomplete suggestion."""
-
-    label: str
-    """What the player sees, e.g. "Holy Aura (Holy Knight skill)" (HV-1)."""
-    value: str
-    """What's filled in."""
+HANDLERS: Mapping[str, Handler] = {
+    "character register": _characters.register,
+    "character list": _characters.list_characters,
+    "character rename": _characters.rename,
+    "character level": _characters.level,
+    "play": _characters.play,
+    "add": _entries.add,
+    "remove": _entries.remove,
+    "sitout": _presence.sitout,
+    "sitin": _presence.sitin,
+    "catalog": _catalog.catalog,
+    "guild join": _later,
+    "guild leave": _later,
+    "request": _later,
+}
 
 
 class App:
@@ -57,7 +59,9 @@ class App:
         catalog: Catalog,
         settings: Settings,
     ) -> None:
-        raise NotImplementedError
+        self._services = Services(
+            store=store, discord=discord, clock=clock, catalog=catalog, settings=settings
+        )
 
     async def run(
         self,
@@ -66,7 +70,19 @@ class App:
         options: Mapping[str, OptionValue] | None = None,
     ) -> Reply:
         """Run a command as ``user_id``."""
-        raise NotImplementedError
+        handler = HANDLERS.get(command)
+        if handler is None:
+            return private(f"There's no /{command} command.")
+        ctx = Context(
+            services=self._services,
+            user=user_id,
+            options=dict(options or {}),
+            now=self._services.clock.now(),
+        )
+        try:
+            return await handler(ctx)
+        except Refused as refused:
+            return private(*refused.lines)
 
     async def autocomplete(
         self,
@@ -77,4 +93,7 @@ class App:
         options: Mapping[str, OptionValue] | None = None,
     ) -> list[Choice]:
         """Suggestions for ``option``, given what's ``typed`` and the other options filled in."""
-        raise NotImplementedError
+        services = self._services
+        return await suggest(
+            services.store, services.catalog, user_id, command, option, typed, options or {}
+        )

@@ -5,7 +5,7 @@ logic never touches discord.py directly.
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Protocol
 
 from awt_bonus.ids import ChannelId, UserId
@@ -60,4 +60,4 @@ class SystemClock:
     """The real clock."""
 
     def now(self) -> datetime:
-        raise NotImplementedError
+        return datetime.now(UTC)
