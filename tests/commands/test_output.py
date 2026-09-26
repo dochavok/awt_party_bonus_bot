@@ -1,10 +1,13 @@
-"""Output commands (requirements 6.6: OUT-1 to OUT-7), message size (TS-7), totals only
-(rule 4.13), review (AD-2) and the section 9 numbers through the commands.
+"""Output commands (requirements 6.6: OUT-1 to OUT-7, and OUT-9 /help), message size
+(TS-7), totals only (rule 4.13), review (AD-2) and the section 9 numbers through the
+commands.
 
 Numbers are checked on the reply's report; text only for what must, or must never,
 appear (TF-1). Most tests use the sample game: Isla plays Ioseph, Kit plays Kael,
 Cora plays Crateris (and owns Elowen), Cole plays Chris, Maya plays Mira; Dana has
-no character; DM Sam and Bob sit out; Vic (Vex) isn't in voice.
+no character; DM Sam and Bob sit out; Vic (Vex) isn't in voice. The /help tests
+(OUT-9, M6) use the setup fixture instead: its players are at different stages of
+setting up.
 """
 
 import re
@@ -20,6 +23,7 @@ from tests.support.world import MakeWorld
 
 M3 = pytest.mark.milestone("M3")
 M4 = pytest.mark.milestone("M4")
+M6 = pytest.mark.milestone("M6")
 
 
 def _stats(
@@ -492,3 +496,103 @@ async def test_output_never_uses_pronouns_for_characters(
     assert str(options.get("character", "Ioseph")) in reply.text
     found = PRONOUNS.findall(reply.text)
     assert not found, f"pronouns in /{command}: {found}"
+
+
+# ---------------------------------------------------------------- OUT-9: /help
+
+
+def _next_step(text: str) -> str:
+    """The last paragraph of a reply: where /help gives the player's next step (OUT-9).
+
+    Code-block fences are ignored, so the layout is free to use them.
+    """
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text.replace("```", "")) if p.strip()]
+    assert paragraphs, "the reply is empty"
+    return paragraphs[-1]
+
+
+@M6
+@pytest.mark.req("OUT-9", "OUT-5", "OUT-3b")
+async def test_help_is_one_private_message(make_world: MakeWorld) -> None:
+    world = await make_world("setup")
+    reply = await world.run("newbie", "help")
+    assert "/partybonus" in reply.text, "the guide itself, not a refusal"
+    assert reply.private
+    assert len(reply.messages) == 1
+    assert len(reply.messages[0]) <= 2000
+
+
+@M6
+@pytest.mark.req("OUT-9")
+async def test_help_names_the_setup_commands(make_world: MakeWorld) -> None:
+    world = await make_world("setup")
+    text = (await world.run("craig", "help")).text
+    for command in ["/character register", "/guild join", "/add", "/catalog", "/request"]:
+        assert command in text, f"{command} is missing"
+    assert "Support" in text, "Support comes from the Guild rank roles, with nothing to add"
+
+
+@M6
+@pytest.mark.req("OUT-9")
+async def test_help_names_the_game_night_commands(make_world: MakeWorld) -> None:
+    world = await make_world("setup")
+    text = (await world.run("craig", "help")).text
+    for command in ["/sitout", "/sitin", "/partybonus", "/mybonus", "/breakdown"]:
+        assert command in text, f"{command} is missing"
+    assert "voice channel" in text.casefold(), "being in voice is how players are counted"
+
+
+@M6
+@pytest.mark.req("OUT-9", "CH-3")
+async def test_help_tells_players_with_several_characters_about_play(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("setup")
+    reply = await world.run("craig", "help")
+    assert "/play" in reply.text
+    assert "/play" not in _next_step(reply.text), "craig is set up: /play is the general note"
+
+
+@M6
+@pytest.mark.req("OUT-9", "CH-1")
+async def test_help_tells_a_player_with_no_character_to_register_one(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("setup")
+    step = _next_step((await world.run("newbie", "help")).text)
+    assert "/character register" in step
+
+
+@M6
+@pytest.mark.req("OUT-9", "CH-3")
+async def test_help_tells_a_player_with_no_current_character_to_play_one(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("setup")
+    await world.set_current("craig", None)
+    step = _next_step((await world.run("craig", "help")).text)
+    assert "/play" in step
+    assert "/character register" not in step
+
+
+@M6
+@pytest.mark.req("OUT-9", "HV-1")
+async def test_help_tells_a_player_to_add_what_a_new_character_has(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("setup")
+    await world.run("newbie", "character register", name="Pip")
+    step = _next_step((await world.run("newbie", "help")).text)
+    assert "/add" in step
+    assert "Pip" in step
+    assert "/character register" not in step
+
+
+@M6
+@pytest.mark.req("OUT-9")
+async def test_help_tells_a_set_up_player_how_to_see_the_bonuses(make_world: MakeWorld) -> None:
+    world = await make_world("setup")
+    step = _next_step((await world.run("craig", "help")).text)
+    assert "/partybonus" in step
+    for other in ["/character register", "/add", "/play"]:
+        assert other not in step, f"craig is set up; the next step isn't {other}"

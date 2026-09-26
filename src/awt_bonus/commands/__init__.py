@@ -20,6 +20,7 @@ from awt_bonus.commands import (
     _characters,
     _entries,
     _guilds,
+    _help,
     _output,
     _presence,
     _requests,
@@ -54,6 +55,7 @@ HANDLERS: Mapping[str, Handler] = {
     "guild join": _guilds.join,
     "guild leave": _guilds.leave,
     "request": _requests.request,
+    "help": _help.help_,
 }
 
 

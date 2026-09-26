@@ -87,6 +87,9 @@ scenario or catalog fix.
 - [ ] Long output (a big party's `/breakdown`) is split across messages, with
       nothing cut off and code blocks closed and reopened.
 - [ ] Autocomplete works for characters, entries and guilds.
+- [ ] `/help` is private and fits in one message, and its last line gives the
+      right next step: try it with no character, then after registering one,
+      then after `/add` (M6).
 - [ ] `/mybonus <character>` for a character that isn't current shows the
       not-current notice, with the `/play` hint only for its own player.
 

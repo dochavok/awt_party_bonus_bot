@@ -311,6 +311,10 @@ def build_tree(
 
     tree.add_command(guilds)
 
+    @tree.command(name="help", description="How to set up and play, and your next step")
+    async def help_(interaction: discord.Interaction) -> None:
+        await _answer(interaction, runner(interaction, "help"), private=True)
+
     @tree.command(name="request", description="Ask the maintainer to add or fix something")
     @app_commands.describe(text="What's missing or wrong, or what you need")
     async def request(
