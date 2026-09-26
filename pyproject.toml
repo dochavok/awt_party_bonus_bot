@@ -80,6 +80,9 @@ select = [
     "S506",         # unsafe yaml.load (section 12: yaml.safe_load only)
 ]
 
+[tool.ruff.lint.isort]
+known-first-party = ["awt_bonus", "tests", "scripts"]
+
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = [
     "DTZ001",    # tests may build naive datetimes to prove they're rejected
@@ -88,7 +91,7 @@ select = [
 
 [tool.mypy]
 python_version = "3.12"
-files = ["src", "tests"]
+files = ["src", "tests", "scripts"]
 mypy_path = "src"
 plugins = ["pydantic.mypy"]
 disallow_untyped_defs = true

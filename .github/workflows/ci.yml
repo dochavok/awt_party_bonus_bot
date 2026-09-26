@@ -1,0 +1,129 @@
+# CI for the AWT Party Bonus Bot (requirements NF-7, TF-4, TF-6, CT-7).
+#
+# Runs on every push and pull request:
+#   lint        ruff and mypy
+#   test        pytest with the milestone markers: tests for unfinished milestones
+#               run as expected failures; tests for finished milestones must pass.
+#               The finished list is [tool.awt_bonus] finished_milestones in
+#               pyproject.toml. From M2, the engine needs 90% branch coverage.
+#   test-rule   the test-change rule (TF-6): existing test files may only change
+#               together with the requirements document.
+#   catalog     from M2, the real catalog is checked, including that no entry in
+#               the previous version has disappeared (CT-7).
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  UV_LOCKED: "1"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
+      - name: ruff
+        run: |
+          uv run ruff check
+          uv run ruff format --check
+      - name: mypy
+        run: uv run mypy
+
+  test:
+    runs-on: ubuntu-latest
+    env:
+      HYPOTHESIS_PROFILE: ci
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
+      - name: Read finished milestones
+        id: milestones
+        run: |
+          finished=$(uv run python -c 'import tomllib; print(" ".join(tomllib.load(open("pyproject.toml", "rb"))["tool"]["awt_bonus"]["finished_milestones"]))')
+          echo "Finished milestones: ${finished:-none}"
+          echo "finished=$finished" >> "$GITHUB_OUTPUT"
+      - name: pytest
+        env:
+          FINISHED: ${{ steps.milestones.outputs.finished }}
+        run: |
+          args=()
+          if [[ " $FINISHED " == *" M2 "* ]]; then
+            # From M2: 90% branch coverage on the engine (NF-7, TF-4).
+            args+=(--cov=awt_bonus.engine --cov-branch --cov-report=term-missing --cov-fail-under=90)
+          else
+            # Until the engine exists, every expected failure must come from a stub.
+            args+=(--expect-xfail-cause=NotImplementedError)
+          fi
+          uv run pytest "${args[@]}"
+
+  test-rule:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Work out what to compare with
+        id: base
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
+          REF: ${{ github.ref }}
+        run: |
+          if [[ "$EVENT" == "pull_request" ]]; then
+            base="$PR_BASE"
+          elif [[ "$REF" == "refs/heads/main" && -n "$BEFORE" && "$BEFORE" != 0000000000000000000000000000000000000000 ]]; then
+            base="$BEFORE"
+          else
+            base=$(git merge-base origin/main HEAD)
+          fi
+          echo "Comparing $base..HEAD"
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+      - name: Test-change rule (TF-6)
+        run: python scripts/check_test_changes.py --base "${{ steps.base.outputs.base }}"
+
+  catalog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
+      - name: Check the catalog (CT-7)
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          finished=$(uv run python -c 'import tomllib; print(" ".join(tomllib.load(open("pyproject.toml", "rb"))["tool"]["awt_bonus"]["finished_milestones"]))')
+          if [[ " $finished " != *" M2 "* ]]; then
+            echo "The catalog loader arrives in M2; nothing to check yet."
+            exit 0
+          fi
+          if [[ "$EVENT" == "pull_request" ]]; then
+            base="$PR_BASE"
+          elif [[ -n "$BEFORE" && "$BEFORE" != 0000000000000000000000000000000000000000 ]]; then
+            base="$BEFORE"
+          else
+            base=$(git merge-base origin/main HEAD)
+          fi
+          previous=$(mktemp -d)
+          if git cat-file -e "$base:catalog" 2>/dev/null; then
+            git archive "$base" catalog | tar -x -C "$previous"
+            uv run python -m awt_bonus.catalog check catalog --previous "$previous/catalog"
+          else
+            uv run python -m awt_bonus.catalog check catalog
+          fi

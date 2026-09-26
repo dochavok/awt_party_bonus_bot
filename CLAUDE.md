@@ -38,6 +38,17 @@ When a DM answers a question in `dm-rule-questions.md`, start at step 2.
 - `tests/`: `scenarios/` (engine scenarios), `fixtures/` (mock data), and snapshot files.
 - Secrets (bot token, storage credentials) come only from environment variables.
 
+## Running the checks
+
+- `uv run pytest`: tests for milestones not in `finished_milestones` (pyproject.toml)
+  run as expected failures (TF-4). Mark each test `milestone`, `req` and, where
+  relevant, `dm`; untagged tests fail collection.
+- `uv run ruff check`, `uv run ruff format --check`, `uv run mypy`.
+- After adding tests: `uv run pytest --collect-only -q --write-coverage` regenerates
+  `tests/COVERAGE.md`.
+- `python scripts/check_test_changes.py --base main`: the TF-6 check CI runs.
+- On this PC uv needs `--system-certs` to reach PyPI (e.g. `uv sync --system-certs`).
+
 ## Other conventions
 
 - Every test names the requirement ID(s) it checks (e.g. `HV-4`) and any DM
