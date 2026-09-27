@@ -11,7 +11,7 @@ entries:
   wills_ward_stone:
     name: Will's Ward Stone
     kind: item
-    gives: {CM: 5}                          # to confirm (Q4)
+    gives: {CM: 5}                          # confirmed (Q4)
     card: "+5 CM"
 
   nf_pin:
@@ -19,7 +19,7 @@ entries:
     kind: item
     audience: holders                       # only to NF pin holders...
     includes_giver: true                    # ...the holder included; stacks (each pin counts)
-    gives: {CM: 1}                          # amount to confirm (Q4)
+    gives: {CM: 1}                          # confirmed (Q4)
     card: "+1 to CM"
 
   will_passions_pendant:
@@ -60,7 +60,7 @@ entries:
   champion_of_power:
     name: Champion of Power
     kind: title
-    gives: {CR: 5, CM: 5}                   # to confirm (Q4)
+    gives: {CR: 5, CM: 5}                   # confirmed (Q4)
     unique: true                            # one holder at a time (HV-6)
     card: "+5 to all challenge rolls. +5 to cm."
 

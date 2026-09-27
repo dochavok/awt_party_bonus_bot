@@ -65,6 +65,8 @@ The bot will keep a fixed list of items and titles that give always-on bonuses t
 
 **Question:** Please correct the table, and add every other item, pin or title that gives an always-on bonus to allies.
 
+**Answered (2026-09-27):** the table is right. Will's Ward Stone gives +5 CM to allies, the NF pin +1 CM (to NF pin holders only, the holder included, stacking) and Champion of Power +5 to all challenge rolls and +5 CM. Hero of Passion is answered in Q5, and Helping Hands in Q7. The other items and titles are in the catalog (requirements section 8.4); new ones are added there as they come up, through `/request`.
+
 ---
 
 ## Q5. What does the Hero of Passion (HoP) title give?

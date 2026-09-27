@@ -270,14 +270,14 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 
 | Entry | Kind | Gives (to allies) | Status |
 |---|---|---|---|
-| Will's Ward Stone | Item | +5 CM | To confirm (Q4) |
-| NF (nobuFest pin) | Item | +1 CM to **NF pin holders only**, the holder included; stacks (with three holders present, each gets +3) | Amount to confirm (Q4) |
+| Will's Ward Stone | Item | +5 CM | Confirmed (Q4) |
+| NF (nobuFest pin) | Item | +1 CM to **NF pin holders only**, the holder included; stacks (with three holders present, each gets +3) | Confirmed (Q4) |
 | Will Passion's Pendant | Item | **Aura of Passion:** +2 hearts of damage to allies wearing a Will Passion item. Conditional (rule 4.12): shown separately, never in totals. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
 | Easy Back Oven | Item | Effect: effects of extreme cold are negated, for the party, the holder included | Card text from Craig |
 | Pants of the Water Valkyrie | Item | +1 heart damage reduction to the party, the holder included | Card text from Craig |
 | Protection Charm | Item | +1 heart damage reduction to allies. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
 | Helm of the Caladrius | Item | +1 heart of healing per round to allies | Card text from Craig |
-| Champion of Power | Title | +5 CR, +5 CM. **One holder at a time** (HV-6). | To confirm (Q4) |
+| Champion of Power | Title | +5 CR, +5 CM. **One holder at a time** (HV-6). | Confirmed (Q4) |
 | Hero of Passion (HoP) | Title | +1 CM to each **other HoP holder** (stacks). Its +3 CM to the holder is self-only, so it's part of the holder's own CM (section 2): shown on the card, not calculated | Answered (Q5) |
 | Part of the Ship, Part of the Crew | Title | +2 CM to each **other** holder of the title (stacks). Its +5 CM to the holder, and its effect (sea legs: can't be knocked off a ship), are self-only (section 2): on the card, not calculated. Two holders present each get +2 from the bot and add their own +5 | Card text from Craig |
 | Helping Hands | Title | No party bonus: +1 to the buffs and heals the holder casts, which the bot doesn't track; not auras or other always-on bonuses. Card text: "Anytime you buff or heal an ally/allies the numerical value is increased by 1." | Answered (Q7) |
@@ -656,7 +656,7 @@ The bot doesn't roll dice. `/bogsy` replies privately with Bogsy `/modifier` com
 
 ## 16. Open Questions
 
-**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), the full item and title list (Q4), whether a Guild Thief keeps Rat Pack (Q6), and whether a summoned character's bonuses count (Q8).
+**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), whether a Guild Thief keeps Rat Pack (Q6), and whether a summoned character's bonuses count (Q8).
 
 **Waiting on players:** none at the moment. Every bonus players had been counting without a known source has been found (see Resolved). A bonus that turns up without a known source is listed here, with the character giving it, until its source is known and it becomes a catalog entry.
 
