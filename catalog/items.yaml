@@ -110,3 +110,10 @@ entries:
       Your experience with spooks and terrors has given you a thick skin. you gain a +2
       to CRs vs Fear based effects if an effect does not give you a CR you get a Hard CR
       with your +2 to prevent it.
+
+  champion_of_the_threads:
+    name: Champion of the Threads
+    kind: title                             # its bonuses are the holder's own (section 2)
+    card: >-
+      Gain an extra +5 CM when all of your body slots are filled. Add +10CM if your
+      wearing anything Embroidered by AWT.
