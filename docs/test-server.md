@@ -125,3 +125,5 @@ scenario or catalog fix.
 - [ ] `/request` posts to `#bonus-bot-support` with the player's name (M5). If the
       channel is private, the bot has been added to it (see "Set up once").
 - [ ] A catalog change pushed to `main` is deployed automatically (M5).
+- [ ] `/bogsy` is private; pasting one of its lines into Bogsy sets that modifier,
+      and a quickroll using `bonus_cm` or `bonus_cr` picks up the value (M6).

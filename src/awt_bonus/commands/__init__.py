@@ -4,7 +4,7 @@ the reply text and whether it's private out.
 Command names are as in section 7, e.g. "partybonus", "character register",
 "guild join". Option names: ``character``, ``entry``, ``guild``, ``name``,
 ``level`` (a number, or "clear" for ``/character level``), ``new``, ``channel``
-(a voice channel ID), ``private``, ``export`` and ``text``.
+(a voice channel ID), ``private`` and ``text``.
 
 Command logic runs against the ports (the clock and Discord), never discord.py
 directly (TS-8). Every reply is private except ``/partybonus`` (OUT-5).
@@ -16,6 +16,7 @@ from collections.abc import Mapping
 
 from awt_bonus.catalog import Catalog
 from awt_bonus.commands import (
+    _bogsy,
     _catalog,
     _characters,
     _entries,
@@ -56,6 +57,7 @@ HANDLERS: Mapping[str, Handler] = {
     "guild leave": _guilds.leave,
     "request": _requests.request,
     "help": _help.help_,
+    "bogsy": _bogsy.bogsy,
 }
 
 
