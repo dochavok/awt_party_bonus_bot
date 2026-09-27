@@ -55,7 +55,7 @@ The bot will keep a fixed list of items and titles that give always-on bonuses t
 | Item / title | What we think it gives | Unsure about |
 |---|---|---|
 | Wills ward stone (item) | +5 CM to allies | Is that right? |
-| NF (nobuFest pin) (item) | Probably +1 | +1 to what (CM? CR?), and to whom? |
+| NF (nobuFest pin) (item) | +1 CM, to NF pin holders only, the holder included; stacks (answered: to whom) | Is it +1 CM? |
 | Champion of Power (title) | +5 to all challenge rolls, +5 CM to allies | Is that right? |
 | Hero of Passion (title) | +1 or more, to other HoP holders only | See Q5. |
 | Helping Hands / v2.0 (titles) | Raise the holder's buffs and heals by 1 / 2 | See Q7. |

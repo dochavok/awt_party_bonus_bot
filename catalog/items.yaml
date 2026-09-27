@@ -17,7 +17,9 @@ entries:
   nf_pin:
     name: NF (nobuFest pin)
     kind: item
-    gives: {CM: 1}                          # to confirm (Q4)
+    audience: holders                       # only to NF pin holders...
+    includes_giver: true                    # ...the holder included; stacks (each pin counts)
+    gives: {CM: 1}                          # amount to confirm (Q4)
     card: "+1 to CM"
 
   # ------------------------------------------------------------ titles
