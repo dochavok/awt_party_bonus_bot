@@ -247,8 +247,8 @@ Values come from the skill-tree images and guild write-ups in the Diceknights dr
 | Devotion III | Holy Knight | Nothing itself | Modifier: +1 to each of this character's auras |
 | Aura of Defense | Paladin | +5 CR would hurt | Aura |
 | Aura of Hope | Paladin | +10 CM | Aura |
-| Commanding Presence | Commander | +5 CM | Conditional: allies in the same range, so shown separately and not in totals. Not an aura (DM question Q1). |
-| Inspiring Presence | Commander | +5 CR | Doesn't stack. Not an aura (Q1). |
+| Commanding Presence | Commander | +5 CM | Conditional: allies in the same range, so shown separately and not in totals. Not an aura (answered, Q1). |
+| Inspiring Presence | Commander | +5 CR | Doesn't stack. Not an aura (answered, Q1). |
 
 ### 8.3 Guilds
 
@@ -656,7 +656,7 @@ The bot doesn't roll dice. `/bogsy` replies privately with Bogsy `/modifier` com
 
 ## 16. Open Questions
 
-**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), and whether a summoned character's bonuses count (Q8).
+**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): the Cult's level rule (Q2), and whether a summoned character's bonuses count (Q8).
 
 **Waiting on players:** none at the moment. Every bonus players had been counting without a known source has been found (see Resolved). A bonus that turns up without a known source is listed here, with the character giving it, until its source is known and it becomes a catalog entry.
 
@@ -671,7 +671,7 @@ The bot doesn't roll dice. `/bogsy` replies privately with Bogsy `/modifier` com
 - **Fixed catalog:** skills, guild abilities, boons, items and titles come from data files in the repository. Players pick from it and can't type in bonuses. Missing entries are requested with `/request`.
 - **Catalog changes:** permanent IDs, retired instead of deleted, linked rather than copied, validated in CI, and deployed automatically on push to `main`.
 - **Stacking:** every giver counts, except entries marked "doesn't stack", which count once. A replacing entry supersedes the one it replaces.
-- **Devotion III** adds +1 to all of the character's own auras, from any tree. Only skills named "Aura" are auras (pending Q1).
+- **Devotion III** adds +1 to all of the character's own auras, from any tree. Only skills named "Aura" are auras (answered, Q1).
 - **Characters can't be deleted**, only renamed. This avoids losing data by accident and means a player's current character always exists. The rare removal goes through `/request`.
 - **Character names are unique on the server**, not per player, so names are never ambiguous in commands or output. This can be revisited if duplicate names turn out to be common.
 - **One `/add` command** (and `/remove`) for skills, boons, ranks, items and titles, rather than one command per kind. Players don't need to know an entry's kind, and `/catalog` shows the exact command for each entry. Guild ranks and boons are only shown (in `/catalog` and autocomplete) and only accepted for members of that guild; leaving a guild removes them.

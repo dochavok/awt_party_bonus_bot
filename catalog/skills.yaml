@@ -36,7 +36,7 @@ entries:
     name: Devotion III
     kind: skill
     tree: Holy Knight
-    modifies: {tag: aura, add: 1}         # only skills named "Aura" are auras (Q1)
+    modifies: {tag: aura, add: 1}         # only skills named "Aura" are auras (answered, Q1)
     card: "Increase Aura bonuses by +1."
 
   # ------------------------------------------------------------ Paladin
@@ -57,7 +57,7 @@ entries:
     card: "Increase all allies CM by 10"
 
   # ------------------------------------------------------------ Commander
-  # The Presence skills aren't auras (Q1).
+  # The Presence skills aren't auras (answered, Q1).
   commanding_presence:
     name: Commanding Presence
     kind: skill

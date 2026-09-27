@@ -20,6 +20,8 @@ A character can have both Holy Knight and Commander skills, so a Holy Knight wit
 
 **If the answer is yes:** Commanding Presence and Inspiring Presence become +6 for a character who also has Devotion III.
 
+**Answered (2026-09-27):** the current assumption is right. The Presence skills aren't auras: only skills named "Aura" are, so Devotion III doesn't raise them, and they stay at +5.
+
 ---
 
 ## Q2. Cult of the Dragon: whose level counts, and does the High Inquisitor benefit?
