@@ -95,6 +95,18 @@ async def test_export_ends_with_how_to_set_up_and_roll(make_world: MakeWorld) ->
     assert "/roll command:" in note
 
 
+@pytest.mark.req("BG-1", "CH-3")
+async def test_the_combat_quickroll_is_named_after_the_current_character(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("sample-game")
+    text = (await world.run("maya", "bogsy")).text
+
+    assert "/quickroll name:mira dicestring:<your dice> + my_cm + bonus_cm" in text
+    assert "/quickroll name:challenge dicestring:1d20 + cr_level + my_cr_bonus + bonus_cr" in text
+    assert "/roll command:mira" in text
+
+
 @pytest.mark.req("BG-3", "OUT-4", "SE-2")
 @pytest.mark.parametrize("away", ["not-in-voice", "sitting-out"])
 async def test_with_no_party_every_value_is_0_and_the_reply_says_why(

@@ -6,6 +6,7 @@ on top of its parent, because Bogsy adds modifiers together when rolling. Every 
 stat is always listed, with 0 for none, so quickrolls keep working (BG-3).
 """
 
+import re
 from collections.abc import Mapping
 
 from awt_bonus.catalog import Catalog, StatKind
@@ -19,14 +20,24 @@ from awt_bonus.output.messages import code, text
 PREFIX = "bonus_"
 """Keeps the party's modifiers apart from players' own, e.g. my_fear (BG-2)."""
 
-SETUP = (
-    "Set up your quickrolls once with `bonus_cm` and `bonus_cr`, e.g. "
-    "`challenge = 1d20 + cr_level + my_cr_bonus + bonus_cr`. For a roll of one CR type, "
-    "add its modifiers when you roll, e.g. `/roll command:challenge+my_fear+bonus_fear`. "
-    "Keep your own bonuses in modifiers of your own (e.g. `my_fear`), so these never "
-    "overwrite them."
-)
-"""How to use the export (BG-1). It mustn't mention the /modifier command itself."""
+
+def quickroll_name(character: str) -> str:
+    """A character's name as a simple quickroll name, e.g. "chris_the_holy_baker"."""
+    return re.sub(r"[^0-9a-z]+", "_", character.casefold()).strip("_") or "combat"
+
+
+def setup_note(character: str) -> list[str]:
+    """How to use the export (BG-1). It mustn't mention the /modifier command itself."""
+    roll = quickroll_name(character)
+    return [
+        "**Set up once** (replace `<your dice>` with your combat dice, e.g. `7d20`):",
+        f"`/quickroll name:{roll} dicestring:<your dice> + my_cm + bonus_cm`",
+        "`/quickroll name:challenge dicestring:1d20 + cr_level + my_cr_bonus + bonus_cr`",
+        f"**Rolling:** `/roll command:{roll}` for combat; for one CR type, add its "
+        "modifiers, e.g. `/roll command:challenge+my_fear+bonus_fear`",
+        "**Your own bonuses:** keep them in your own modifiers (`my_cm`, `my_fear`…); "
+        "these never overwrite them",
+    ]
 
 
 def modifier_name(catalog: Catalog, stat_id: StatId) -> str:
@@ -98,4 +109,4 @@ def _export(
         lines.append(f"{why_zero} These set every party bonus to 0.")
     lines.append("Paste the lines your rolls use:")
     commands = [f"/modifier name:{n} value:{v}" for n, v in modifier_values(ctx.catalog, totals)]
-    return private(text(*lines), code(*commands), text(SETUP))
+    return private(text(*lines), code(*commands), text(*setup_note(name)))
