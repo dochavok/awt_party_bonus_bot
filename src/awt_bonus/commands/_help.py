@@ -1,5 +1,6 @@
 """/help (OUT-9): a short guide for players getting started, ending with their next step."""
 
+from awt_bonus.catalog import Membership
 from awt_bonus.commands._base import Context, private
 from awt_bonus.commands._types import Reply
 from awt_bonus.output.messages import text
@@ -24,7 +25,7 @@ async def help_(ctx: Context) -> Reply:
             "- `/catalog`: what's available and what it gives",
             "- `/request <text>`: something your character has isn't listed? "
             "Ask for it to be added",
-            "A Guild rank role on Discord gives **Support** automatically: nothing to add.",
+            *_role_bonus_notes(ctx),
         ),
         text(
             "",
@@ -39,6 +40,16 @@ async def help_(ctx: Context) -> Reply:
         ),
         text("", await _next_step(ctx)),
     )
+
+
+def _role_bonus_notes(ctx: Context) -> list[str]:
+    """E.g. "Junior Adventurer and above get Support automatically" (HV-3), from the catalog."""
+    return [
+        f"{guild.roles[0]} and above get **{bonus.name}** automatically: nothing to add."
+        for guild in ctx.catalog.guilds.values()
+        if guild.membership is Membership.ROLES and guild.roles
+        for bonus in guild.role_abilities
+    ]
 
 
 async def _next_step(ctx: Context) -> str:

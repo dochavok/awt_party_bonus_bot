@@ -129,14 +129,17 @@ guilds:
     membership: open           # players join with /guild join
     secret: true               # members are never revealed (SG-1)
   the_guild:
-    full_name: The Guild
+    short_name: Patreon
+    full_name: Patreon Bonuses
     membership: roles          # membership comes from Discord roles
-    roles: [Junior Adventurer, Guild Veteran]
+    roles: [Junior Adventurer, Guild Veteran]   # lowest first
     from_roles:                # given once by a player with any of the roles (HV-3)
       - {name: Support, gives: {CM: 2}}
-    how_to_join: "Check out the Patreon: <https://...>"   # optional (CT-5)
+    how_to_join: "Guild tiers are derived from the AWT Patreon: <https://...>"   # optional (CT-5)
 ```
 
+`roles` are listed lowest first: `/catalog` says a bonus is given by the first
+role "or above", then lists them all (e.g. "Support Tiers: Junior Adventurer, ...").
 `how_to_join` is optional text telling players how to join. For a guild whose
 membership comes from roles, `/catalog` and `/guild join` show it instead of the
 join command. `<...>` around a link stops Discord showing a preview.

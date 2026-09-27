@@ -7,7 +7,7 @@ other guilds are listed by name, with the command to join.
 
 from collections import defaultdict
 
-from awt_bonus.catalog import Ability, Entry, EntryKind, Guild, Membership
+from awt_bonus.catalog import Entry, EntryKind, Guild, Membership
 from awt_bonus.commands._base import REQUEST_HINT, Context, Refused, private
 from awt_bonus.commands._types import Reply
 from awt_bonus.ids import GuildId
@@ -77,9 +77,7 @@ def _cards(entry: Entry) -> list[tuple[str, str]]:
 def _guild(ctx: Context, guild: Guild, who: str, joined: frozenset[GuildId]) -> Block:
     block = text(f"**{guild.full_name}** ({guild.short_name})")
     if guild.membership is Membership.ROLES:
-        for bonus in guild.role_abilities:
-            block.add(f"- {bonus.name}: {_role_bonus(ctx, guild, bonus)}")
-        block.add(_how_to_join(guild))
+        block.add(*_role_lines(ctx, guild))
     elif guild.id in joined:
         block.add(f"{who} is a member.")
         for entry in ctx.catalog.guild_entries(guild.id):
@@ -93,15 +91,22 @@ def _guild(ctx: Context, guild: Guild, who: str, joined: frozenset[GuildId]) -> 
     return block
 
 
-def _how_to_join(guild: Guild) -> str:
-    """For a guild whose membership comes from roles (HV-3, CT-5)."""
-    return guild.how_to_join or f"Membership comes from Discord roles: {', '.join(guild.roles)}."
+def _role_lines(ctx: Context, guild: Guild) -> list[str]:
+    """A guild whose membership comes from Discord roles (HV-3, CT-5, CT-8).
 
-
-def _role_bonus(ctx: Context, guild: Guild, bonus: Ability) -> str:
-    """A bonus from Discord roles, e.g. Support (HV-3)."""
-    described = ability(bonus, ctx.catalog, guild=guild.id)
-    return f"{described}, given once by each player with any of {guild.full_name}'s ranks"
+    Each bonus, the roles that give it (listed lowest first in the catalog), and
+    how to get them, e.g. "Support Tiers: Junior Adventurer, Guild Veteran, ...".
+    """
+    lines = []
+    for bonus in guild.role_abilities:
+        described = ability(bonus, ctx.catalog, guild=guild.id)
+        lines.append(
+            f"- {bonus.name}: {described}, given once by each player with {guild.roles[0]} or above"
+        )
+        lines.append(f"  {bonus.name} Tiers: {', '.join(guild.roles)}")
+    if guild.how_to_join:
+        lines.append(f"  {guild.how_to_join}")
+    return lines
 
 
 def _everything(ctx: Context, who: str, joined: frozenset[GuildId]) -> list[Block]:
@@ -122,9 +127,7 @@ def _everything(ctx: Context, who: str, joined: frozenset[GuildId]) -> list[Bloc
         entries = [e for e in ctx.catalog.guild_entries(guild.id) if not e.retired]
         block = text("", f"__{guild.full_name}__")
         if guild.membership is Membership.ROLES:
-            for bonus in guild.role_abilities:
-                block.add(f"- {bonus.name}: {_role_bonus(ctx, guild, bonus)}")
-            block.add(f"  {_how_to_join(guild)}")
+            block.add(*_role_lines(ctx, guild))
         elif guild.id in joined:
             block.add(*(_line(ctx, e) for e in entries))
         else:

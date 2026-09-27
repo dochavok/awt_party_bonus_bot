@@ -9,7 +9,7 @@
 entries:
   # ------------------------------------------------------------ items
   wills_ward_stone:
-    name: Wills ward stone
+    name: Will's Ward Stone
     kind: item
     gives: {CM: 5}                          # to confirm (Q4)
     card: "+5 CM"
@@ -17,8 +17,38 @@ entries:
   nf_pin:
     name: NF (nobuFest pin)
     kind: item
-    gives: {CM: 1}                          # to confirm (Q4)
+    audience: holders                       # only to NF pin holders...
+    includes_giver: true                    # ...the holder included; stacks (each pin counts)
+    gives: {CM: 1}                          # amount to confirm (Q4)
     card: "+1 to CM"
+
+  will_passions_pendant:
+    name: Will Passion's Pendant
+    kind: item
+    ability: Aura of Passion                # an item, so not an aura for Devotion III (rule 4.6)
+    gives: {Damage: 2}
+    condition: "allies wearing a Will Passion item"   # not tracked: never in totals (4.12)
+    card: "All allies wearing Will Passion items gain +2 <3s of damage."
+
+  easy_back_oven:
+    name: Easy Back Oven
+    kind: item
+    effect: "Effects of extreme cold are negated"
+    includes_giver: true                    # "around" the holder: the holder too
+    card: "Effects of extreme cold are negated around Chris the holy baker."
+
+  pants_of_the_water_valkyrie:
+    name: Pants of the Water Valkyrie
+    kind: item
+    gives: {Damage reduction: 1}
+    includes_giver: true                    # "your party": the holder too
+    card: "Reduce damage done to your party by 1 heart"
+
+  protection_charm:
+    name: Protection Charm
+    kind: item                              # an item, so not an aura for Devotion III (rule 4.6)
+    gives: {Damage reduction: 1}            # allies only
+    card: "Allies in your aura take 1<3 less of damage each round."
 
   # ------------------------------------------------------------ titles
   champion_of_power:
@@ -32,20 +62,28 @@ entries:
     name: Hero of Passion
     kind: title
     audience: holders                       # to other Hero of Passion holders only
-    gives: {CM: 1}                          # amount to confirm (Q5)
-    card: "+1 CM"
+    gives: {CM: 1}                          # answered (Q5); its +3 CM to self isn't counted (section 2)
+    card: "+3 CM to the holder (add it to your own CM; the bot doesn't count it). +1 CM to each other Hero of Passion holder."
 
-  # Modifiers: raise every number of every bonus the holder gives (scope to confirm, Q7).
+  part_of_the_crew:
+    name: Part of the Ship, Part of the Crew
+    kind: title
+    audience: holders                       # to other holders only; stacks
+    gives: {CM: 2}                          # its +5 CM to self isn't counted (section 2)
+    card: >-
+      +5 cm additional (self) +2 for each person that has this title. Passive sea legs:
+      you cannot be knocked off of any ship.
+
+  # Helping Hands raises only the buffs and heals its holder casts, which aren't tracked,
+  # and never auras or other always-on bonuses: no party bonus in the bot (answered, Q7).
   helping_hands:
     name: Helping Hands
-    kind: title
-    modifies: {all: true, add: 1}
+    kind: title                             # +1 to cast buffs and heals
     card: "Anytime you buff or heal an ally/allies the numerical value is increased by 1"
 
   helping_hands_v2:
     name: Helping Hands v2.0
-    kind: title
-    modifies: {all: true, add: 2}
+    kind: title                             # +3 to cast buffs and heals
     replaces: [helping_hands]               # replaces rather than adds (Q7)
     card: >-
       Helping Hand Title. If you already had the title you increase its effects by +2.
@@ -100,3 +138,35 @@ entries:
       Your experience with spooks and terrors has given you a thick skin. you gain a +2
       to CRs vs Fear based effects if an effect does not give you a CR you get a Hard CR
       with your +2 to prevent it.
+
+  champion_of_the_threads:
+    name: Champion of the Threads
+    kind: title                             # its bonuses are the holder's own (section 2)
+    card: >-
+      Gain an extra +5 CM when all of your body slots are filled. Add +10CM if your
+      wearing anything Embroidered by AWT.
+
+  experimental_champion:
+    name: Experimental Champion
+    kind: title                             # +5 CM is the holder's own (section 2)
+    card: >-
+      +5cm. 1/combat when you take the aid action you may also use an item or skill.
+      (This does not take an action)
+
+  savior_of_the_crossroads:
+    name: Savior of the Crossroads
+    kind: title                             # 1/combat: not tracked
+    card: "1/combat Gain +1<3 of damage for each adventurer in your party"
+
+  master_chef:
+    name: Master Chef
+    kind: title                             # raises the holder's own consumables: not tracked
+    card: >-
+      Any time you eat or drink an item that is a consumable you increase its effects
+      by 2. If the consumable doesn't have a value attached to it, DM discretion on how
+      the effect is increased.
+
+  harbingers_of_doom:
+    name: Harbingers of Doom
+    kind: title                             # 1 per day: not tracked
+    card: "1 per day, dm discretion, +2 to combat roll"

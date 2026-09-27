@@ -22,15 +22,15 @@ A character can have both Holy Knight and Commander skills, so a Holy Knight wit
 
 ---
 
-## Q2. Cult of the Dragon: whose level counts, and does the High Priest benefit?
+## Q2. Cult of the Dragon: whose level counts, and does the High Inquisitor benefit?
 
-**Current rule:** The Cult's High Priest (one character) gives other Cult members: level under 10, +1 heart damage; level 10 or higher, +10 CM. Ordinary Cult members give nothing.
+**Current rule:** The Cult's High Inquisitor (one character) gives other Cult members: level under 10, +1 heart damage; level 10 or higher, +10 CM. Ordinary Cult members give nothing.
 
 **Current assumption:**
 - The **recipient's** level decides which of the two they get.
-- The High Priest doesn't receive their own bonus (allies only).
+- The High Inquisitor doesn't receive their own bonus (allies only).
 
-**Question:** Is it the recipient's level or the High Priest's? Does the High Priest benefit too?
+**Question:** Is it the recipient's level or the High Inquisitor's? Does the High Inquisitor benefit too?
 
 ---
 
@@ -54,8 +54,8 @@ The bot will keep a fixed list of items and titles that give always-on bonuses t
 
 | Item / title | What we think it gives | Unsure about |
 |---|---|---|
-| Wills ward stone (item) | +5 CM to allies | Is that right? |
-| NF (nobuFest pin) (item) | Probably +1 | +1 to what (CM? CR?), and to whom? |
+| Will's Ward Stone (item) | +5 CM to allies | Is that right? |
+| NF (nobuFest pin) (item) | +1 CM, to NF pin holders only, the holder included; stacks (answered: to whom) | Is it +1 CM? |
 | Champion of Power (title) | +5 to all challenge rolls, +5 CM to allies | Is that right? |
 | Hero of Passion (title) | +1 or more, to other HoP holders only | See Q5. |
 | Helping Hands / v2.0 (titles) | Raise the holder's buffs and heals by 1 / 2 | See Q7. |
@@ -69,7 +69,7 @@ The bot will keep a fixed list of items and titles that give always-on bonuses t
 
 HoP is **Hero of Passion**, a title. It goes only to other HoP holders. It has been counted as a bonus of at least +1, varying from holder to holder.
 
-**Current assumption:** +1 CM to each other HoP holder present.
+**Answered (2026-09-26):** +3 CM to the holder, and +1 CM to each other HoP holder present. The bot counts only the +1 to other holders; the +3 is self-only, so it's part of the holder's own CM (requirements section 2), and the title's card text says so.
 
 **Questions:**
 - What does it give (CM? CR?)?
@@ -120,7 +120,7 @@ Read literally, the title gives **nothing on its own**. It only makes the holder
 |---|---|---|
 | Always-on skill auras | Holy Aura +2 → +3 | ? |
 | Guild abilities and ranks | Support +2 → +3; Leadership +2 → +3 | ? |
-| Titles and items | Champion of Power +5 → +6; Wills ward stone +5 → +6 | ? |
+| Titles and items | Champion of Power +5 → +6; Will's Ward Stone +5 → +6 | ? |
 | Bonuses with two numbers | Champion of Power: +5 CR **and** +5 CM → both +6? | ? |
 | Once-per-combat buffs and heals (not tracked by the bot) | Healing Hands (Physician's Guild) | Probably yes, but players track these themselves |
 
@@ -128,7 +128,9 @@ Read literally, the title gives **nothing on its own**. It only makes the holder
 - Does it add to Devotion III? (A Holy Knight with both would give Holy Aura +4.)
 - Does v2.0 **replace** Helping Hands (+2 total), or add to it (+3)?
 
-**Current assumption in the bot (until answered):** reading **A**. It raises every always-on bonus the holder gives allies by +1 (v2.0: +2) on each number, adds to Devotion III, and v2.0 replaces Helping Hands. On its own it gives nothing.
+**Answered (2026-09-26):** Helping Hands (+1) and Helping Hands v2.0 (+3, replacing Helping Hands) raise only the buffs and heals their holder casts, such as once-per-combat heals. They don't raise auras or any other always-on bonus. The bot doesn't track cast buffs and heals, so in the bot both titles give no party bonus: they're listed with their card text and change no totals.
+
+**Before this answer, the bot assumed** reading **A**, raising every always-on bonus the holder gives allies by +1 (v2.0: +2) on each number.
 
 **Why it matters:** under reading A, Helping Hands can get large. A Paladin with Aura of Hope, Devotion III and Helping Hands v2.0 gives every ally **+13 CM** (10 + 1 + 2), where the player summaries would only have shown +2 healing.
 

@@ -88,5 +88,8 @@ def _guild(ctx: Context) -> Guild:
 
 def roles_membership(guild: Guild) -> str:
     """Why a guild can't be joined with /guild join (HV-3), and how to join it (CT-5)."""
-    why = f"Membership of {guild.full_name} comes with its ranks, not `/guild join`."
+    why = (
+        f"There's nothing to join for {guild.full_name}: its bonuses come with the "
+        f"Discord roles {guild.roles[0]} and above."
+    )
     return f"{why} {guild.how_to_join}" if guild.how_to_join else why
