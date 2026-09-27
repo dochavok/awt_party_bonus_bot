@@ -128,7 +128,9 @@ Read literally, the title gives **nothing on its own**. It only makes the holder
 - Does it add to Devotion III? (A Holy Knight with both would give Holy Aura +4.)
 - Does v2.0 **replace** Helping Hands (+2 total), or add to it (+3)?
 
-**Current assumption in the bot (until answered):** reading **A**. It raises every always-on bonus the holder gives allies by +1 (v2.0: +2) on each number, adds to Devotion III, and v2.0 replaces Helping Hands. On its own it gives nothing.
+**Answered (2026-09-26):** Helping Hands (+1) and Helping Hands v2.0 (+3, replacing Helping Hands) raise only the buffs and heals their holder casts, such as once-per-combat heals. They don't raise auras or any other always-on bonus. The bot doesn't track cast buffs and heals, so in the bot both titles give no party bonus: they're listed with their card text and change no totals.
+
+**Before this answer, the bot assumed** reading **A**, raising every always-on bonus the holder gives allies by +1 (v2.0: +2) on each number.
 
 **Why it matters:** under reading A, Helping Hands can get large. A Paladin with Aura of Hope, Devotion III and Helping Hands v2.0 gives every ally **+13 CM** (10 + 1 + 2), where the player summaries would only have shown +2 healing.
 

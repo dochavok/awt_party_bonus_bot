@@ -76,8 +76,8 @@ catalog:
     NF pin:              {kind: item, gives: {CM: 1}}
     Champion of Power:   {kind: title, gives: {CR: 5, CM: 5}, unique: true}  # one holder at a time (HV-6)
     Hero of Passion:     {kind: title, audience: holders, gives: {CM: 1}}   # amount to confirm (Q5)
-    Helping Hands:       {kind: title, modifies: {all: true, add: 1}}           # scope to confirm (Q7)
-    Helping Hands v2.0:  {kind: title, modifies: {all: true, add: 2}, replaces: [Helping Hands]}
+    Helping Hands:       {kind: title}                                      # raises only cast buffs and heals, not tracked (Q7)
+    Helping Hands v2.0:  {kind: title, replaces: [Helping Hands]}
     Story Teller:        {kind: title}                                      # no party bonus
     # Test-only entries
     Test Buff:           {kind: item, gives: {CM: 2}}
@@ -371,27 +371,27 @@ scenarios:
         - {entry: Hero of Passion, from: H1, reason: not_in_audience}
         - {entry: Hero of Passion, from: H2, reason: not_in_audience}
 
-  - name: Helping Hands raises every bonus its holder gives, and adds to Devotion III
+  - name: Helping Hands raises no always-on bonus, not even auras with Devotion III
     rule: "4.6; DM question Q7"
     players:
       - {name: K, has: [Holy Aura, Bolstering Aura, Devotion III, Helping Hands]}
       - {name: W, has: [Wills ward stone, Helping Hands, Story Teller]}
       - {name: C}
     expect:
-      K: {CM: 6}                         # Wills ward stone 5+1 from W
-      W: {CM: 4, CR vs fear: 4}          # Bolstering 2+1+1, Holy Aura 2+1+1 from K
-      C: {CM: 10, CR vs fear: 4}         # 4 from K, 6 from W
+      K: {CM: 5}                         # Wills ward stone 5 from W
+      W: {CM: 3, CR vs fear: 3}          # Bolstering 2+1, Holy Aura 2+1 from K (Devotion III only)
+      C: {CM: 8, CR vs fear: 3}          # 3 from K, 5 from W
 
-  - name: Helping Hands v2.0 replaces Helping Hands; alone it gives nothing
-    rule: "4.5, 4.6"
+  - name: Helping Hands v2.0 replaces Helping Hands; neither raises a title's bonus
+    rule: "4.5, 4.6; DM question Q7"
     players:
       - {name: A, has: [Champion of Power, Helping Hands, Helping Hands v2.0]}
       - {name: B, has: [Helping Hands]}
       - {name: C}
     expect:
-      A: {}                              # B has nothing for Helping Hands to raise
-      B: {CM: 7, CR: 7}                  # Champion of Power 5+2 from A
-      C: {CM: 7, CR: 7}
+      A: {}                              # Helping Hands gives nothing itself
+      B: {CM: 5, CR: 5}                  # Champion of Power 5 from A, not raised
+      C: {CM: 5, CR: 5}
 
   # ---------------------------------------------------------------- CATALOG
   - name: A retired entry still counts for characters who have it

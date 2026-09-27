@@ -77,7 +77,7 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 5. **Replacements.** If a character has an entry and the entry that replaces it, they give only the replacement. A GoTH member with Nuyaru's Love (+1) and Seraph's Affection (+3) gives +3.
 6. **Modifiers.** A modifier changes the bonuses **that same character** gives, and nobody else's. Numbers only; effects with no number are unchanged.
    - **Devotion III:** +1 to each aura, from any tree (Holy Aura, Bolstering Aura, Aura of Defense, Aura of Hope). Only skills named "Aura" are auras.
-   - **Helping Hands / v2.0:** +1 / +2 to each numerical value of every bonus the character gives allies (pending Q7). Modifiers add together: a Holy Knight with Devotion III and Helping Hands gives Holy Aura +4.
+   - **Helping Hands / v2.0** are **not** modifiers in the bot (Q7): they raise only the buffs and heals their holder casts (once per combat), which the bot doesn't track, and never auras or other always-on bonuses. A Holy Knight with Devotion III and Helping Hands gives Holy Aura +3.
 7. **Parent stats flow down to subtypes.** "+5 to all challenge rolls" plus "+3 CR vs fear" means CR +5 and CR vs fear +8. The same applies to *stealth*, *escape* and *would hurt*.
 8. **Audience.** The whole party, only members of one guild (e.g. Rat Pack: Guild of Thieves members only), or only other holders of the same entry (e.g. Hero of Passion: other HoP holders only).
 9. **Guilds and ranks.** Joining a guild only records membership. Bonuses from rank or service are entries the player adds by name: a rank (Footpad, Guild Thief, Captain, High Inquisitor, Ranger Captain, Chef…) or a boon (Seraph's Affection). A rank can grant several abilities, each following its own rules (e.g. Guild Thief grants Rat Pack, which stacks, and Leadership, which doesn't). Support is the exception: it comes from Discord roles.
@@ -274,8 +274,8 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 | Will Passion's Pendant | Item | **Aura of Passion:** +2 hearts of damage to allies wearing a Will Passion item. Conditional (rule 4.12): shown separately, never in totals. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
 | Champion of Power | Title | +5 CR, +5 CM. **One holder at a time** (HV-6). | To confirm (Q4) |
 | Hero of Passion (HoP) | Title | +1 CM to each **other HoP holder** (stacks). Its +3 CM to the holder is self-only, so it's part of the holder's own CM (section 2): shown on the card, not calculated | Answered (Q5) |
-| Helping Hands | Title | Nothing itself. **Modifier:** +1 to each numerical value of every bonus this character gives allies. Card text: "Anytime you buff or heal an ally/allies the numerical value is increased by 1." | Scope to confirm (Q7) |
-| Helping Hands v2.0 | Title | As Helping Hands, but +2; replaces Helping Hands | Scope to confirm (Q7) |
+| Helping Hands | Title | No party bonus: +1 to the buffs and heals the holder casts, which the bot doesn't track; not auras or other always-on bonuses. Card text: "Anytime you buff or heal an ally/allies the numerical value is increased by 1." | Answered (Q7) |
+| Helping Hands v2.0 | Title | As Helping Hands, but +3; replaces Helping Hands. No party bonus | Answered (Q7) |
 | Power Supporter | Title | No party bonus | Listed for completeness |
 | Charitable Adventurer | Title | No party bonus | Listed for completeness |
 | Element Savant | Title | No party bonus | Listed for completeness |
@@ -646,7 +646,7 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 
 ## 16. Open Questions
 
-**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), GoTH boons (Q3), the full item and title list (Q4), the Hero of Passion amount (Q5), whether a Guild Thief keeps Rat Pack (Q6), what Helping Hands does and applies to (Q7), and whether a summoned character's bonuses count (Q8).
+**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), GoTH boons (Q3), the full item and title list (Q4), whether a Guild Thief keeps Rat Pack (Q6), and whether a summoned character's bonuses count (Q8).
 
 **Waiting on players:** these bonuses have been counted, but where they come from (skill, item, title, guild…) isn't known yet. Craig is following up with the players. Each becomes a catalog entry once its source is known:
 
