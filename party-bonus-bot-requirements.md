@@ -656,7 +656,7 @@ The bot doesn't roll dice. `/bogsy` replies privately with Bogsy `/modifier` com
 
 ## 16. Open Questions
 
-**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): the Cult's level rule (Q2), and whether a summoned character's bonuses count (Q8).
+**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): the Cult's level rule (Q2) and whether a summoned character's bonuses count (Q8).
 
 **Waiting on players:** none at the moment. Every bonus players had been counting without a known source has been found (see Resolved). A bonus that turns up without a known source is listed here, with the character giving it, until its source is known and it becomes a catalog entry.
 
