@@ -56,6 +56,43 @@ and `duration_ms`), `gateway disconnected` / `gateway resumed`, `migrating` /
 the same token as Fly (e.g. the test bot), stop the Fly one first:
 see "Maintenance mode" in [restore-runbook.md](restore-runbook.md).
 
+## Maintainer tasks
+
+Some changes players can't make themselves, by design; they ask with `/request`
+and the maintainer makes them in the database (AD-2). The `awt-admin` command in
+the bot's image does this safely, while the bot keeps running:
+
+| Request | Command |
+|---|---|
+| Remove a character (CH-2): players can rename but not delete | `awt-admin remove-character <character>` |
+| Free a one-holder title (HV-6) whose holder can't or won't `/remove` it, e.g. they've left | `awt-admin remove-entry <character> <entry>` |
+
+Run it on the Fly machine, first without `--yes` to see what it would change, then
+with `--yes` to make the change:
+
+```
+fly ssh console --app awt-party-bonus-bot -C "awt-admin remove-character Pip"
+fly ssh console --app awt-party-bonus-bot -C "awt-admin remove-character Pip --yes"
+```
+
+Names ignore case; put a name with spaces in single quotes, e.g.
+`-C "awt-admin remove-entry Ioseph 'Champion of Power' --yes"`.
+
+With `--yes` it:
+- takes a snapshot first, in `/data/snapshots/`, so a mistake can be undone with
+  [restore-runbook.md](restore-runbook.md);
+- removes the character with its entries and guild memberships, or the one entry,
+  leaving nothing behind;
+- records the change in the audit log (HV-5) as made by the maintainer (actor `0`).
+
+A removed character's name is free to register again. If it was its player's
+current character, the bot tells them to choose another with `/play`, or to
+register one if it was their only character. Tell the player on Discord when it's
+done.
+
+Never edit the database by hand instead: a hand-written query skips the
+safeguards above, and can leave a removed character's entries behind.
+
 ## Setting it up from scratch
 
 Done once on 2026-09-26; repeat it for a new host, or to hand the bot over.

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Maintainer tasks in the database (python -m awt_bonus.admin; docs/deployment.md).
+# Runs from /app as the bot's user, so any file it writes belongs to the bot.
+set -eu
+cd /app
+if [ "$(id -u)" = 0 ]; then
+    exec setpriv --reuid=bot --regid=bot --init-groups /app/.venv/bin/python -m awt_bonus.admin "$@"
+fi
+exec /app/.venv/bin/python -m awt_bonus.admin "$@"

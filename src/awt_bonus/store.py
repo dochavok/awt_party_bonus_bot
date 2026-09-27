@@ -231,6 +231,15 @@ class Store:
         async with self._connect() as connection:
             await connection.execute(statement)
 
+    async def delete_character(self, character_id: CharacterId) -> None:
+        """Delete a character (CH-2, by the maintainer only). Its entries and guild
+        memberships go with it, and it stops being anyone's current character; its
+        audit records stay (HV-5).
+        """
+        statement = delete(schema.character).where(schema.character.c.id == character_id)
+        async with self._connect() as connection:
+            await connection.execute(statement)
+
     async def add_audit(
         self,
         actor: UserId,
