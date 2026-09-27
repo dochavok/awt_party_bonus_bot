@@ -31,7 +31,8 @@ COPY catalog ./catalog
 COPY config ./config
 COPY alembic.ini ./
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint
-RUN chmod 0755 /usr/local/bin/entrypoint
+COPY docker/awt-admin /usr/local/bin/awt-admin
+RUN chmod 0755 /usr/local/bin/entrypoint /usr/local/bin/awt-admin
 
 ARG GIT_SHA=dev
 ENV PATH=/app/.venv/bin:$PATH \
