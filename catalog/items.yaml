@@ -9,7 +9,7 @@
 entries:
   # ------------------------------------------------------------ items
   wills_ward_stone:
-    name: Wills ward stone
+    name: Will's Ward Stone
     kind: item
     gives: {CM: 5}                          # to confirm (Q4)
     card: "+5 CM"
@@ -21,6 +21,14 @@ entries:
     includes_giver: true                    # ...the holder included; stacks (each pin counts)
     gives: {CM: 1}                          # amount to confirm (Q4)
     card: "+1 to CM"
+
+  will_passions_pendant:
+    name: Will Passion's Pendant
+    kind: item
+    ability: Aura of Passion                # an item, so not an aura for Devotion III (rule 4.6)
+    gives: {Damage: 2}
+    condition: "allies wearing a Will Passion item"   # not tracked: never in totals (4.12)
+    card: "All allies wearing Will Passion items gain +2 <3s of damage."
 
   # ------------------------------------------------------------ titles
   champion_of_power:

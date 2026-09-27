@@ -21,7 +21,7 @@ In Discord, `/help` shows these steps and tells you your own next step.
    ```
    /add character:Crateris entry:Holy Aura
    /add character:Crateris entry:High Inquisitor
-   /add character:Crateris entry:Wills ward stone
+   /add character:Crateris entry:Will's Ward Stone
    ```
    Not sure what's available or what it gives? Use `/catalog`.
 

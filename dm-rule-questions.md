@@ -54,7 +54,7 @@ The bot will keep a fixed list of items and titles that give always-on bonuses t
 
 | Item / title | What we think it gives | Unsure about |
 |---|---|---|
-| Wills ward stone (item) | +5 CM to allies | Is that right? |
+| Will's Ward Stone (item) | +5 CM to allies | Is that right? |
 | NF (nobuFest pin) (item) | +1 CM, to NF pin holders only, the holder included; stacks (answered: to whom) | Is it +1 CM? |
 | Champion of Power (title) | +5 to all challenge rolls, +5 CM to allies | Is that right? |
 | Hero of Passion (title) | +1 or more, to other HoP holders only | See Q5. |
@@ -120,7 +120,7 @@ Read literally, the title gives **nothing on its own**. It only makes the holder
 |---|---|---|
 | Always-on skill auras | Holy Aura +2 → +3 | ? |
 | Guild abilities and ranks | Support +2 → +3; Leadership +2 → +3 | ? |
-| Titles and items | Champion of Power +5 → +6; Wills ward stone +5 → +6 | ? |
+| Titles and items | Champion of Power +5 → +6; Will's Ward Stone +5 → +6 | ? |
 | Bonuses with two numbers | Champion of Power: +5 CR **and** +5 CM → both +6? | ? |
 | Once-per-combat buffs and heals (not tracked by the bot) | Healing Hands (Physician's Guild) | Probably yes, but players track these themselves |
 

@@ -52,7 +52,7 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 | **Level** | Optional, per character. Only used for level-based bonuses (today, just the Cult of the Dragon). |
 | **Stat** | What a bonus adds to. **Roll stats:** CM (combat modifier, attack and defence combined), CR (challenge roll) and CR subtypes (*vs fear*, *stealth*, *escape*, *would hurt*). **Combat notes:** damage, damage reduction, healing, measured in hearts. |
 | **Catalog** | The fixed list of stats, skills, guilds, items and titles, kept as data files in the repository (section 6.2). |
-| **Entry** | One thing in the catalog that a character can have: a **skill** (from a skill tree), a **boon** (e.g. a GoTH quest boon), a **rank** (e.g. Guild Thief), an **item** (e.g. Wills ward stone) or a **title** (e.g. Champion of Power, Hero of Passion). |
+| **Entry** | One thing in the catalog that a character can have: a **skill** (from a skill tree), a **boon** (e.g. a GoTH quest boon), a **rank** (e.g. Guild Thief), an **item** (e.g. Will's Ward Stone) or a **title** (e.g. Champion of Power, Hero of Passion). |
 | **Guild** | Any group a character can belong to: a guild, order, cult or coalition. Membership decides guild-only audiences and secrecy. Joining grants nothing by itself: a guild's bonuses come from the rank and boon entries a member adds. |
 | **Rank entry** | A guild rank that grants one or more abilities, added by name like a skill, e.g. *Footpad* (grants Rat Pack) or *Guild Thief* (grants Rat Pack and Leadership). Ranks that grant nothing aren't in the catalog. A higher rank replaces the lower ones (Guild Thief replaces Burglar and Footpad; Master Ranger replaces Ranger Captain). |
 | **Secret guild** | A guild whose members are never revealed by the bot (the Guild of Thieves). |
@@ -269,8 +269,9 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 
 | Entry | Kind | Gives (to allies) | Status |
 |---|---|---|---|
-| Wills ward stone | Item | +5 CM | To confirm (Q4) |
+| Will's Ward Stone | Item | +5 CM | To confirm (Q4) |
 | NF (nobuFest pin) | Item | +1 CM to **NF pin holders only**, the holder included; stacks (with three holders present, each gets +3) | Amount to confirm (Q4) |
+| Will Passion's Pendant | Item | **Aura of Passion:** +2 hearts of damage to allies wearing a Will Passion item. Conditional (rule 4.12): shown separately, never in totals. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
 | Champion of Power | Title | +5 CR, +5 CM. **One holder at a time** (HV-6). | To confirm (Q4) |
 | Hero of Passion (HoP) | Title | +1 CM to each **other HoP holder** (stacks). Its +3 CM to the holder is self-only, so it's part of the holder's own CM (section 2): shown on the card, not calculated | Answered (Q5) |
 | Helping Hands | Title | Nothing itself. **Modifier:** +1 to each numerical value of every bonus this character gives allies. Card text: "Anytime you buff or heal an ally/allies the numerical value is increased by 1." | Scope to confirm (Q7) |
@@ -288,7 +289,7 @@ Some bonuses players have been counting have no known source yet; see "Waiting o
 
 ## 9. Example
 
-The sample game uses the test catalog in `tests/fixtures/`, which keeps some older names: *the Guild* (now Patreon Bonuses) and *High Priest* (now High Inquisitor). Its output below matches the test snapshots.
+The sample game uses the test catalog in `tests/fixtures/`, which keeps some older names: *the Guild* (now Patreon Bonuses), *High Priest* (now High Inquisitor) and *Wills ward stone* (now Will's Ward Stone). Its output below matches the test snapshots.
 
 ### 9.1 Sample game
 
@@ -650,7 +651,6 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 
 | Character | What they've been giving | Notes |
 |---|---|---|
-| Elizor | +2 hearts of damage to allies who have a *passion item* equipped | Conditional on an item the bot doesn't track; likely a conditional bonus (rule 4.12). |
 | Elizor | 1 heart of healing per round | |
 | Chris the Holy Baker | 2 hearts of damage reduction per round | Once thought to come from Helping Hands. |
 | Chris the Holy Baker | Effect: "Effects of extreme cold are negated around Chris the Holy Baker" | |
@@ -659,6 +659,7 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 
 ### Resolved
 
+- **Elizor's +2 hearts of damage** to allies with a passion item comes from **Will Passion's Pendant** (its bonus is Aura of Passion): a conditional bonus, shown but never in totals.
 - **Allies only:** a bonus never applies to its giver, unless the catalog entry says so (Leadership, King of the Pirates, Wilderness Lore, Proper Seasoning).
 - **Fixed catalog:** skills, guild abilities, boons, items and titles come from data files in the repository. Players pick from it and can't type in bonuses. Missing entries are requested with `/request`.
 - **Catalog changes:** permanent IDs, retired instead of deleted, linked rather than copied, validated in CI, and deployed automatically on push to `main`.
