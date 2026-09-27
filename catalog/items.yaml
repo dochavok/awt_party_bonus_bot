@@ -125,3 +125,28 @@ entries:
     card: >-
       Gain an extra +5 CM when all of your body slots are filled. Add +10CM if your
       wearing anything Embroidered by AWT.
+
+  experimental_champion:
+    name: Experimental Champion
+    kind: title                             # +5 CM is the holder's own (section 2)
+    card: >-
+      +5cm. 1/combat when you take the aid action you may also use an item or skill.
+      (This does not take an action)
+
+  savior_of_the_crossroads:
+    name: Savior of the Crossroads
+    kind: title                             # 1/combat: not tracked
+    card: "1/combat Gain +1<3 of damage for each adventurer in your party"
+
+  master_chef:
+    name: Master Chef
+    kind: title                             # raises the holder's own consumables: not tracked
+    card: >-
+      Any time you eat or drink an item that is a consumable you increase its effects
+      by 2. If the consumable doesn't have a value attached to it, DM discretion on how
+      the effect is increased.
+
+  harbingers_of_doom:
+    name: Harbingers of Doom
+    kind: title                             # 1 per day: not tracked
+    card: "1 per day, dm discretion, +2 to combat roll"

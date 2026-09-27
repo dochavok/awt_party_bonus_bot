@@ -284,6 +284,10 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 | Story Teller | Title | No party bonus | Listed for completeness |
 | Spook Survivor | Title | No party bonus (its +2 CR vs fear is for the holder only) | Listed for completeness |
 | Champion of the Threads | Title | No party bonus (its +5 CM with every body slot filled, and +10 CM when wearing anything Embroidered by AWT, are for the holder only) | Listed for completeness |
+| Experimental Champion | Title | No party bonus (its +5 CM is for the holder only; its aid-action ability is 1/combat) | Listed for completeness |
+| Savior of the Crossroads | Title | No party bonus (1/combat, for the holder) | Listed for completeness |
+| Master Chef | Title | No party bonus (raises the holder's own consumables) | Listed for completeness |
+| Harbingers of Doom | Title | No party bonus (1 per day, at the DM's discretion) | Listed for completeness |
 
 Titles with no party bonus can still be added with `/add`; they show in `/catalog` and in what a character has, but never change totals.
 
