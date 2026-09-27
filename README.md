@@ -49,6 +49,7 @@ People joining or leaving? Just run the command again.
 | Remove something | `/remove <character> <entry>` |
 | Leave a guild (also removes its ranks and boons) | `/guild leave <character> <guild>` |
 | Look up what a skill, item or guild gives | `/catalog <name>` |
+| Put your party bonuses into Bogsy's dice bot (your current character) | `/bogsy`, then paste the lines your rolls use |
 | Report something missing or wrong in the catalog, or ask for anything the bot can't do (e.g. removing a character) | `/request <text>` |
 
 Characters can't be deleted. Rename one instead, or use `/request` if it really needs removing.

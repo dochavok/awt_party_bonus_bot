@@ -25,9 +25,7 @@ async def partybonus(ctx: Context) -> Reply:
 
 
 async def mybonus(ctx: Context) -> Reply:
-    """OUT-2, OUT-2a, OUT-4, CH-5."""
-    if ctx.options.get("export") is not None:
-        raise NotImplementedError  # the Bogsy hand-off (section 14) is for later
+    """OUT-2, OUT-2a, OUT-4, CH-5. The Bogsy hand-off is its own command, /bogsy."""
     return await _one_character(ctx, render.mybonus)
 
 

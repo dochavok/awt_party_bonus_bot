@@ -311,6 +311,10 @@ def build_tree(
 
     tree.add_command(guilds)
 
+    @tree.command(name="bogsy", description="Your party bonuses as Bogsy dice-bot modifiers")
+    async def bogsy(interaction: discord.Interaction) -> None:
+        await _answer(interaction, runner(interaction, "bogsy"), private=True)
+
     @tree.command(name="help", description="How to set up and play, and your next step")
     async def help_(interaction: discord.Interaction) -> None:
         await _answer(interaction, runner(interaction, "help"), private=True)
