@@ -272,7 +272,7 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 | Wills ward stone | Item | +5 CM | To confirm (Q4) |
 | NF (nobuFest pin) | Item | +1 CM to **NF pin holders only**, the holder included; stacks (with three holders present, each gets +3) | Amount to confirm (Q4) |
 | Champion of Power | Title | +5 CR, +5 CM. **One holder at a time** (HV-6). | To confirm (Q4) |
-| Hero of Passion (HoP) | Title | +1 or more, to **other HoP holders only** | Amount to be defined (Q5) |
+| Hero of Passion (HoP) | Title | +1 CM to each **other HoP holder** (stacks). Its +3 CM to the holder is self-only, so it's part of the holder's own CM (section 2): shown on the card, not calculated | Answered (Q5) |
 | Helping Hands | Title | Nothing itself. **Modifier:** +1 to each numerical value of every bonus this character gives allies. Card text: "Anytime you buff or heal an ally/allies the numerical value is increased by 1." | Scope to confirm (Q7) |
 | Helping Hands v2.0 | Title | As Helping Hands, but +2; replaces Helping Hands | Scope to confirm (Q7) |
 | Power Supporter | Title | No party bonus | Listed for completeness |

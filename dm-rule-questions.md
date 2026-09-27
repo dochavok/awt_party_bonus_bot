@@ -69,7 +69,7 @@ The bot will keep a fixed list of items and titles that give always-on bonuses t
 
 HoP is **Hero of Passion**, a title. It goes only to other HoP holders. It has been counted as a bonus of at least +1, varying from holder to holder.
 
-**Current assumption:** +1 CM to each other HoP holder present.
+**Answered (2026-09-26):** +3 CM to the holder, and +1 CM to each other HoP holder present. The bot counts only the +1 to other holders; the +3 is self-only, so it's part of the holder's own CM (requirements section 2), and the title's card text says so.
 
 **Questions:**
 - What does it give (CM? CR?)?
