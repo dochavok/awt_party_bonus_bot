@@ -15,7 +15,7 @@ from awt_bonus.commands._presence import build_party, sitting_out
 from awt_bonus.commands._types import Reply
 from awt_bonus.ids import StatId
 from awt_bonus.output.describe import channel_mention, timestamp
-from awt_bonus.output.messages import code, text
+from awt_bonus.output.messages import text
 
 PREFIX = "bonus_"
 """Keeps the party's modifiers apart from players' own, e.g. my_fear (BG-2)."""
@@ -107,6 +107,8 @@ def _export(
     lines = [heading]
     if why_zero is not None:
         lines.append(f"{why_zero} These set every party bonus to 0.")
-    lines.append("Paste the lines your rolls use:")
+    lines.append("Copy and paste one line at a time (Discord runs one command per message):")
     commands = [f"/modifier name:{n} value:{v}" for n, v in modifier_values(ctx.catalog, totals)]
-    return private(text(*lines), code(*commands), text(*setup_note(name)))
+    # Each on its own line in inline code: no copy-all button (a pasted block of several
+    # commands won't run), and underscores aren't read as italics.
+    return private(text(*lines), text(*(f"`{c}`" for c in commands)), text("", *setup_note(name)))
