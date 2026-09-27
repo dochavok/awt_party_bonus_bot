@@ -72,7 +72,7 @@ entries:
     card: "Provide a +3 Combat bonus to all allies excluding yourself."
 
   # ------------------------------------------------------------ Guild of Thieves ranks
-  # Every rank grants Rat Pack; a Guild Thief keeps it and also grants Leadership (Q6).
+  # Every rank grants Rat Pack; a Guild Thief keeps it and also grants Leadership (answered, Q6).
   footpad:
     name: Footpad
     kind: rank

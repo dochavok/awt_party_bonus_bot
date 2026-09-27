@@ -93,6 +93,8 @@ HoP is **Hero of Passion**, a title. It goes only to other HoP holders. It has b
 
 **Alternative:** a Guild Thief gives only Leadership, and no longer gives Rat Pack.
 
+**Answered (2026-09-27):** the current assumption is right. A Guild Thief keeps Rat Pack, and gives Rat Pack and Leadership.
+
 ---
 
 ## Q7. What does Helping Hands actually do, and what does it apply to?
