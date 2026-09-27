@@ -62,13 +62,19 @@ Some changes players can't make themselves, by design; they ask with `/request`
 and the maintainer makes them in the database (AD-2). The `awt-admin` command in
 the bot's image does this safely, while the bot keeps running:
 
-| Request | Command |
-|---|---|
-| Remove a character (CH-2): players can rename but not delete | `awt-admin remove-character <character>` |
-| Free a one-holder title (HV-6) whose holder can't or won't `/remove` it, e.g. they've left | `awt-admin remove-entry <character> <entry>` |
+| Task | Command | Changes anything? |
+|---|---|---|
+| See a character's history, e.g. for a dispute (HV-5): every change, who made it and when. Finds a removed character too | `awt-admin history <character>` | No |
+| See who has an entry, e.g. before changing or retiring it in the catalog | `awt-admin holders <entry>` | No |
+| Move a character to another Discord account (only the owner can change a character, CH-1), e.g. a player's new account | `awt-admin transfer <character> <new owner's Discord user ID>` | Yes |
+| Remove a character (CH-2): players can rename but not delete | `awt-admin remove-character <character>` | Yes |
+| Free a one-holder title (HV-6) whose holder can't or won't `/remove` it, e.g. they've left | `awt-admin remove-entry <character> <entry>` | Yes |
 
-Run it on the Fly machine, first without `--yes` to see what it would change, then
-with `--yes` to make the change:
+To find a Discord user ID, turn on **User Settings → Advanced → Developer Mode**,
+then right-click the person and choose **Copy User ID**.
+
+Run it on the Fly machine. For the commands that change something, run it first
+without `--yes` to see what it would change, then with `--yes` to make the change:
 
 ```
 fly ssh console --app awt-party-bonus-bot -C "awt-admin remove-character Pip"
@@ -81,14 +87,15 @@ Names ignore case; put a name with spaces in single quotes, e.g.
 With `--yes` it:
 - takes a snapshot first, in `/data/snapshots/`, so a mistake can be undone with
   [restore-runbook.md](restore-runbook.md);
-- removes the character with its entries and guild memberships, or the one entry,
-  leaving nothing behind;
+- makes the change in one go, leaving nothing half done: a removed character's
+  entries and guild memberships go with it; a transferred character keeps them;
 - records the change in the audit log (HV-5) as made by the maintainer (actor `0`).
 
-A removed character's name is free to register again. If it was its player's
-current character, the bot tells them to choose another with `/play`, or to
-register one if it was their only character. Tell the player on Discord when it's
-done.
+A removed character's name is free to register again. A character that was its
+player's current one stops being current, removed or transferred: the bot tells
+them to choose another with `/play`, or to register one if it was their only
+character. A transferred character becomes its new owner's current one if they had
+none. Tell the players involved on Discord when it's done.
 
 Never edit the database by hand instead: a hand-written query skips the
 safeguards above, and can leave a removed character's entries behind.

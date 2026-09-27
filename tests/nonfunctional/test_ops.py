@@ -15,7 +15,16 @@ from pathlib import Path
 
 import pytest
 
-from awt_bonus.admin import MAINTAINER, AdminError, SnapshotTaker, remove_character, remove_entry
+from awt_bonus.admin import (
+    MAINTAINER,
+    AdminError,
+    SnapshotTaker,
+    history,
+    holders,
+    remove_character,
+    remove_entry,
+    transfer,
+)
 from awt_bonus.backup import (
     S3Uploader,
     next_nightly,
@@ -608,3 +617,123 @@ async def test_a_maintainer_change_that_doesnt_fit_changes_nothing(
     with pytest.raises(AdminError):
         await change
     assert await world.store.audit_log() == before
+
+
+async def _no_snapshot() -> None:
+    """For tests where the snapshot doesn't matter."""
+
+
+@pytest.mark.req("HV-5", "AD-2")
+async def test_history_shows_every_change_to_a_character_with_who_and_when(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("setup")
+    await world.run("craig", "add", character="Elowen", entry="Holy Aura")
+    await world.run("craig", "character rename", character="Elowen", new="Elowyn")
+
+    lines = await history(world.store, world.catalog, "elowyn")
+
+    text = "\n".join(lines)
+    assert "Elowyn" in lines[0]
+    assert f"add by Discord user {world.user('craig')}" in text
+    assert "Holy Aura" in text, "entries are shown by name, not ID"
+    assert "rename" in text
+    assert "UTC" in lines[0]
+
+
+@pytest.mark.req("HV-5", "CH-2")
+async def test_history_finds_a_removed_character(make_world: MakeWorld) -> None:
+    world = await make_world("setup")
+    await remove_character(
+        world.store, world.catalog, "Mal", confirmed=True, snapshot=_no_snapshot, now=NOW
+    )
+
+    lines = await history(world.store, world.catalog, "Mal")
+
+    assert "(removed)" in lines[0]
+    assert any("remove character by the maintainer" in line for line in lines)
+    with pytest.raises(AdminError):
+        await history(world.store, world.catalog, "Nobody")
+
+
+@pytest.mark.req("HV-6", "CT-6", "AD-2")
+async def test_holders_lists_who_has_an_entry(make_world: MakeWorld) -> None:
+    world = await make_world("setup")
+
+    lines = await holders(world.store, world.catalog, "champion of power")
+
+    assert lines[0] == "Champion of Power: 1 character"
+    assert lines[1] == f"  Ioseph, owned by Discord user {world.user('ioan')}"
+    assert (await holders(world.store, world.catalog, "Old Charm"))[0].startswith(
+        "Old Charm (retired): 1 character"
+    )
+    with pytest.raises(AdminError):
+        await holders(world.store, world.catalog, "Mega Aura of Doom")
+
+
+@pytest.mark.req("CH-1", "AD-2", "HV-5", "NF-4")
+async def test_a_transferred_character_belongs_to_its_new_owner(make_world: MakeWorld) -> None:
+    world = await make_world("setup")
+    craig, newbie = world.user("craig"), world.user("newbie")
+
+    plan = await transfer(
+        world.store,
+        world.catalog,
+        "Crateris",
+        newbie,
+        confirmed=False,
+        snapshot=_no_snapshot,
+        now=NOW,
+    )
+    assert "choose another with /play" in "\n".join(plan.description)
+    crateris = await world.character("Crateris")
+    assert crateris is not None
+    assert crateris.owner == craig, "nothing changed without --yes"
+
+    await transfer(
+        world.store,
+        world.catalog,
+        "Crateris",
+        newbie,
+        confirmed=True,
+        snapshot=_no_snapshot,
+        now=NOW,
+    )
+
+    crateris = await world.character("Crateris")
+    assert crateris is not None
+    assert crateris.owner == newbie
+    assert crateris.entries == ("high_priest", "holy_aura"), "it keeps what it has"
+    current = await world.store.current_character(newbie)
+    assert current is not None
+    assert current.name == "Crateris", "newbie had no character: it becomes current"
+    assert await world.store.current_character(craig) is None
+    refused = await world.run("craig", "character level", character="Crateris", level=23)
+    assert "belongs to another player" in refused.text
+    await world.run("newbie", "character level", character="Crateris", level=23)
+    assert (await world.character("Crateris")).level == 23  # type: ignore[union-attr]
+    [record] = [a for a in await world.store.audit_log() if a.action == "transfer"]
+    assert record.actor == MAINTAINER
+    assert record.before == {"owner": craig}
+    assert record.after == {"owner": newbie}
+
+
+@pytest.mark.req("CH-1", "AD-2")
+@pytest.mark.parametrize("new_owner", [0, -5, 4001], ids=["zero", "negative", "same-owner"])
+async def test_a_transfer_that_doesnt_fit_changes_nothing(
+    make_world: MakeWorld, new_owner: int
+) -> None:
+    world = await make_world("setup")
+    with pytest.raises(AdminError):
+        await transfer(
+            world.store,
+            world.catalog,
+            "Crateris",
+            new_owner,
+            confirmed=True,
+            snapshot=_no_snapshot,
+            now=NOW,
+        )
+    crateris = await world.character("Crateris")
+    assert crateris is not None
+    assert crateris.owner == world.user("craig")
