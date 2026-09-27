@@ -34,6 +34,8 @@ A character can have both Holy Knight and Commander skills, so a Holy Knight wit
 
 **Question:** Is it the recipient's level or the High Inquisitor's? Does the High Inquisitor benefit too?
 
+**Answered (2026-09-27):** the current assumption is right. The recipient's level decides which bonus they get, and the High Inquisitor doesn't receive their own bonus.
+
 ---
 
 ## Q3. GoTH: does Seraph's Affection replace Nuyaru's Love, or add to it?

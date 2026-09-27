@@ -125,7 +125,7 @@ entries:
     card: "When you are present, all Pirate Coalition members gain +2 to Combat Rolls."
 
   # ------------------------------------------------------------ Cult of the Dragon
-  # The recipient's level decides the band; the High Inquisitor doesn't benefit (Q2).
+  # The recipient's level decides the band; the High Inquisitor doesn't benefit (answered, Q2).
   high_priest:
     name: High Inquisitor                  # the ID stays high_priest (CT-2)
     kind: rank
