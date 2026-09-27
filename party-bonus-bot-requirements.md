@@ -254,7 +254,7 @@ Values come from the skill-tree images and guild write-ups in the Diceknights dr
 | Guild | Membership | Entries added with `/add` |
 |---|---|---|
 | **Patreon Bonuses** | Discord roles: Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend | None. **Support** comes from the roles, Junior Adventurer and above: +2 CM to allies. Guild tiers are derived from the AWT Patreon. |
-| **Guild of the Timeless Heroes** (GoTH) | `/guild join` | Boons: **Nuyaru's Love** +1 CM to allies; **Seraph's Affection** +3 CM to allies, replaces Nuyaru's Love (Q3). Length of service isn't tracked. |
+| **Guild of the Timeless Heroes** (GoTH) | `/guild join` | Boons: **Nuyaru's Love** +1 CM to allies; **Seraph's Affection** +3 CM to allies, replaces Nuyaru's Love (answered, Q3). Length of service isn't tracked. |
 | **Guild of Thieves** (secret) | `/guild join` | Ranks **Footpad**, **Burglar** (replaces Footpad) and **Guild Thief** (replaces both). Every rank grants **Rat Pack:** +1 CM and +1 CR escape to other members. Guild Thief also grants **Leadership:** +2 CM and +2 CR stealth to all members, the giver included; doesn't stack. (Q6) |
 | **Pirate Coalition** | `/guild join` | Rank **Captain** (King of the Pirates): +2 CM to all members, the giver included; doesn't stack. |
 | **Cult of the Dragon** | `/guild join` | Rank **High Inquisitor** (Cult of the Dragon): to other members, level under 10: +1 heart damage; level 10 or higher: +10 CM. **One holder at a time** (HV-6). Doesn't stack (Q2). |
@@ -655,7 +655,7 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 
 ## 16. Open Questions
 
-**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), GoTH boons (Q3), the full item and title list (Q4), whether a Guild Thief keeps Rat Pack (Q6), and whether a summoned character's bonuses count (Q8).
+**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), the full item and title list (Q4), whether a Guild Thief keeps Rat Pack (Q6), and whether a summoned character's bonuses count (Q8).
 
 **Waiting on players:** none at the moment. Every bonus players had been counting without a known source has been found (see Resolved). A bonus that turns up without a known source is listed here, with the character giving it, until its source is known and it becomes a catalog entry.
 
