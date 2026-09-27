@@ -272,6 +272,9 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 | Will's Ward Stone | Item | +5 CM | To confirm (Q4) |
 | NF (nobuFest pin) | Item | +1 CM to **NF pin holders only**, the holder included; stacks (with three holders present, each gets +3) | Amount to confirm (Q4) |
 | Will Passion's Pendant | Item | **Aura of Passion:** +2 hearts of damage to allies wearing a Will Passion item. Conditional (rule 4.12): shown separately, never in totals. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
+| Easy Back Oven | Item | Effect: effects of extreme cold are negated, for the party, the holder included | Card text from Craig |
+| Pants of the Water Valkyrie | Item | +1 heart damage reduction to the party, the holder included | Card text from Craig |
+| Protection Charm | Item | +1 heart damage reduction to allies. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
 | Champion of Power | Title | +5 CR, +5 CM. **One holder at a time** (HV-6). | To confirm (Q4) |
 | Hero of Passion (HoP) | Title | +1 CM to each **other HoP holder** (stacks). Its +3 CM to the holder is self-only, so it's part of the holder's own CM (section 2): shown on the card, not calculated | Answered (Q5) |
 | Part of the Ship, Part of the Crew | Title | +2 CM to each **other** holder of the title (stacks). Its +5 CM to the holder, and its effect (sea legs: can't be knocked off a ship), are self-only (section 2): on the card, not calculated. Two holders present each get +2 from the bot and add their own +5 | Card text from Craig |
@@ -658,13 +661,12 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 | Character | What they've been giving | Notes |
 |---|---|---|
 | Elizor | 1 heart of healing per round | |
-| Chris the Holy Baker | 2 hearts of damage reduction per round | Once thought to come from Helping Hands. |
-| Chris the Holy Baker | Effect: "Effects of extreme cold are negated around Chris the Holy Baker" | |
 
 **For later consideration: long-term hosting.** Craig hosts the bot at launch. If it runs for the long term, decide who pays for hosting, who holds the bot token and backup credentials, who fixes it when it's down at game time, and how it's handed over if Craig steps away.
 
 ### Resolved
 
+- **Chris the Holy Baker's** 2 hearts of damage reduction come from two items, **Pants of the Water Valkyrie** (1 heart, the holder included) and the **Protection Charm** (1 heart, allies only); the extreme-cold effect comes from the **Easy Back Oven**.
 - **Elizor's +2 hearts of damage** to allies with a passion item comes from **Will Passion's Pendant** (its bonus is Aura of Passion): a conditional bonus, shown but never in totals.
 - **Allies only:** a bonus never applies to its giver, unless the catalog entry says so (Leadership, King of the Pirates, Wilderness Lore, Proper Seasoning).
 - **Fixed catalog:** skills, guild abilities, boons, items and titles come from data files in the repository. Players pick from it and can't type in bonuses. Missing entries are requested with `/request`.

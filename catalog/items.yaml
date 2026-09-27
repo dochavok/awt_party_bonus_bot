@@ -30,6 +30,26 @@ entries:
     condition: "allies wearing a Will Passion item"   # not tracked: never in totals (4.12)
     card: "All allies wearing Will Passion items gain +2 <3s of damage."
 
+  easy_back_oven:
+    name: Easy Back Oven
+    kind: item
+    effect: "Effects of extreme cold are negated"
+    includes_giver: true                    # "around" the holder: the holder too
+    card: "Effects of extreme cold are negated around Chris the holy baker."
+
+  pants_of_the_water_valkyrie:
+    name: Pants of the Water Valkyrie
+    kind: item
+    gives: {Damage reduction: 1}
+    includes_giver: true                    # "your party": the holder too
+    card: "Reduce damage done to your party by 1 heart"
+
+  protection_charm:
+    name: Protection Charm
+    kind: item                              # an item, so not an aura for Devotion III (rule 4.6)
+    gives: {Damage reduction: 1}            # allies only
+    card: "Allies in your aura take 1<3 less of damage each round."
+
   # ------------------------------------------------------------ titles
   champion_of_power:
     name: Champion of Power
