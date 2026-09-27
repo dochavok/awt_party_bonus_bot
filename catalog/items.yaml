@@ -50,6 +50,12 @@ entries:
     gives: {Damage reduction: 1}            # allies only
     card: "Allies in your aura take 1<3 less of damage each round."
 
+  helm_of_the_caladrius:
+    name: Helm of the Caladrius
+    kind: item
+    gives: {Healing: 1}                     # allies only
+    card: "1 heart of healing per round"
+
   # ------------------------------------------------------------ titles
   champion_of_power:
     name: Champion of Power

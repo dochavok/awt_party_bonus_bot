@@ -275,6 +275,7 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 | Easy Back Oven | Item | Effect: effects of extreme cold are negated, for the party, the holder included | Card text from Craig |
 | Pants of the Water Valkyrie | Item | +1 heart damage reduction to the party, the holder included | Card text from Craig |
 | Protection Charm | Item | +1 heart damage reduction to allies. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
+| Helm of the Caladrius | Item | +1 heart of healing per round to allies | Card text from Craig |
 | Champion of Power | Title | +5 CR, +5 CM. **One holder at a time** (HV-6). | To confirm (Q4) |
 | Hero of Passion (HoP) | Title | +1 CM to each **other HoP holder** (stacks). Its +3 CM to the holder is self-only, so it's part of the holder's own CM (section 2): shown on the card, not calculated | Answered (Q5) |
 | Part of the Ship, Part of the Crew | Title | +2 CM to each **other** holder of the title (stacks). Its +5 CM to the holder, and its effect (sea legs: can't be knocked off a ship), are self-only (section 2): on the card, not calculated. Two holders present each get +2 from the bot and add their own +5 | Card text from Craig |
@@ -294,7 +295,7 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 
 Titles with no party bonus can still be added with `/add`; they show in `/catalog` and in what a character has, but never change totals.
 
-Some bonuses players have been counting have no known source yet; see "Waiting on players" in section 16.
+Bonuses players count whose source isn't known yet are listed under "Waiting on players" in section 16 (none at the moment).
 
 ## 9. Example
 
@@ -656,16 +657,13 @@ The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stat
 
 **Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), GoTH boons (Q3), the full item and title list (Q4), whether a Guild Thief keeps Rat Pack (Q6), and whether a summoned character's bonuses count (Q8).
 
-**Waiting on players:** these bonuses have been counted, but where they come from (skill, item, title, guild…) isn't known yet. Craig is following up with the players. Each becomes a catalog entry once its source is known:
-
-| Character | What they've been giving | Notes |
-|---|---|---|
-| Elizor | 1 heart of healing per round | |
+**Waiting on players:** none at the moment. Every bonus players had been counting without a known source has been found (see Resolved). A bonus that turns up without a known source is listed here, with the character giving it, until its source is known and it becomes a catalog entry.
 
 **For later consideration: long-term hosting.** Craig hosts the bot at launch. If it runs for the long term, decide who pays for hosting, who holds the bot token and backup credentials, who fixes it when it's down at game time, and how it's handed over if Craig steps away.
 
 ### Resolved
 
+- **Elizor's 1 heart of healing per round** comes from the **Helm of the Caladrius**, an item that heals allies.
 - **Chris the Holy Baker's** 2 hearts of damage reduction come from two items, **Pants of the Water Valkyrie** (1 heart, the holder included) and the **Protection Charm** (1 heart, allies only); the extreme-cold effect comes from the **Easy Back Oven**.
 - **Elizor's +2 hearts of damage** to allies with a passion item comes from **Will Passion's Pendant** (its bonus is Aura of Passion): a conditional bonus, shown but never in totals.
 - **Allies only:** a bonus never applies to its giver, unless the catalog entry says so (Leadership, King of the Pirates, Wilderness Lore, Proper Seasoning).
