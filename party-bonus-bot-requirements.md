@@ -178,7 +178,7 @@ There are no sessions to start or end. Each time a command runs, the bot looks a
 | OUT-3a | **`/breakdown <character>`**: each stat that character receives, the sum written out, and every contribution with the bonus name, giver and value (including modifiers, e.g. "Holy Aura +3 (2 + 1 Devotion III)"). Then: bonuses **not applied** to them, with the reason (every bonus or effect shown in the party `/breakdown` that this character doesn't receive, e.g. not in the guild, doesn't hold the title, is the giver, or has no level recorded; replaced entries and not-stacked duplicates aren't listed, and secret guild bonuses follow SG-3), and what the character **gives**. | M |
 | OUT-3b | Discord messages are limited to 2,000 characters (4,096 in an embed). Longer output is split across several messages or pages, never cut off. | M |
 | OUT-4 | If the character's player isn't in a voice channel, or is sitting out, `/mybonus` and `/breakdown <character>` show what the character **gives**, and explain why there are no totals (no party present, or sitting out until when). | M |
-| OUT-5 | **Who sees replies.** `/partybonus` posts **publicly** by default, so the whole party sees the table; `private:true` makes it a private check instead (e.g. when rerunning it as people join). Every other reply is **always private** (only the person who ran the command sees it), with no option: `/mybonus`, `/breakdown` (party or character), `/catalog`, and all setup commands. | M |
+| OUT-5 | **Who sees replies.** `/partybonus` posts **publicly** by default, so the whole party sees the table; `private:true` makes it a private check instead (e.g. when rerunning it as people join). Every other reply is **always private** (only the person who ran the command sees it), with no option: `/mybonus`, `/breakdown` (party or character), `/bogsy`, `/catalog`, and all setup commands. | M |
 | OUT-6 | A player can look up anyone's character (subject to SG-3). | S |
 | OUT-7 | Output never uses pronouns for characters ("to Kael", not "to himself"). | M |
 | OUT-8 | **Live `/partybonus`:** a public `/partybonus` message that the bot keeps editing when people join or leave the voice channel, sit out or in, or change characters. Edits are batched over a few seconds (to stay within Discord's rate limits), and it stops updating once the channel has been empty for a while (e.g. 15 minutes). It isn't pinned, since pinning needs the *Manage Messages* permission (NF-11). | C |
@@ -196,7 +196,8 @@ There are no sessions to start or end. Each time a command runs, the bot looks a
 ```
 Game night (players)
 /partybonus [channel:<voice>] [private:<bool>]     public by default
-/mybonus [character] [export:<bogsy>]              always private; export is for later (M6)
+/mybonus [character]                               always private
+/bogsy                                             always private; party bonuses as Bogsy modifiers (M6)
 /breakdown [character] [channel:<voice>]           always private
 /play <character>
 /sitout   /sitin
@@ -638,13 +639,13 @@ The functional tests are written **before any bot code** (milestone M1), from th
 
 ## 14. Optional: Hand-off to Bogsy's Dice Bot
 
-The bot doesn't roll dice. `/mybonus <character> export:bogsy` lists **roll stats only** (CM, CR, CR subtypes) as values for the player to enter with Bogsy's `/modifier`. Combat notes, effects and conditional bonuses are never exported. The exported values are party bonuses only; they add on top of the character's own CM and CR.
+The bot doesn't roll dice. `/bogsy` replies privately with Bogsy `/modifier` commands that set the player's **current character's party bonuses** for roll stats only (CM, CR and the CR subtypes), ready to paste into Bogsy one line at a time. To export another of their characters, a player uses `/play` first. Combat notes, effects and conditional bonuses are never exported. The values are party bonuses only. Players keep their own bonuses in their own modifiers (e.g. `my_fear`) and add both when rolling, e.g. `/roll command:challenge+my_fear+bonus_fear`, where the `challenge` quickroll already includes `bonus_cr`. Bogsy's quickrolls can't include other quickrolls, so a roll of one CR type adds that type's modifiers when it's typed.
 
 | ID | Requirement | Pri |
 |---|---|---|
-| BG-1 | The export lists each roll stat's modifier name and value, e.g. `awt_cm` = `+33`, `awt_cr` = `+10`, `awt_cr_fear` = `+13`, with copyable text lines (`.awt_cm = +33 "AWT CM"`). | C |
-| BG-2 | Modifier names come from the catalog's stat definitions and avoid Bogsy's reserved words. | C |
-| BG-3 | The export also lists modifiers to clear (`.awt_cm =`) for stats that are now zero. | C |
+| BG-1 | The export is one line per roll stat, in the catalog's order, as a Bogsy command: `/modifier name:<name> value:<n>`, e.g. `/modifier name:bonus_cm value:33`. CM and CR hold the character's totals. Each CR subtype holds only the **extra on top of CR** (its total minus CR's), because Bogsy adds modifiers together when rolling: for Mira in the sample game, `bonus_cr` 10 and `bonus_fear` 3. The export ends with a short note on setting up quickrolls once (e.g. `challenge = 1d20 + cr_level + my_cr_bonus + bonus_cr`) and on adding a CR type's modifiers when rolling. | C |
+| BG-2 | Modifier names are `bonus_`, then the stat's name in lower case with spaces as underscores; for CR subtypes, "CR" and "vs" are left out: `bonus_cm`, `bonus_cr`, `bonus_fear`, `bonus_stealth`, `bonus_escape`, `bonus_would_hurt`. The prefix keeps them apart from players' own modifiers and Bogsy's own words. | C |
+| BG-3 | Every roll stat is always listed. One with no party bonus is set to `value:0` rather than deleted, so quickrolls that use it keep working and nothing is left over from an earlier game. With no party present, or while sitting out (OUT-4), every value is 0 and the reply says why. With no current character, the reply says how to register or choose one (CH-3). | C |
 
 ## 15. Future Enhancements
 
