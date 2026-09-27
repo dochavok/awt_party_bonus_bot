@@ -100,7 +100,8 @@ scenario or catalog fix.
       counts once.
 - [ ] Role changes: remove the role, and within about a minute Support is gone
       (roles are cached for about 60 s, NF-6).
-- [ ] `/guild join <character> The Guild` is refused and shows the Patreon link.
+- [ ] `/guild join <character> Patreon Bonuses` is refused and shows the Patreon link.
+- [ ] `/catalog Patreon Bonuses` shows Support, the Support Tiers and the Patreon link.
 - [ ] `/add` autocomplete offers a guild's ranks and boons only after
       `/guild join`; typing one in anyway is refused with the join command.
 - [ ] `/guild leave` removes that guild's ranks and boons and lists them.

@@ -93,7 +93,7 @@ class Give:
     """Unique within the report."""
     giver: UserId
     entry: EntryId
-    """What the giver has, e.g. "High Priest"; for Support, the Guild's role pseudo-entry."""
+    """What the giver has, e.g. "High Inquisitor"; for Support, the role guild's pseudo-entry."""
     bonus: str
     """The bonus's display name, e.g. "Cult of the Dragon", "Rat Pack", "Holy Aura"."""
     source: Source

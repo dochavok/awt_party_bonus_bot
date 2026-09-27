@@ -22,15 +22,15 @@ A character can have both Holy Knight and Commander skills, so a Holy Knight wit
 
 ---
 
-## Q2. Cult of the Dragon: whose level counts, and does the High Priest benefit?
+## Q2. Cult of the Dragon: whose level counts, and does the High Inquisitor benefit?
 
-**Current rule:** The Cult's High Priest (one character) gives other Cult members: level under 10, +1 heart damage; level 10 or higher, +10 CM. Ordinary Cult members give nothing.
+**Current rule:** The Cult's High Inquisitor (one character) gives other Cult members: level under 10, +1 heart damage; level 10 or higher, +10 CM. Ordinary Cult members give nothing.
 
 **Current assumption:**
 - The **recipient's** level decides which of the two they get.
-- The High Priest doesn't receive their own bonus (allies only).
+- The High Inquisitor doesn't receive their own bonus (allies only).
 
-**Question:** Is it the recipient's level or the High Priest's? Does the High Priest benefit too?
+**Question:** Is it the recipient's level or the High Inquisitor's? Does the High Inquisitor benefit too?
 
 ---
 

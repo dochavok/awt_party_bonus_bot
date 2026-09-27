@@ -134,6 +134,50 @@ async def test_catalog_for_a_guild_shows_its_bonuses_only_to_members(
     assert member.private
 
 
+def _with_join_text() -> dict[str, object]:
+    """The test catalog, with join text for the guild whose membership comes from roles."""
+    data = catalog_data()
+    data["guilds"]["the_guild"]["how_to_join"] = "Guild tiers come from the test Patreon."
+    return data
+
+
+@M4
+@pytest.mark.req("CT-8", "CT-5", "HV-3")
+@pytest.mark.parametrize("options", [{"entry": "The Guild"}, {}], ids=["guild", "full-list"])
+async def test_catalog_lists_the_roles_that_give_a_role_bonus_with_the_join_text(
+    make_world: MakeWorld, options: dict[str, str]
+) -> None:
+    world = await make_world("setup")
+    app = world.app_with(catalog=parse_catalog(_with_join_text()))
+    reply = await app.run(world.user("craig"), "catalog", options)
+
+    assert "Junior Adventurer or above" in reply.text, "the lowest role, and above"
+    assert (
+        "Support Tiers: Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, "
+        "Guild Legend" in reply.text
+    )
+    assert "Guild tiers come from the test Patreon." in reply.text, "shown with the tiers"
+    assert reply.private
+
+
+@M4
+@pytest.mark.req("HV-3", "CT-5")
+async def test_joining_a_guild_that_comes_with_roles_names_the_lowest_role(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("setup")
+    app = world.app_with(catalog=parse_catalog(_with_join_text()))
+    reply = await app.run(
+        world.user("craig"), "guild join", {"character": "Elowen", "guild": "The Guild"}
+    )
+
+    assert "Junior Adventurer" in reply.text
+    assert "Guild tiers come from the test Patreon." in reply.text
+    elowen = await world.character("Elowen")
+    assert elowen is not None
+    assert "the_guild" not in elowen.guilds, "nothing was joined"
+
+
 # ---------------------------------------------------------------- CT-9: /request
 
 

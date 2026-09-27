@@ -11,15 +11,15 @@
 # ---------------------------------------------------------------------------
 
 guilds:
-  the_guild:
-    short_name: Guild
-    full_name: The Guild
+  the_guild:                                # the ID stays; only the names changed (CT-2)
+    short_name: Patreon
+    full_name: Patreon Bonuses
     membership: roles
-    roles: [Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend]
+    roles: [Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend]  # lowest first
     from_roles:                             # given once, whichever roles and however many (HV-3)
       - {name: Support, gives: {CM: 2}}
     how_to_join: >-
-      The Guild's ranks come with the AWT Patreon. Check it out:
+      Guild tiers are derived from the AWT Patreon:
       <https://www.patreon.com/adventuresfromthewizardstower>
 
   goth:
@@ -125,9 +125,9 @@ entries:
     card: "When you are present, all Pirate Coalition members gain +2 to Combat Rolls."
 
   # ------------------------------------------------------------ Cult of the Dragon
-  # The recipient's level decides the band; the High Priest doesn't benefit (Q2).
+  # The recipient's level decides the band; the High Inquisitor doesn't benefit (Q2).
   high_priest:
-    name: High Priest
+    name: High Inquisitor                  # the ID stays high_priest (CT-2)
     kind: rank
     guild: cult
     ability: Cult of the Dragon

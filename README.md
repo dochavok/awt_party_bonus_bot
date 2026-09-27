@@ -20,12 +20,12 @@ In Discord, `/help` shows these steps and tells you your own next step.
 3. **Add what your character has**: skills, guild ranks, boons, items and titles. Autocomplete shows what's available:
    ```
    /add character:Crateris entry:Holy Aura
-   /add character:Crateris entry:High Priest
+   /add character:Crateris entry:High Inquisitor
    /add character:Crateris entry:Wills ward stone
    ```
    Not sure what's available or what it gives? Use `/catalog`.
 
-Your Guild rank role on Discord (Junior Adventurer through Guild Legend) gives **Support** automatically; you don't add it.
+Junior Adventurer and above (your Guild rank role on Discord) get **Support** automatically; you don't add it. `/catalog Patreon Bonuses` lists the Support tiers.
 
 ## On game night
 
