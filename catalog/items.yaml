@@ -45,6 +45,15 @@ entries:
     gives: {CM: 1}                          # answered (Q5); its +3 CM to self isn't counted (section 2)
     card: "+3 CM to the holder (add it to your own CM; the bot doesn't count it). +1 CM to each other Hero of Passion holder."
 
+  part_of_the_crew:
+    name: Part of the Ship, Part of the Crew
+    kind: title
+    audience: holders                       # to other holders only; stacks
+    gives: {CM: 2}                          # its +5 CM to self isn't counted (section 2)
+    card: >-
+      +5 cm additional (self) +2 for each person that has this title. Passive sea legs:
+      you cannot be knocked off of any ship.
+
   # Helping Hands raises only the buffs and heals its holder casts, which aren't tracked,
   # and never auras or other always-on bonuses: no party bonus in the bot (answered, Q7).
   helping_hands:

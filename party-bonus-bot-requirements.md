@@ -274,6 +274,7 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 | Will Passion's Pendant | Item | **Aura of Passion:** +2 hearts of damage to allies wearing a Will Passion item. Conditional (rule 4.12): shown separately, never in totals. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
 | Champion of Power | Title | +5 CR, +5 CM. **One holder at a time** (HV-6). | To confirm (Q4) |
 | Hero of Passion (HoP) | Title | +1 CM to each **other HoP holder** (stacks). Its +3 CM to the holder is self-only, so it's part of the holder's own CM (section 2): shown on the card, not calculated | Answered (Q5) |
+| Part of the Ship, Part of the Crew | Title | +2 CM to each **other** holder of the title (stacks). Its +5 CM to the holder, and its effect (sea legs: can't be knocked off a ship), are self-only (section 2): on the card, not calculated. Two holders present each get +2 from the bot and add their own +5 | Card text from Craig |
 | Helping Hands | Title | No party bonus: +1 to the buffs and heals the holder casts, which the bot doesn't track; not auras or other always-on bonuses. Card text: "Anytime you buff or heal an ally/allies the numerical value is increased by 1." | Answered (Q7) |
 | Helping Hands v2.0 | Title | As Helping Hands, but +3; replaces Helping Hands. No party bonus | Answered (Q7) |
 | Power Supporter | Title | No party bonus | Listed for completeness |
