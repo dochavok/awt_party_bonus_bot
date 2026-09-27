@@ -55,7 +55,7 @@ guilds:
 
 entries:
   # ------------------------------------------------------------ GoTH boons
-  # Seraph's Affection replaces Nuyaru's Love (Q3).
+  # Seraph's Affection replaces Nuyaru's Love (answered, Q3).
   nuyarus_love:
     name: Nuyaru's Love
     kind: boon

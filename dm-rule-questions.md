@@ -46,6 +46,8 @@ A character can have both Holy Knight and Commander skills, so a Holy Knight wit
 
 **Question:** Is that right for both points?
 
+**Answered (2026-09-26):** yes to both. Seraph's Affection replaces Nuyaru's Love; it doesn't add to it, so a character with both gives +3 CM. Each GoTH member gives their own boon (every giver counts, rule 4.1).
+
 ---
 
 ## Q4. Which items and titles give a bonus to the party?
