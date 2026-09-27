@@ -20,6 +20,8 @@ A character can have both Holy Knight and Commander skills, so a Holy Knight wit
 
 **If the answer is yes:** Commanding Presence and Inspiring Presence become +6 for a character who also has Devotion III.
 
+**Answered (2026-09-27):** the current assumption is right. The Presence skills aren't auras: only skills named "Aura" are, so Devotion III doesn't raise them, and they stay at +5.
+
 ---
 
 ## Q2. Cult of the Dragon: whose level counts, and does the High Inquisitor benefit?
@@ -31,6 +33,8 @@ A character can have both Holy Knight and Commander skills, so a Holy Knight wit
 - The High Inquisitor doesn't receive their own bonus (allies only).
 
 **Question:** Is it the recipient's level or the High Inquisitor's? Does the High Inquisitor benefit too?
+
+**Answered (2026-09-27):** the current assumption is right. The recipient's level decides which bonus they get, and the High Inquisitor doesn't receive their own bonus.
 
 ---
 
@@ -65,6 +69,8 @@ The bot will keep a fixed list of items and titles that give always-on bonuses t
 
 **Question:** Please correct the table, and add every other item, pin or title that gives an always-on bonus to allies.
 
+**Answered (2026-09-27):** the table is right. Will's Ward Stone gives +5 CM to allies, the NF pin +1 CM (to NF pin holders only, the holder included, stacking) and Champion of Power +5 to all challenge rolls and +5 CM. Hero of Passion is answered in Q5, and Helping Hands in Q7. The other items and titles are in the catalog (requirements section 8.4); new ones are added there as they come up, through `/request`.
+
 ---
 
 ## Q5. What does the Hero of Passion (HoP) title give?
@@ -90,6 +96,8 @@ HoP is **Hero of Passion**, a title. It goes only to other HoP holders. It has b
 **Current assumption:** Yes, a Guild Thief keeps Rat Pack. A Guild Thief gives Rat Pack **and** Leadership.
 
 **Alternative:** a Guild Thief gives only Leadership, and no longer gives Rat Pack.
+
+**Answered (2026-09-27):** the current assumption is right. A Guild Thief keeps Rat Pack, and gives Rat Pack and Leadership.
 
 ---
 

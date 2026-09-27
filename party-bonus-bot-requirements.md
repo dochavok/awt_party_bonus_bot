@@ -247,8 +247,8 @@ Values come from the skill-tree images and guild write-ups in the Diceknights dr
 | Devotion III | Holy Knight | Nothing itself | Modifier: +1 to each of this character's auras |
 | Aura of Defense | Paladin | +5 CR would hurt | Aura |
 | Aura of Hope | Paladin | +10 CM | Aura |
-| Commanding Presence | Commander | +5 CM | Conditional: allies in the same range, so shown separately and not in totals. Not an aura (DM question Q1). |
-| Inspiring Presence | Commander | +5 CR | Doesn't stack. Not an aura (Q1). |
+| Commanding Presence | Commander | +5 CM | Conditional: allies in the same range, so shown separately and not in totals. Not an aura (answered, Q1). |
+| Inspiring Presence | Commander | +5 CR | Doesn't stack. Not an aura (answered, Q1). |
 
 ### 8.3 Guilds
 
@@ -256,9 +256,9 @@ Values come from the skill-tree images and guild write-ups in the Diceknights dr
 |---|---|---|
 | **Patreon Bonuses** | Discord roles: Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend | None. **Support** comes from the roles, Junior Adventurer and above: +2 CM to allies. Guild tiers are derived from the AWT Patreon. |
 | **Guild of the Timeless Heroes** (GoTH) | `/guild join` | Boons: **Nuyaru's Love** +1 CM to allies; **Seraph's Affection** +3 CM to allies, replaces Nuyaru's Love (answered, Q3). Length of service isn't tracked. |
-| **Guild of Thieves** (secret) | `/guild join` | Ranks **Footpad**, **Burglar** (replaces Footpad) and **Guild Thief** (replaces both). Every rank grants **Rat Pack:** +1 CM and +1 CR escape to other members. Guild Thief also grants **Leadership:** +2 CM and +2 CR stealth to all members, the giver included; doesn't stack. (Q6) |
+| **Guild of Thieves** (secret) | `/guild join` | Ranks **Footpad**, **Burglar** (replaces Footpad) and **Guild Thief** (replaces both). Every rank grants **Rat Pack:** +1 CM and +1 CR escape to other members. Guild Thief also grants **Leadership:** +2 CM and +2 CR stealth to all members, the giver included; doesn't stack. (answered, Q6) |
 | **Pirate Coalition** | `/guild join` | Rank **Captain** (King of the Pirates): +2 CM to all members, the giver included; doesn't stack. |
-| **Cult of the Dragon** | `/guild join` | Rank **High Inquisitor** (Cult of the Dragon): to other members, level under 10: +1 heart damage; level 10 or higher: +10 CM. **One holder at a time** (HV-6). Doesn't stack (Q2). |
+| **Cult of the Dragon** | `/guild join` | Rank **High Inquisitor** (Cult of the Dragon): to other members, level under 10: +1 heart damage; level 10 or higher: +10 CM. **One holder at a time** (HV-6). Doesn't stack (answered, Q2). |
 | **Ranger's Guild** | `/guild join` | Ranks **Ranger Captain** and **Master Ranger** (replaces Ranger Captain), each with Wilderness Lore: effect: challenge rolls to resist natural effects are one roll category easier, for the giver and allies. |
 | **Order of Cookery** | `/guild join` | Ranks **Chef** and **Cookery Master** (replaces Chef), each with Proper Seasoning: effect: +1 heart when Invigorated, for the giver and allies. |
 
@@ -270,14 +270,14 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 
 | Entry | Kind | Gives (to allies) | Status |
 |---|---|---|---|
-| Will's Ward Stone | Item | +5 CM | To confirm (Q4) |
-| NF (nobuFest pin) | Item | +1 CM to **NF pin holders only**, the holder included; stacks (with three holders present, each gets +3) | Amount to confirm (Q4) |
+| Will's Ward Stone | Item | +5 CM | Confirmed (Q4) |
+| NF (nobuFest pin) | Item | +1 CM to **NF pin holders only**, the holder included; stacks (with three holders present, each gets +3) | Confirmed (Q4) |
 | Will Passion's Pendant | Item | **Aura of Passion:** +2 hearts of damage to allies wearing a Will Passion item. Conditional (rule 4.12): shown separately, never in totals. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
 | Easy Back Oven | Item | Effect: effects of extreme cold are negated, for the party, the holder included | Card text from Craig |
 | Pants of the Water Valkyrie | Item | +1 heart damage reduction to the party, the holder included | Card text from Craig |
 | Protection Charm | Item | +1 heart damage reduction to allies. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
 | Helm of the Caladrius | Item | +1 heart of healing per round to allies | Card text from Craig |
-| Champion of Power | Title | +5 CR, +5 CM. **One holder at a time** (HV-6). | To confirm (Q4) |
+| Champion of Power | Title | +5 CR, +5 CM. **One holder at a time** (HV-6). | Confirmed (Q4) |
 | Hero of Passion (HoP) | Title | +1 CM to each **other HoP holder** (stacks). Its +3 CM to the holder is self-only, so it's part of the holder's own CM (section 2): shown on the card, not calculated | Answered (Q5) |
 | Part of the Ship, Part of the Crew | Title | +2 CM to each **other** holder of the title (stacks). Its +5 CM to the holder, and its effect (sea legs: can't be knocked off a ship), are self-only (section 2): on the card, not calculated. Two holders present each get +2 from the bot and add their own +5 | Card text from Craig |
 | Helping Hands | Title | No party bonus: +1 to the buffs and heals the holder casts, which the bot doesn't track; not auras or other always-on bonuses. Card text: "Anytime you buff or heal an ally/allies the numerical value is increased by 1." | Answered (Q7) |
@@ -656,7 +656,7 @@ The bot doesn't roll dice. `/bogsy` replies privately with Bogsy `/modifier` com
 
 ## 16. Open Questions
 
-**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): Presence skills as auras (Q1), the Cult's level rule (Q2), the full item and title list (Q4), whether a Guild Thief keeps Rat Pack (Q6), and whether a summoned character's bonuses count (Q8).
+**Waiting on the DMs:** see [dm-rule-questions.md](dm-rule-questions.md): whether a summoned character's bonuses count (Q8).
 
 **Waiting on players:** none at the moment. Every bonus players had been counting without a known source has been found (see Resolved). A bonus that turns up without a known source is listed here, with the character giving it, until its source is known and it becomes a catalog entry.
 
@@ -671,7 +671,7 @@ The bot doesn't roll dice. `/bogsy` replies privately with Bogsy `/modifier` com
 - **Fixed catalog:** skills, guild abilities, boons, items and titles come from data files in the repository. Players pick from it and can't type in bonuses. Missing entries are requested with `/request`.
 - **Catalog changes:** permanent IDs, retired instead of deleted, linked rather than copied, validated in CI, and deployed automatically on push to `main`.
 - **Stacking:** every giver counts, except entries marked "doesn't stack", which count once. A replacing entry supersedes the one it replaces.
-- **Devotion III** adds +1 to all of the character's own auras, from any tree. Only skills named "Aura" are auras (pending Q1).
+- **Devotion III** adds +1 to all of the character's own auras, from any tree. Only skills named "Aura" are auras (answered, Q1).
 - **Characters can't be deleted**, only renamed. This avoids losing data by accident and means a player's current character always exists. The rare removal goes through `/request`.
 - **Character names are unique on the server**, not per player, so names are never ambiguous in commands or output. This can be revisited if duplicate names turn out to be common.
 - **One `/add` command** (and `/remove`) for skills, boons, ranks, items and titles, rather than one command per kind. Players don't need to know an entry's kind, and `/catalog` shows the exact command for each entry. Guild ranks and boons are only shown (in `/catalog` and autocomplete) and only accepted for members of that guild; leaving a guild removes them.
