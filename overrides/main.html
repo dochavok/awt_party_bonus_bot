@@ -1,0 +1,12 @@
+{#- Every page shows when it was last reviewed (requirements DOC-7), from the
+    `reviewed:` date in its front matter. "Last update" comes from git. -#}
+{% extends "base.html" %}
+
+{% block content %}
+  {{ super() }}
+  {% if page.meta and page.meta.reviewed %}
+    <p class="page-reviewed">
+      <small>Reviewed against the bot: {{ page.meta.reviewed }}</small>
+    </p>
+  {% endif %}
+{% endblock %}

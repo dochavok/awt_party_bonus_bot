@@ -19,6 +19,9 @@ dependencies = [
 dev = [
     "boto3-stubs[s3]>=1.43.103",
     "hypothesis>=6.168.1",
+    "mkdocs>=1.6,<2",
+    "mkdocs-git-revision-date-localized-plugin>=1.6.0",
+    "mkdocs-material>=9.7.7",
     "mypy>=2.3.1",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
@@ -41,7 +44,7 @@ module-name = "awt_bonus"
 # finishing a milestone isn't a test change under TF-6.
 # ---------------------------------------------------------------------------
 [tool.awt_bonus]
-finished_milestones = ["M1", "M2", "M3", "M4", "M5", "M6"]
+finished_milestones = ["M1", "M2", "M3", "M4", "M5", "M6", "M7"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,0 +1,22 @@
+/* A reply from the bot, shown as it looks in Discord (examples, DOC-4). */
+.discord-reply {
+  border-left: 4px solid #5865f2;
+  background: var(--md-code-bg-color);
+  border-radius: 0.2rem;
+  padding: 0.4rem 0.9rem 0.1rem;
+  margin: 1em 0;
+}
+
+.discord-reply .seen-by {
+  font-size: 0.7rem;
+  color: var(--md-default-fg-color--light);
+  margin-bottom: 0.2rem;
+}
+
+.discord-reply pre {
+  margin: 0.4em 0;
+}
+
+.page-reviewed {
+  color: var(--md-default-fg-color--light);
+}

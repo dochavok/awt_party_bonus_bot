@@ -12,6 +12,9 @@
 #               the bot's code never refers to the tests. See the script's header.
 #   catalog     from M2, the real catalog is checked, including that no entry in
 #               the previous version has disappeared (CT-7).
+#   docs        the generated examples and command reference are up to date
+#               (DOC-4, DOC-5), and the documentation site builds (DOC-1). The Docs
+#               workflow publishes it once CI passes on main.
 
 name: CI
 
@@ -45,6 +48,9 @@ jobs:
       HYPOTHESIS_PROFILE: ci
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The documentation tests build the site, whose page dates come from git (DOC-7).
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v7
       - run: uv sync
       - name: Read finished milestones
@@ -130,3 +136,16 @@ jobs:
           else
             uv run python -m awt_bonus.catalog check catalog
           fi
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync
+      - name: Generated docs are up to date (DOC-4, DOC-5)
+        run: uv run python scripts/generate_docs.py --check
+      - name: The site builds (DOC-1)
+        run: uv run mkdocs build --strict

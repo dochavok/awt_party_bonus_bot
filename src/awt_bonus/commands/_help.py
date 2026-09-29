@@ -1,9 +1,13 @@
-"""/help (OUT-9): a short guide for players getting started, ending with their next step."""
+"""/help (OUT-9): a short guide for players getting started, with a link to the
+documentation site (DOC-6), ending with their next step."""
 
 from awt_bonus.catalog import Membership
 from awt_bonus.commands._base import Context, private
 from awt_bonus.commands._types import Reply
 from awt_bonus.output.messages import text
+
+DOCS_URL = "https://dochavok.github.io/awt_party_bonus_bot/"
+"""The documentation site (DOC-1), linked near the top of /help (DOC-6)."""
 
 
 async def help_(ctx: Context) -> Reply:
@@ -14,6 +18,7 @@ async def help_(ctx: Context) -> Reply:
             "**AWT Party Bonus Bot**",
             "Adds up the party bonuses each character gets from everyone in your voice "
             "channel. You record what your character has; the bot does the math.",
+            f"Full guide: <{DOCS_URL}>",
         ),
         text(
             "",

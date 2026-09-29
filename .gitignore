@@ -16,3 +16,6 @@ __pycache__/
 .coverage
 htmlcov/
 .hypothesis/
+
+# The documentation site, built locally by mkdocs build (DOC-1)
+/site/
