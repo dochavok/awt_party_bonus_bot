@@ -30,6 +30,17 @@ entries:
     condition: "allies wearing a Will Passion item"   # not tracked: never in totals (4.12)
     card: "All allies wearing Will Passion items gain +2 <3s of damage."
 
+  glizzy_from_god:
+    name: Glizzy from God
+    kind: item                              # legendary toe ring (foot slot); its +13 CM is the holder's own
+    ability: Glizzy Support                 # an item, so not an aura for Devotion III (rule 4.6)
+    includes_giver: true                    # the holder's glizzy items too (Craig)
+    gives: {Damage: 5, CM: 3}               # the card's "+3" is CM (Craig)
+    condition: "glizzy based items"         # not tracked: never in totals (4.12)
+    card: >-
+      +13. Toe ring (foot slot). Glizzy Support (aura): All glizzy based items do
+      +5<3s of damage and gain a +3
+
   easy_back_oven:
     name: Easy Back Oven
     kind: item
