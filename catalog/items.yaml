@@ -1,7 +1,7 @@
-# AWT Party Bonus Bot: items and titles (requirements 8.4).
+# AWT Party Bonus Bot: items and titles (requirements 8.4), and item classes (8.5).
 # ---------------------------------------------------------------------------
 # Each key is the entry's permanent ID (CT-2): never change or remove one. To take
-# an entry out of the game, set `retired: true` (CT-6).
+# an entry or an item class out of the game, set `retired: true` (CT-6, CT-10).
 # `card` is the card text quoted from the source; it's left out until copied.
 # The format is described in catalog/README.md.
 # ---------------------------------------------------------------------------
@@ -27,7 +27,7 @@ entries:
     kind: item
     ability: Aura of Passion                # an item, so not an aura for Devotion III (rule 4.6)
     gives: {Damage: 2}
-    condition: "allies wearing a Will Passion item"   # not tracked: never in totals (4.12)
+    needs_item_class: passion               # allies with a passion item in use (rule 4.14)
     card: "All allies wearing Will Passion items gain +2 <3s of damage."
 
   glizzy_from_god:
@@ -36,17 +36,19 @@ entries:
     ability: Glizzy Support                 # an item, so not an aura for Devotion III (rule 4.6)
     includes_giver: true                    # the holder's glizzy items too (Craig)
     gives: {Damage: 5, CM: 3}               # the card's "+3" is CM (Craig)
-    condition: "glizzy based items"         # not tracked: never in totals (4.12)
+    needs_item_class: glizzy                # characters with a glizzy item in use (rule 4.14)
     card: >-
       +13. Toe ring (foot slot). Glizzy Support (aura): All glizzy based items do
       +5<3s of damage and gain a +3
 
   # To the holder only: +2 CM and +1 heart per passion item in use in the party, the
-  # holder's own included; both amounts are multiplied (Craig). No party bonus until
-  # item classes are built (rule 4.15, M8), so card only for now.
+  # holder's own included; both amounts are multiplied (Craig). The arcane slot
+  # condition is the player's call (IC-1).
   will_passions_adventure_token:
     name: Will Passions Adventure Token
     kind: item                              # Divine, Arcane
+    gives: {CM: 2, Damage: 1}
+    per_item_class: passion                 # rule 4.15
     card: >-
       As long as you you have this item in a arcane slot you gain: +2CM and +1<3 of
       Passion damage for every equipped Will Passion item in your party.
@@ -197,3 +199,14 @@ entries:
     name: Harbingers of Doom
     kind: title                             # 1 per day: not tracked
     card: "1 per day, dm discretion, +2 to combat roll"
+
+item_classes:
+  # ------------------------------------------------------------ item classes (8.5)
+  # Characters record how many items of each class they have in use with
+  # /character items (IC-2). The items in a class aren't catalogued (CT-10).
+  passion:
+    other_names: [Will Passion]
+    description: Items made by Will Passion or through the Path of Passion quest
+  glizzy:
+    other_names: [hotdog]
+    description: Glizzy (hot dog) themed items
