@@ -252,8 +252,10 @@ def build_tree(
             private=True,
         )
 
-    @tree.command(name="catalog", description="What an entry or guild gives, or everything")
-    @app_commands.describe(entry="An entry or guild (everything if left out)")
+    @tree.command(
+        name="catalog", description="What an entry, guild or item class gives, or everything"
+    )
+    @app_commands.describe(entry="An entry, guild or item class (everything if left out)")
     @app_commands.autocomplete(entry=completer("catalog", "entry"))
     async def catalog(interaction: discord.Interaction, entry: str | None = None) -> None:
         await _answer(interaction, runner(interaction, "catalog", entry=entry), private=True)
@@ -294,6 +296,31 @@ def build_tree(
         await _answer(
             interaction,
             runner(interaction, "character level", character=character, level=level),
+            private=True,
+        )
+
+    @group.command(name="items", description="How many items of a class a character has in use")
+    @app_commands.describe(
+        character="One of your characters",
+        item_class="An item class, e.g. passion or glizzy",
+        count="How many are in use, from 0 to 30 (0 clears it)",
+    )
+    @app_commands.rename(item_class="class")
+    @app_commands.autocomplete(
+        character=completer("character items", "character"),
+        item_class=completer("character items", "class"),
+    )
+    async def items(
+        interaction: discord.Interaction, character: str, item_class: str, count: int
+    ) -> None:
+        options: dict[str, OptionValue] = {
+            "character": character,
+            "class": item_class,
+            "count": count,
+        }
+        await _answer(
+            interaction,
+            lambda: app.run(UserId(interaction.user.id), "character items", options),
             private=True,
         )
 

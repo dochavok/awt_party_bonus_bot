@@ -41,6 +41,12 @@ def item_counts(counts: Mapping[ItemClassId, int], catalog: Catalog) -> str:
     )
 
 
+def class_name(item_class: ItemClassId | None, catalog: Catalog) -> str:
+    """An item class's display name, e.g. "passion" (CT-10)."""
+    found = catalog.item_classes.get(item_class) if item_class is not None else None
+    return found.name if found is not None else str(item_class)
+
+
 def has_subtypes(stat: StatId, catalog: Catalog) -> bool:
     return any(s.parent == stat for s in catalog.stats.values())
 
@@ -136,11 +142,18 @@ def ability(
             for b in bonus.level_rules
         )
         parts.append(f"{who}, by the recipient's level: {rules}")
+    elif bonus.per_item_class is not None:
+        each = class_name(bonus.per_item_class, catalog)
+        parts.append(
+            f"{amounts(bonus.gives, catalog)} per {each} item in use in the party, to the holder"
+        )
     elif bonus.gives:
         parts.append(f"{amounts(bonus.gives, catalog)} {who}")
     if bonus.effect is not None:
         parts.append(f"effect {who}: {bonus.effect}")
     text = "; ".join(parts) if parts else "nothing to others"
+    if bonus.needs_item_class is not None:
+        text += f" (each needs a {class_name(bonus.needs_item_class, catalog)} item in use)"
     if bonus.condition is not None:
         text += f", only for {bonus.condition} (conditional: never in totals)"
     if not bonus.stacks:

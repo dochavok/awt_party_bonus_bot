@@ -4,7 +4,8 @@ the reply text and whether it's private out.
 Command names are as in section 7, e.g. "partybonus", "character register",
 "guild join". Option names: ``character``, ``entry``, ``guild``, ``name``,
 ``level`` (a number, or "clear" for ``/character level``), ``new``, ``channel``
-(a voice channel ID), ``private`` and ``text``.
+(a voice channel ID), ``private``, ``text``, and ``class`` and ``count`` for
+``/character items``.
 
 Command logic runs against the ports (the clock and Discord), never discord.py
 directly (TS-8). Every reply is private except ``/partybonus`` (OUT-5).
@@ -44,6 +45,7 @@ HANDLERS: Mapping[str, Handler] = {
     "character list": _characters.list_characters,
     "character rename": _characters.rename,
     "character level": _characters.level,
+    "character items": _characters.items,
     "play": _characters.play,
     "add": _entries.add,
     "remove": _entries.remove,

@@ -3,7 +3,7 @@ still checks what it's given when it runs (HV-4)."""
 
 from collections.abc import Iterable, Mapping
 
-from awt_bonus.catalog import Catalog, Entry, Membership
+from awt_bonus.catalog import Catalog, Entry, ItemClass, Membership
 from awt_bonus.commands._types import Choice, OptionValue
 from awt_bonus.ids import UserId
 from awt_bonus.output.describe import kind_label
@@ -13,7 +13,16 @@ MAX_CHOICES = 25
 """Discord shows at most 25 suggestions."""
 
 OWN_CHARACTER_COMMANDS = frozenset(
-    {"play", "character rename", "character level", "add", "remove", "guild join", "guild leave"}
+    {
+        "play",
+        "character rename",
+        "character level",
+        "character items",
+        "add",
+        "remove",
+        "guild join",
+        "guild leave",
+    }
 )
 """Commands that act on the caller's own characters (NF-4)."""
 
@@ -64,7 +73,31 @@ async def suggest(
         entries = [e for e in _available(catalog, current) if not e.retired]
         pairs = [(_label(e, catalog), e.name) for e in entries]
         pairs += [(f"{g.full_name} (guild)", g.full_name) for g in catalog.guilds.values()]
+        pairs += [
+            (_class_label(c, "item class"), c.name)
+            for c in catalog.item_classes.values()
+            if not c.retired
+        ]
         return _matching(pairs, typed)
+    if option == "class" and command == "character items":
+        character = await _character(store, user, options)
+        counts = {} if character is None else character.item_counts
+        return _matching(
+            (
+                (
+                    _class_label(
+                        c,
+                        f"{character.name} has {counts[c.id]}"
+                        if character and c.id in counts
+                        else "",
+                    ),
+                    c.name,
+                )
+                for c in catalog.item_classes.values()
+                if not c.retired
+            ),
+            typed,
+        )
     if option == "guild" and command in {"guild join", "guild leave"}:
         character = await _character(store, user, options)
         joined = set() if character is None else set(character.guilds)
@@ -94,6 +127,13 @@ async def _character(
             return record
         return None
     return await store.current_character(user)
+
+
+def _class_label(item_class: ItemClass, note: str) -> str:
+    """E.g. "glizzy (also hotdog; Crateris has 1)": other names are matched too (IC-2)."""
+    parts = [f"also {', '.join(item_class.other_names)}"] if item_class.other_names else []
+    parts += [note] if note else []
+    return f"{item_class.name} ({'; '.join(parts)})" if parts else item_class.name
 
 
 def _label(entry: Entry, catalog: Catalog, has: str = "") -> str:
