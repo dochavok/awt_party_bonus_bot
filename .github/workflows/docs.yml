@@ -1,0 +1,63 @@
+# Publish the documentation site (requirements DOC-1). See docs/maintainer.md.
+#
+# When the CI workflow finishes successfully for a push to main, this builds the site
+# from docs/ with MkDocs and publishes it to GitHub Pages, at
+# https://dochavok.github.io/awt_party_bonus_bot/. Like the bot's deploy, only main
+# is published.
+#
+# Needs, once: repository Settings -> Pages -> Source: "GitHub Actions".
+#
+# A change to this file needs a requirements change too (TF-6); updating only the
+# versions of the actions it uses is allowed.
+
+name: Docs
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One publish at a time; a newer one replaces a waiting one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: >-
+      github.event_name == 'workflow_dispatch' || (
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          # The whole history: each page's "last updated" date comes from git (DOC-7).
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --locked
+      - name: Build
+        run: uv run mkdocs build --strict
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

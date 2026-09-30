@@ -46,7 +46,7 @@ def test_section_4_rules_and_sample_game_are_requirements() -> None:
 
 @pytest.mark.req("TF-4")
 def test_milestones_are_read_from_section_17() -> None:
-    assert milestones() == ("M1", "M2", "M3", "M4", "M5", "M6")
+    assert milestones() == ("M1", "M2", "M3", "M4", "M5", "M6", "M7")
 
 
 @pytest.mark.req("TF-4")

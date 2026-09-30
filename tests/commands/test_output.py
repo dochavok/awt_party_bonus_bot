@@ -24,6 +24,7 @@ from tests.support.world import MakeWorld
 M3 = pytest.mark.milestone("M3")
 M4 = pytest.mark.milestone("M4")
 M6 = pytest.mark.milestone("M6")
+M7 = pytest.mark.milestone("M7")
 
 
 def _stats(
@@ -596,3 +597,15 @@ async def test_help_tells_a_set_up_player_how_to_see_the_bonuses(make_world: Mak
     assert "/partybonus" in step
     for other in ["/character register", "/add", "/play"]:
         assert other not in step, f"craig is set up; the next step isn't {other}"
+
+
+@M7
+@pytest.mark.req("DOC-6", "OUT-9", "DOC-1")
+async def test_help_links_to_the_documentation_site_near_the_top(make_world: MakeWorld) -> None:
+    world = await make_world("setup")
+    for handle in ["newbie", "craig"]:
+        reply = await world.run(handle, "help")
+        paragraphs = [p for p in re.split(r"\n\s*\n", reply.text.replace("```", "")) if p.strip()]
+        assert "https://dochavok.github.io/awt_party_bonus_bot/" in paragraphs[0]
+        assert len(reply.messages) == 1
+        assert "github.io" not in _next_step(reply.text), "the next step stays at the end"

@@ -1,0 +1,93 @@
+# The documentation site (requirements section 18). Built from docs/ and published
+# to GitHub Pages by .github/workflows/docs.yml on every push to main (DOC-1).
+#
+#   uv run mkdocs serve            # preview at http://127.0.0.1:8000
+#   uv run mkdocs build --strict   # what CI and the publish workflow run
+#
+# The examples and the command reference are generated (DOC-4, DOC-5):
+#   uv run python scripts/generate_docs.py
+
+site_name: AWT Party Bonus Bot
+site_description: How to use the party bonus bot at Adventures from the Wizards Tower
+site_url: https://dochavok.github.io/awt_party_bonus_bot/
+repo_url: https://github.com/dochavok/awt_party_bonus_bot
+repo_name: awt_party_bonus_bot
+edit_uri: ""
+
+# In the repository, not on the site: the maintainer docs (DOC-3), the sample party
+# and the generated examples (pages include those with --8<--).
+exclude_docs: |
+  _generated/
+  _sample/
+  maintainer.md
+  deployment.md
+  restore-runbook.md
+  test-server.md
+
+nav:
+  - Home: index.md
+  - For players:
+      - Setting up your character: setup.md
+      - Game night: game-night.md
+      - Reading the results: results.md
+      - How bonuses are counted: counting.md
+      - Guilds and Support: guilds.md
+      - What the bot doesn't track: not-tracked.md
+      - Using Bogsy's dice bot: bogsy.md
+      - Troubleshooting: troubleshooting.md
+  - For DMs:
+      - Running a game with the bot: dms.md
+  - Reference:
+      - Commands: commands.md
+      - Glossary: glossary.md
+
+theme:
+  name: material
+  custom_dir: overrides
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  # "Last updated" on every page, from git (DOC-7). The reviewed date comes from
+  # each page's front matter (overrides/main.html).
+  - git-revision-date-localized:
+      type: iso_date
+      fallback_to_build_date: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      base_path: [docs/_generated]
+      check_paths: true

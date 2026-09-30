@@ -194,6 +194,7 @@ def build_tree(
         )
 
     @tree.command(name="mybonus", description="The totals for one of your characters")
+    @app_commands.describe(character="Any character (your current one if left out)")
     @app_commands.autocomplete(character=completer("mybonus", "character"))
     async def mybonus(interaction: discord.Interaction, character: str | None = None) -> None:
         await _answer(
@@ -201,6 +202,9 @@ def build_tree(
         )
 
     @tree.command(name="breakdown", description="How the totals are worked out")
+    @app_commands.describe(
+        character="One character (the whole party if left out)", channel="Another voice channel"
+    )
     @app_commands.autocomplete(character=completer("breakdown", "character"))
     async def breakdown(
         interaction: discord.Interaction,
@@ -211,6 +215,7 @@ def build_tree(
         await _answer(interaction, options, private=True)
 
     @tree.command(name="play", description="Choose the character you're playing")
+    @app_commands.describe(character="One of your characters")
     @app_commands.autocomplete(character=completer("play", "character"))
     async def play(interaction: discord.Interaction, character: str) -> None:
         await _answer(interaction, runner(interaction, "play", character=character), private=True)
@@ -224,6 +229,9 @@ def build_tree(
         await _answer(interaction, runner(interaction, "sitin"), private=True)
 
     @tree.command(name="add", description="Give your character a skill, boon, rank, item or title")
+    @app_commands.describe(
+        character="One of your characters", entry="What it has, from the catalog"
+    )
     @app_commands.autocomplete(
         character=completer("add", "character"), entry=completer("add", "entry")
     )
@@ -233,6 +241,7 @@ def build_tree(
         )
 
     @tree.command(name="remove", description="Take something away from your character")
+    @app_commands.describe(character="One of your characters", entry="Something it has")
     @app_commands.autocomplete(
         character=completer("remove", "character"), entry=completer("remove", "entry")
     )
@@ -244,6 +253,7 @@ def build_tree(
         )
 
     @tree.command(name="catalog", description="What an entry or guild gives, or everything")
+    @app_commands.describe(entry="An entry or guild (everything if left out)")
     @app_commands.autocomplete(entry=completer("catalog", "entry"))
     async def catalog(interaction: discord.Interaction, entry: str | None = None) -> None:
         await _answer(interaction, runner(interaction, "catalog", entry=entry), private=True)
@@ -251,6 +261,9 @@ def build_tree(
     group = app_commands.Group(name="character", description="Your characters")
 
     @group.command(name="register", description="Register a new character")
+    @app_commands.describe(
+        name="Unique on the server", level="Optional: only level-based bonuses use it"
+    )
     async def register(
         interaction: discord.Interaction, name: str, level: int | None = None
     ) -> None:
@@ -265,6 +278,7 @@ def build_tree(
         await _answer(interaction, runner(interaction, "character list"), private=True)
 
     @group.command(name="rename", description="Rename one of your characters")
+    @app_commands.describe(character="One of your characters", new="The new name")
     @app_commands.autocomplete(character=completer("character rename", "character"))
     async def rename(interaction: discord.Interaction, character: str, new: str) -> None:
         await _answer(
@@ -274,7 +288,7 @@ def build_tree(
         )
 
     @group.command(name="level", description="Set a character's level, or clear it")
-    @app_commands.describe(level="A level, or clear")
+    @app_commands.describe(character="One of your characters", level="A level, or clear")
     @app_commands.autocomplete(character=completer("character level", "character"))
     async def level(interaction: discord.Interaction, character: str, level: str) -> None:
         await _answer(
@@ -288,6 +302,7 @@ def build_tree(
     guilds = app_commands.Group(name="guild", description="Your characters' guilds")
 
     @guilds.command(name="join", description="A character joins a guild")
+    @app_commands.describe(character="One of your characters", guild="The guild to join")
     @app_commands.autocomplete(
         character=completer("guild join", "character"), guild=completer("guild join", "guild")
     )
@@ -299,6 +314,9 @@ def build_tree(
         )
 
     @guilds.command(name="leave", description="A character leaves a guild")
+    @app_commands.describe(
+        character="One of your characters", guild="The guild to leave (removes its ranks and boons)"
+    )
     @app_commands.autocomplete(
         character=completer("guild leave", "character"), guild=completer("guild leave", "guild")
     )

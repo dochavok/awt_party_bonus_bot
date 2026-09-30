@@ -65,3 +65,5 @@ When a DM answers a question in `dm-rule-questions.md`, start at step 2.
 - Read YAML with `yaml.safe_load` only; validate the catalog with pydantic.
 - Store and compare all times in GMT (UTC).
 - Keep the calculation engine a pure function with no Discord or database code.
+- When a requirement changes, update the documentation pages that describe it in
+  the same pull request (requirements DOC-7).

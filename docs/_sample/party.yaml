@@ -1,0 +1,144 @@
+# The sample party behind every example of the bot's output in the documentation
+# (requirements DOC-4). Made-up players and characters, set up with the real catalog
+# by running the bot's own commands. After changing this file or the catalog, run:
+#
+#     uv run python scripts/generate_docs.py
+#
+# CI fails if the committed examples no longer match (DOC-4).
+
+# When the examples happen, in GMT (UTC): a Saturday evening in the US.
+time: 2026-10-03T01:00:00Z
+
+voice_channel: Game Night
+
+# Everyone on the sample server. `voice: true` puts them in the voice channel.
+# Characters are registered in order, so a player's first character is current
+# (CH-3); `current` picks another. Guilds are joined, then entries added, with the
+# bot's own commands.
+players:
+  - name: Alex
+    roles: [Guild Veteran]
+    voice: true
+    characters:
+      - name: Brannoc
+        level: 30
+        guilds: [Guild of the Timeless Heroes]
+        has: [Holy Aura, Bolstering Aura, Devotion III, Nuyaru's Love, Seraph's Affection]
+
+  - name: Jordan
+    roles: [Junior Adventurer]
+    voice: true
+    characters:
+      - name: Wren
+        level: 12
+        guilds: [Guild of Thieves]
+        has: [Guild Thief, Inspiring Presence]
+
+  - name: Casey
+    voice: true
+    characters:
+      - name: Thessaly
+        level: 18
+        guilds: [Cult of the Dragon]
+        has: [High Inquisitor, Will's Ward Stone]
+      - name: Ysolde
+        level: 9
+        has: [Protection Charm]
+
+  - name: Riley
+    voice: true
+    characters:
+      - name: Osk
+        level: 7
+        guilds: [Cult of the Dragon, Guild of Thieves]
+        has: [Footpad, Commanding Presence]
+
+  - name: Morgan
+    voice: true
+    characters:
+      - name: Pell
+        guilds: [Cult of the Dragon]
+        has: [Helm of the Caladrius]
+
+  # Running the game: in the voice channel, but sitting out.
+  - name: Sam
+    voice: true
+    sitout: true
+
+  # Just joined the server: no character yet.
+  - name: Quinn
+    voice: true
+
+  # Not in the voice channel tonight.
+  - name: Taylor
+    characters:
+      - name: Fenn
+        level: 20
+        has: [Aura of Hope]
+
+# The examples, run in this order after the setup above. Each becomes
+# docs/_generated/<file>.md, for pages to include (DOC-4).
+examples:
+  - file: partybonus
+    player: Alex
+    command: partybonus
+
+  - file: mybonus
+    player: Alex
+    command: mybonus
+
+  - file: breakdown-party
+    player: Alex
+    command: breakdown
+
+  - file: breakdown-character
+    player: Casey
+    command: breakdown
+    options: {character: Thessaly}
+
+  - file: mybonus-secret-member
+    player: Jordan
+    command: mybonus
+
+  - file: mybonus-no-level
+    player: Morgan
+    command: mybonus
+
+  - file: mybonus-not-current
+    player: Casey
+    command: mybonus
+    options: {character: Ysolde}
+
+  - file: mybonus-not-in-voice
+    player: Taylor
+    command: mybonus
+
+  - file: bogsy
+    player: Jordan
+    command: bogsy
+
+  - file: help-new-player
+    player: Quinn
+    command: help
+
+  - file: refused-join-first
+    player: Jordan
+    command: add
+    options: {character: Wren, entry: Seraph's Affection}
+
+  - file: refused-one-holder
+    player: Riley
+    command: add
+    options: {character: Osk, entry: High Inquisitor}
+
+  - file: refused-name-taken
+    player: Quinn
+    command: character register
+    options: {name: brannoc}
+
+  - file: guild-join
+    player: Quinn
+    command: guild join
+    options: {character: Tamsin, guild: Pirate Coalition}
+    before:
+      - {command: character register, options: {name: Tamsin, level: 5}}
