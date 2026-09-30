@@ -1,4 +1,4 @@
-"""Checking a catalog mapping and building the ``Catalog`` (CT-4, CT-5, CT-7).
+"""Checking a catalog mapping and building the ``Catalog`` (CT-4, CT-5, CT-7, CT-10).
 
 Every problem is collected, each naming the ID it's about, and reported together.
 """
@@ -11,7 +11,7 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 from pydantic_core import ErrorDetails
 
-from awt_bonus.catalog._format import BonusFields, EntrySpec, GuildSpec, StatSpec
+from awt_bonus.catalog._format import BonusFields, EntrySpec, GuildSpec, ItemClassSpec, StatSpec
 from awt_bonus.catalog._model import (
     Ability,
     AudienceKind,
@@ -20,24 +20,27 @@ from awt_bonus.catalog._model import (
     Entry,
     EntryKind,
     Guild,
+    ItemClass,
     LevelBand,
     Membership,
     Modifier,
     Stat,
     StatKind,
 )
-from awt_bonus.ids import EntryId, GuildId, StatId
+from awt_bonus.ids import EntryId, GuildId, ItemClassId, StatId
 
-SECTIONS = ("stats", "entries", "guilds")
+SECTIONS = ("stats", "entries", "guilds", "item_classes")
 
 
 def parse_catalog(data: Mapping[str, Any]) -> Catalog:
-    """Validate one catalog mapping (``stats``, ``entries``, ``guilds``).
+    """Validate one catalog mapping (``stats``, ``entries``, ``guilds``, ``item_classes``).
 
     Raises CatalogError listing every problem.
     """
     if not isinstance(data, Mapping):
-        raise CatalogError(["the catalog must be a mapping of `stats`, `entries` and `guilds`"])
+        raise CatalogError(
+            ["the catalog must be a mapping of `stats`, `entries`, `guilds` and `item_classes`"]
+        )
     problems: list[str] = []
     for section in data:
         if section not in SECTIONS:
@@ -46,12 +49,14 @@ def parse_catalog(data: Mapping[str, Any]) -> Catalog:
     stats = _specs(data, "stats", "stat", StatSpec, problems)
     entries = _specs(data, "entries", "entry", EntrySpec, problems)
     guilds = _specs(data, "guilds", "guild", GuildSpec, problems)
+    classes = _specs(data, "item_classes", "item class", ItemClassSpec, problems)
 
     bands = _level_bands(entries, guilds, problems)
     _check_stats(stats, problems)
     _check_references(stats, entries, guilds, problems)
+    _check_item_classes(entries, guilds, classes, problems)
     replaces = _replacements(entries, problems)
-    _check_unique(entries, guilds, problems)
+    _check_unique(entries, guilds, classes, problems)
     if problems:
         raise CatalogError(problems)
 
@@ -59,6 +64,7 @@ def parse_catalog(data: Mapping[str, Any]) -> Catalog:
         stats=[_stat(key, spec) for key, spec in stats.items()],
         entries=[_entry(key, spec, replaces[key], bands) for key, spec in entries.items()],
         guilds=[_guild(key, spec, bands) for key, spec in guilds.items()],
+        item_classes=[_item_class(key, spec) for key, spec in classes.items()],
     )
 
 
@@ -217,6 +223,26 @@ def _check_references(
             problems.append(f"entry {key!r}: modifies tag {tag!r}, which no entry has")
 
 
+def _check_item_classes(
+    entries: Mapping[str, EntrySpec],
+    guilds: Mapping[str, GuildSpec],
+    classes: Mapping[str, ItemClassSpec],
+    problems: list[str],
+) -> None:
+    """Every class an ability depends on exists; a current entry's isn't retired (CT-10)."""
+    for owner, bonus in _bonuses(entries, guilds):
+        for field in ("needs_item_class", "per_item_class"):
+            name = getattr(bonus, field)
+            if name is not None and name not in classes:
+                problems.append(f"{owner}: {field} {name!r} isn't a defined item class")
+    for key, spec in entries.items():
+        bonuses = [spec, *(spec.abilities or [])]
+        uses = {c for b in bonuses for c in (b.needs_item_class, b.per_item_class) if c}
+        for name in sorted(uses):
+            if name in classes and classes[name].retired and not spec.retired:
+                problems.append(f"entry {key!r}: item class {name!r} is retired; retire it too")
+
+
 def _replacements(
     entries: Mapping[str, EntrySpec], problems: list[str]
 ) -> dict[str, frozenset[EntryId]]:
@@ -237,9 +263,13 @@ def _replacements(
 
 
 def _check_unique(
-    entries: Mapping[str, EntrySpec], guilds: Mapping[str, GuildSpec], problems: list[str]
+    entries: Mapping[str, EntrySpec],
+    guilds: Mapping[str, GuildSpec],
+    classes: Mapping[str, ItemClassSpec],
+    problems: list[str],
 ) -> None:
-    """IDs are unique across entries and guilds; names across both, ignoring case (CT-7)."""
+    """IDs are unique across entries and guilds; names, ignoring case, across entries,
+    guilds and item classes (their other names included), so /catalog finds one (CT-7)."""
     for key in sorted(set(entries) & set(guilds)):
         problems.append(f"ID {key!r} is used by both an entry and a guild")
 
@@ -248,6 +278,9 @@ def _check_unique(
     names = [(f"entry {key!r}", spec.name or key) for key, spec in entries.items()]
     for key, guild in guilds.items():
         names += [(f"guild {key!r}", name) for name in {guild.short_name or key, guild.full_name}]
+    for key, item_class in classes.items():
+        own = {n.casefold(): n for n in [item_class.name or key, *item_class.other_names]}
+        names += [(f"item class {key!r}", name) for name in own.values()]
     for owner, name in names:
         users[name.casefold()].append(owner)
         shown.setdefault(name.casefold(), name)
@@ -278,7 +311,13 @@ def _ability(
         level_rules=bands.get(id(bonus), ()),
         tags=tags,
         card=card,
+        needs_item_class=_class_id(bonus.needs_item_class),
+        per_item_class=_class_id(bonus.per_item_class),
     )
+
+
+def _class_id(name: str | None) -> ItemClassId | None:
+    return ItemClassId(name) if name is not None else None
 
 
 def _entry(key: str, spec: EntrySpec, replaces: frozenset[EntryId], bands: Bands) -> Entry:
@@ -308,6 +347,16 @@ def _entry(key: str, spec: EntrySpec, replaces: frozenset[EntryId], bands: Bands
         unique=spec.unique,
         retired=spec.retired,
         card=spec.card,
+    )
+
+
+def _item_class(key: str, spec: ItemClassSpec) -> ItemClass:
+    return ItemClass(
+        id=ItemClassId(key),
+        name=spec.name or key,
+        other_names=tuple(spec.other_names),
+        description=spec.description,
+        retired=spec.retired,
     )
 
 
