@@ -40,7 +40,7 @@ def compute(
     """Work out every counted player's bonuses (section 11, steps 0-6).
 
     ``character_item_counts`` holds each character's item class counts (IC-1); a
-    character or class left out has 0. Not used yet: item classes are M8.
+    character or class left out has 0.
     """
     # Step 0: who is counted. Bots are ignored entirely (SE-6); anyone with an
     # active sit-out is listed, but gives and receives nothing (SE-2, SE-4).
@@ -59,15 +59,21 @@ def compute(
             player_roles.get(p.user_id, frozenset()),
             character_entries,
             character_guilds,
+            character_item_counts or {},
             catalog,
         )
         for p in counted
     ]
+    # The party's count of each class, for bonuses counted across the party (rule 4.15).
+    class_counts: dict[ItemClassId, list[tuple[UserId, int]]] = {}
+    for player in players:
+        for item_class, count in player.item_counts.items():
+            class_counts.setdefault(item_class, []).append((player.user_id, count))
 
     # Step 2: every give, with replacements marked and modifiers applied.
     candidates: list[_Candidate] = []
     for player in players:
-        candidates += _gives(player, catalog, first_id=len(candidates) + 1)
+        candidates += _gives(player, catalog, class_counts, first_id=len(candidates) + 1)
 
     # Steps 3-5: apply each give to each recipient, keep one of each bonus that
     # doesn't stack, and add up.
@@ -97,6 +103,8 @@ class _Player:
     """The character's catalog entries, in order, each once."""
     guilds: frozenset[GuildId]
     """Open guilds joined, plus guilds from Discord roles; none without a character (SE-5)."""
+    item_counts: Mapping[ItemClassId, int]
+    """Item class counts above 0 (IC-1); none without a character."""
 
     @property
     def level(self) -> int | None:
@@ -108,11 +116,12 @@ def _player(
     roles: frozenset[str],
     character_entries: Mapping[CharacterId, Sequence[EntryId]],
     character_guilds: Mapping[CharacterId, Sequence[GuildId]],
+    character_item_counts: Mapping[CharacterId, Mapping[ItemClassId, int]],
     catalog: Catalog,
 ) -> _Player:
     character = player.character
     if character is None:
-        return _Player(player.user_id, player.display_name, None, roles, (), frozenset())
+        return _Player(player.user_id, player.display_name, None, roles, (), frozenset(), {})
     # IDs the catalog doesn't know are ignored (CT-7 stops entries disappearing).
     entry_ids = dict.fromkeys(character_entries.get(character.id, ()))
     held = tuple(catalog.entries[e] for e in entry_ids if e in catalog.entries)
@@ -122,7 +131,14 @@ def _player(
         if g in catalog.guilds and catalog.guilds[g].membership is Membership.OPEN
     }
     joined |= {g.id for g in catalog.role_guilds(roles)}
-    return _Player(player.user_id, character.name, character, roles, held, frozenset(joined))
+    counts = {
+        c: n
+        for c, n in character_item_counts.get(character.id, {}).items()
+        if c in catalog.item_classes and n > 0
+    }
+    return _Player(
+        player.user_id, character.name, character, roles, held, frozenset(joined), counts
+    )
 
 
 # ---------------------------------------------------------------- step 2
@@ -153,7 +169,12 @@ class _Origin:
     replaced: bool
 
 
-def _gives(player: _Player, catalog: Catalog, first_id: int) -> list[_Candidate]:
+def _gives(
+    player: _Player,
+    catalog: Catalog,
+    class_counts: Mapping[ItemClassId, Sequence[tuple[UserId, int]]],
+    first_id: int,
+) -> list[_Candidate]:
     held = {e.id for e in player.held}
     replaced = {r for e in player.held for r in e.replaces} & held
     modifiers = [e for e in player.held if e.modifier is not None and e.id not in replaced]
@@ -203,6 +224,13 @@ def _gives(player: _Player, catalog: Catalog, first_id: int) -> list[_Candidate]
             stacks=ability.stacks,
             secret_guild=origin.secret_guild,
             retired=origin.retired,
+            needs_item_class=ability.needs_item_class,
+            per_item_class=ability.per_item_class,
+            class_counts=(
+                tuple(class_counts.get(ability.per_item_class, ()))
+                if ability.per_item_class is not None
+                else ()
+            ),
         )
         candidates.append(_Candidate(give, origin.replaced, ability.level_rules, extra))
     return candidates
@@ -222,6 +250,8 @@ def _role_origin(guild: CatalogGuild, roles: frozenset[str]) -> _Origin:
 
 
 def _audience(ability: Ability, origin: _Origin) -> Audience:
+    if ability.per_item_class is not None:
+        return Audience(AudienceKind.HOLDER)
     if ability.audience is CatalogAudience.GUILD:
         return Audience(AudienceKind.GUILD, guild=origin.guild)
     if ability.audience is CatalogAudience.HOLDERS:
@@ -246,10 +276,20 @@ def _receive(
         reason: Reason | None = None
         if candidate.replaced:
             reason = Reason.REPLACED
+        elif give.audience.kind is AudienceKind.HOLDER:
+            # Counted across the party: only to the holder (rule 4.15).
+            if give.giver != player.user_id:
+                reason = Reason.NOT_IN_AUDIENCE
+            elif give.class_total == 0:
+                reason = Reason.NO_ITEM_CLASS
+            else:
+                amounts = {stat: n * give.class_total for stat, n in amounts.items()}
         elif give.giver == player.user_id and not give.includes_giver:
             reason = Reason.GIVER_EXCLUDED
         elif not _in_audience(give.audience, player, held):
             reason = Reason.NOT_IN_AUDIENCE
+        elif give.needs_item_class is not None and give.needs_item_class not in player.item_counts:
+            reason = Reason.NO_ITEM_CLASS  # rule 4.14
         elif candidate.bands:
             band = _band(candidate.bands, player.level)
             if player.level is None:
@@ -297,6 +337,7 @@ def _receive(
         not_applied=tuple(sorted(not_applied, key=lambda n: n.give)),
         conditional=tuple(conditional),
         effects=tuple(effects),
+        item_counts=player.item_counts,
     )
 
 

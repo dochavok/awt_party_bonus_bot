@@ -5,12 +5,12 @@ Secrecy (section 6.4) is applied by the output layer, not here.
 """
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 
 from awt_bonus.engine.inputs import CharacterRef
-from awt_bonus.ids import EntryId, GuildId, StatId, UserId
+from awt_bonus.ids import EntryId, GuildId, ItemClassId, StatId, UserId
 
 
 class Reason(StrEnum):
@@ -56,6 +56,8 @@ class AudienceKind(StrEnum):
     PARTY = "party"
     GUILD = "guild"
     HOLDERS = "holders"
+    HOLDER = "holder"
+    """The giver only: a bonus counted across the party (rule 4.15)."""
 
 
 @dataclass(frozen=True)
@@ -121,6 +123,19 @@ class Give:
     """Set when the give comes from a secret guild (SG-1)."""
     retired: bool
     """The catalog entry is retired (CT-6)."""
+    needs_item_class: ItemClassId | None = None
+    """Only recipients with an item of this class in use receive it (rule 4.14)."""
+    per_item_class: ItemClassId | None = None
+    """Goes only to the giver, ``amounts`` once per item of this class in use in the
+    party (rule 4.15)."""
+    class_counts: tuple[tuple[UserId, int], ...] = ()
+    """For ``per_item_class``: each counted player whose character has items of the
+    class in use, and how many, in party order. Their sum is the multiplier."""
+
+    @property
+    def class_total(self) -> int:
+        """For ``per_item_class``: the party's count of the class (rule 4.15)."""
+        return sum(n for _, n in self.class_counts)
 
 
 @dataclass(frozen=True)
@@ -164,6 +179,8 @@ class RecipientReport:
     conditional: tuple[ConditionalBonus, ...]
     effects: tuple[int, ...]
     """Ids of the effect gives this recipient receives."""
+    item_counts: Mapping[ItemClassId, int] = field(default_factory=dict)
+    """The character's item class counts above 0 (IC-1); empty with no character."""
 
 
 @dataclass(frozen=True)
