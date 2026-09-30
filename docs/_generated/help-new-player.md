@@ -11,6 +11,7 @@ __Set up__ (once per character)
 - `/character register name:<name>`: the level is optional; only level-based bonuses (the Cult of the Dragon) use it  
 - `/guild join <character> <guild>`: if your character is in a guild  
 - `/add <character> <entry>`: each skill, rank, boon, item or title  
+- `/character items <character> <class> <count>`: using items of a class (e.g. passion items)? How many are in use  
 - `/catalog`: what's available and what it gives  
 - `/request <text>`: something your character has isn't listed? Ask for it to be added  
 Junior Adventurer and above get **Support** automatically: nothing to add.  

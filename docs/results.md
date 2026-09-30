@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-09-29
+reviewed: 2026-09-30
 ---
 
 # Reading the results
@@ -48,6 +48,14 @@ in the Cult of the Dragon but has no level recorded:
 
 --8<-- "mybonus-no-level.md"
 
+### If you're missing a bonus that needs an item class
+
+A bonus that needs an item of a class in use, like Aura of Passion, skips a character
+with none recorded, and `/mybonus` says so with the command to set a count. Brannoc has
+Will Passion's Pendant, and Wren has no passion item recorded:
+
+--8<-- "mybonus-item-class.md"
+
 ### If you're looking at a character you're not playing
 
 The totals show that character **in place of** the one you're playing, as if you'd
@@ -83,7 +91,8 @@ A few things to notice:
 ## `/breakdown` for one character { #breakdown-character }
 
 Every bonus that character receives, and who from; what they **don't** receive, and
-why; and what they give.
+why; and what they give. A character with item class counts, or one that missed a bonus
+for lack of one, also sees its counts at the top, with the command to change them.
 
 --8<-- "breakdown-character.md"
 

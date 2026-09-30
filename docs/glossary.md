@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-09-29
+reviewed: 2026-09-30
 ---
 
 # Glossary
@@ -48,6 +48,11 @@ reviewed: 2026-09-29
 **Guild**
 :   Any group a character can belong to: a guild, order, cult or coalition. Joining
     records membership; the bonuses come from ranks and boons.
+
+**Item class**
+:   A family of items with a common theme, such as **passion** items (also called Will
+    Passion items) and **glizzy** items (also called hotdog items). Each character
+    records how many items of each class it has in use, with `/character items`.
 
 **Modifier**
 :   An entry that changes the same character's other bonuses instead of giving one

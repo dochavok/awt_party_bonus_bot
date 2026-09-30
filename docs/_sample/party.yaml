@@ -142,3 +142,15 @@ examples:
     options: {character: Tamsin, guild: Pirate Coalition}
     before:
       - {command: character register, options: {name: Tamsin, level: 5}}
+
+  # Item classes (IC-2, IC-3): last, so the Pendant changes no earlier example.
+  - file: character-items
+    player: Alex
+    command: character items
+    options: {character: Brannoc, class: passion, count: 2}
+    before:
+      - {command: add, options: {character: Brannoc, entry: Will Passion's Pendant}}
+
+  - file: mybonus-item-class
+    player: Jordan
+    command: mybonus

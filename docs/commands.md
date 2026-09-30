@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-09-29
+reviewed: 2026-09-30
 ---
 
 # Commands
@@ -175,7 +175,8 @@ No options.
 
 <!-- END GENERATED: /character list -->
 
-Your characters, and which one you're playing. **Only you see the reply.**
+Your characters, which one you're playing, and the item classes each has in use.
+**Only you see the reply.**
 
 ```
 /character list
@@ -331,12 +332,14 @@ What an entry, guild or item class gives, or everything
 
 <!-- END GENERATED: /catalog -->
 
-What an entry or guild gives, with its card text and the `/add` command for it. On its
-own, lists everything you can add. **Only you see the reply.**
+What an entry or guild gives, with its card text and the `/add` command for it. For an
+item class, what belongs to it, its other names, and the bonuses that depend on it. On
+its own, lists everything you can add. **Only you see the reply.**
 
 ```
 /catalog
 /catalog entry:Holy Aura
+/catalog entry:passion
 ```
 
 <!-- BEGIN GENERATED: /request -->
