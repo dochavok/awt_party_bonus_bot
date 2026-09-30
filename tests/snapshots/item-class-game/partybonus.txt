@@ -1,0 +1,18 @@
+# /partybonus, run by eli: public, 1 message(s)
+--- message 1 of 1 ---
+**PARTY BONUSES**: <#100> (5 counted)
+```
+CHARACTER   CM   CR
+Elizor      +0   +0
+Chris       +6   +0
+Mira        +3   +0
+Gus         +3   +0
+Tess        +3   +0
+-------------------------------------------------
+COMBAT NOTES
+Chris     Damage +5 hearts (extra hearts dealt when attacking)
+Mira      Damage +5 hearts (extra hearts dealt when attacking)
+Gus       Damage +5 hearts (extra hearts dealt when attacking)
+Tess      Damage +5 hearts (extra hearts dealt when attacking)
+```
+Not counted: DM Sam (sitting out until <t:1790409600:t>)

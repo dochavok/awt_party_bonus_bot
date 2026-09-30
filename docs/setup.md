@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-09-29
+reviewed: 2026-09-30
 ---
 
 # Setting up your character
@@ -70,6 +70,30 @@ To see what an entry gives before adding it, and the exact `/add` command for it
 
 `/catalog` on its own lists everything you can add.
 
+## 4. Record the item classes you're using
+
+Some items give a bonus only to characters **using** an item of a class, such as
+Will Passion's Pendant for passion items, or one that grows with how many the party is
+using, such as Will Passions Adventure Token. The bot doesn't track which items you
+have, only **how many items of each class your character has in use**:
+
+```
+/character items character:Brannoc class:passion count:2
+```
+
+--8<-- "character-items.md"
+
+- **Count what you're using, not what you own.** An item in your bag doesn't count.
+- **You decide what belongs to a class.** An item's class isn't always in its name or
+  card. `/catalog entry:passion` describes each class and lists the bonuses that depend
+  on it.
+- **Other names work too:** *hotdog* finds the glizzy class.
+- **0 clears a count.** A class you haven't set counts as 0.
+- **Keep it current.** Change it whenever you stop or start using one.
+
+Skip this step if your character doesn't use items of a class. If you miss a bonus
+because of a count of 0, `/mybonus` tells you.
+
 ## Something missing or wrong?
 
 The catalog is a fixed list kept by the maintainer, so every character uses the same
@@ -93,6 +117,7 @@ character you no longer need.
 |---|---|
 | Your character levels up | `/character level character:Thessaly level:19` |
 | You lose or give away an item | `/remove character:Thessaly entry:Will's Ward Stone` |
+| You start or stop using an item of a class | `/character items character:Thessaly class:passion count:1` |
 | You leave a guild (its ranks and boons go too) | `/guild leave character:Thessaly guild:Cult of the Dragon` |
 | You spot a typo in a name | `/character rename character:Thesaly new:Thessaly` |
 | You want to play another of your characters | `/play character:Ysolde` |

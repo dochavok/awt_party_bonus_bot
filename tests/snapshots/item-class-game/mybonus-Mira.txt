@@ -1,0 +1,10 @@
+# /mybonus Mira, run by mia (misses Aura of Passion): private, 1 message(s)
+--- message 1 of 1 ---
+**Mira (level not recorded)**: <#100>
+```
+CM      +3
+CR      +0
+Damage  +5 hearts (extra hearts dealt when attacking)
+```
+Aura of Passion (+2 hearts damage) needs a passion item in use. If you're using one, set it with `/character items Mira passion 1`.
+See how this was worked out: `/breakdown Mira`

@@ -4,7 +4,7 @@ from collections.abc import Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
-from awt_bonus.ids import EntryId, GuildId, StatId
+from awt_bonus.ids import EntryId, GuildId, ItemClassId, StatId
 
 
 class CatalogError(Exception):
@@ -90,6 +90,15 @@ class Ability:
     tags: frozenset[str]
     """The entry's tags and the ability's own, e.g. ``aura``."""
     card: str | None
+    needs_item_class: ItemClassId | None = None
+    """Only recipients with an item of this class in use receive it (rule 4.14)."""
+    per_item_class: ItemClassId | None = None
+    """Goes only to the holder, once per item of this class in use in the party (rule 4.15)."""
+
+    @property
+    def item_class(self) -> ItemClassId | None:
+        """The item class this ability depends on, if any."""
+        return self.needs_item_class or self.per_item_class
 
     @property
     def has_numbers(self) -> bool:
@@ -149,6 +158,18 @@ class Guild:
     """What to tell players about joining, e.g. a Patreon link, instead of /guild join (CT-5)."""
 
 
+@dataclass(frozen=True)
+class ItemClass:
+    """A family of items with a common theme, e.g. passion items (CT-10)."""
+
+    id: ItemClassId
+    name: str
+    other_names: tuple[str, ...]
+    """Other names players use, e.g. "Will Passion" for passion."""
+    description: str
+    retired: bool = False
+
+
 class Catalog:
     """A loaded, validated catalog. ``Catalog()`` is an empty one.
 
@@ -161,12 +182,20 @@ class Catalog:
         stats: Iterable[Stat] = (),
         entries: Iterable[Entry] = (),
         guilds: Iterable[Guild] = (),
+        item_classes: Iterable[ItemClass] = (),
     ) -> None:
         self.stats: Mapping[StatId, Stat] = {s.id: s for s in stats}
         """In file order."""
         self.entries: Mapping[EntryId, Entry] = {e.id: e for e in entries}
         self.guilds: Mapping[GuildId, Guild] = {g.id: g for g in guilds}
+        self.item_classes: Mapping[ItemClassId, ItemClass] = {c.id: c for c in item_classes}
+        """Item classes (CT-10), in file order."""
         self._entry_names = {e.name.casefold(): e for e in self.entries.values()}
+        self._class_names = {
+            name.casefold(): c
+            for c in self.item_classes.values()
+            for name in (c.name, *c.other_names)
+        }
         self._guild_names = {
             name.casefold(): g for g in self.guilds.values() for name in (g.short_name, g.full_name)
         }
@@ -180,6 +209,16 @@ class Catalog:
     def guild_named(self, name: str) -> Guild | None:
         """The guild with this short or full name, ignoring case."""
         return self._guild_names.get(name.casefold())
+
+    def item_class_named(self, name: str) -> ItemClass | None:
+        """The item class with this display name or other name, ignoring case."""
+        return self._class_names.get(name.casefold())
+
+    def class_entries(self, item_class: ItemClassId) -> tuple[Entry, ...]:
+        """The entries with an ability that depends on this item class (IC-3)."""
+        return tuple(
+            e for e in self.entries.values() if any(a.item_class == item_class for a in e.abilities)
+        )
 
     def guild_entries(self, guild: GuildId) -> tuple[Entry, ...]:
         """The guild's rank and boon entries."""

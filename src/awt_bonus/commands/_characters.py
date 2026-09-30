@@ -1,5 +1,6 @@
-"""/character register, list, rename and level, and /play (requirements 6.1)."""
+"""/character register, list, rename, level and items, and /play (requirements 6.1, 6.8)."""
 
+from awt_bonus.catalog import Catalog, ItemClass
 from awt_bonus.commands._base import (
     Context,
     Refused,
@@ -9,8 +10,12 @@ from awt_bonus.commands._base import (
     private,
 )
 from awt_bonus.commands._types import Reply
-from awt_bonus.output.describe import guild_name, timestamp
+from awt_bonus.ids import ItemClassId
+from awt_bonus.output.describe import guild_name, item_counts, plural, timestamp
 from awt_bonus.store import CharacterRecord, NameTaken
+
+MAX_ITEM_COUNT = 30
+"""The most items of one class a character can have in use (IC-2)."""
 
 
 def _taken(name: str) -> Refused:
@@ -81,6 +86,9 @@ def _summary(ctx: Context, character: CharacterRecord, current: CharacterRecord 
         line += f"\n  Guilds: {', '.join(guilds)}"
     if has:
         line += f"\n  Has: {', '.join(has)}"
+    counts = item_counts(character.item_counts, ctx.catalog)
+    if counts:
+        line += f"\n  Item classes: {counts}"
     return line
 
 
@@ -125,6 +133,64 @@ async def level(ctx: Context) -> Reply:
     if new is None:
         return private(f"Cleared {character.name}'s level.")
     return private(f"{character.name} is now level {new} (updated {timestamp(ctx.now, 'd')}).")
+
+
+async def items(ctx: Context) -> Reply:
+    """IC-2: how many items of a class the character has in use."""
+    character = await ctx.own_character()
+    item_class = _item_class(ctx.catalog, ctx.required("class"))
+    count = _count(ctx.options.get("count"))
+    if item_class.retired and count > 0:
+        raise Refused(f"The {item_class.name} class is retired: its counts can only be cleared.")
+    before = dict(character.item_counts)
+    after = {c: n for c, n in before.items() if c != item_class.id}
+    if count:
+        after[item_class.id] = count
+    if after != before:
+        async with ctx.store.transaction():
+            await ctx.store.set_item_count(character.id, item_class.id, count)
+            await ctx.store.add_audit(
+                ctx.user,
+                character.id,
+                "items",
+                {"item_counts": before},
+                {"item_counts": after},
+                ctx.now,
+            )
+    others = item_counts({c: n for c, n in after.items() if c != item_class.id}, ctx.catalog)
+    now_has = plural(count, f"{item_class.name} item") if count else f"no {item_class.name} items"
+    return private(
+        f"{character.name} now has {now_has} in use.",
+        f"Other counts: {others}." if others else "No other item classes in use.",
+        "Change it whenever you stop or start using one.",
+    )
+
+
+def _item_class(catalog: Catalog, name: str) -> ItemClass:
+    """The class with this display name, other name or ID, ignoring case (CT-10)."""
+    found = catalog.item_class_named(name) or catalog.item_classes.get(ItemClassId(name))
+    if found is None:
+        classes = ", ".join(
+            c.name + (f" (also {', '.join(c.other_names)})" if c.other_names else "")
+            for c in catalog.item_classes.values()
+            if not c.retired
+        )
+        raise Refused(f"There's no item class called {name}. The classes are: {classes}.")
+    return found
+
+
+def _count(value: object) -> int:
+    """A count from 0 to 30 (IC-2)."""
+    allowed = f"Give a count from 0 to {MAX_ITEM_COUNT}; 0 clears it."
+    if isinstance(value, bool) or value is None:
+        raise Refused(allowed)
+    try:
+        count = int(str(value).strip())
+    except ValueError:
+        raise Refused(allowed) from None
+    if not 0 <= count <= MAX_ITEM_COUNT:
+        raise Refused(allowed)
+    return count
 
 
 def _iso(character: CharacterRecord) -> str | None:

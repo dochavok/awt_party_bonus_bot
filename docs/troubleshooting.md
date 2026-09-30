@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-09-29
+reviewed: 2026-09-30
 ---
 
 # Troubleshooting
@@ -27,6 +27,17 @@ command the bot gives you, then `/add` again.
 Some ranks and titles can only be held by one character at a time. The holder can
 `/remove` it; if they can't or won't, ask with `/request`. See
 [Guilds and Support](guilds.md#one-holder-at-a-time).
+
+### "There's no item class called …"
+
+The class isn't in the catalog. The reply lists the classes there are, with their
+other names (*hotdog* finds glizzy). If your item belongs to a class that isn't listed,
+ask for it with `/request`.
+
+### "Give a count from 0 to 30"
+
+`/character items` takes how many items of the class your character is **using**,
+from 0 to 30. 0 clears it.
 
 ### A warning about Devotion III
 
@@ -61,7 +72,19 @@ Bonuses go to allies, not the giver, unless the ability says otherwise. See
   *NOT APPLIED*.
 - **It may depend on your level.** If `/mybonus` says *level not recorded*, set it with
   `/character level`.
+- **It may need an item of a class in use.** See the next section.
 - **It may not stack**, so two givers count once.
+
+### "… needs a passion item in use"
+
+--8<-- "mybonus-item-class.md"
+
+Some bonuses go only to characters using an item of a class, such as passion items for
+Aura of Passion. Your character has none recorded, so it doesn't get the bonus. If
+you're using one, set how many with the `/character items` command in the note. If
+you aren't, there's nothing to do. A bonus that grows with the party's count says
+*has no … items in use in the party* instead. See
+[How bonuses are counted](counting.md#some-bonuses-need-an-item-of-a-class-in-use).
 
 ### The totals show a character I'm not playing
 

@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-09-29
+reviewed: 2026-09-30
 ---
 
 # Commands
@@ -175,7 +175,8 @@ No options.
 
 <!-- END GENERATED: /character list -->
 
-Your characters, and which one you're playing. **Only you see the reply.**
+Your characters, which one you're playing, and the item classes each has in use.
+**Only you see the reply.**
 
 ```
 /character list
@@ -217,6 +218,30 @@ Sets a character's level, or `clear` to remove it. **Only you see the reply.**
 ```
 /character level character:Thessaly level:19
 /character level character:Thessaly level:clear
+```
+
+<!-- BEGIN GENERATED: /character items -->
+### `/character items`
+
+How many items of a class a character has in use
+
+| Option | Required | What it's for |
+|---|---|---|
+| `character` | yes | One of your characters |
+| `item_class` | yes | An item class, e.g. passion or glizzy |
+| `count` | yes | How many are in use, from 0 to 30 (0 clears it) |
+
+<!-- END GENERATED: /character items -->
+
+Sets how many items of a class (e.g. passion or glizzy) the character is **using**, not
+how many it owns, from 0 to 30; 0 clears it. Some items give a bonus only to characters
+using an item of a class, or one that grows with how many the party is using. Change it
+whenever you stop or start using one. The class autocompletes, and other names work too
+(*hotdog* finds glizzy). **Only you see the reply.**
+
+```
+/character items character:Thessaly class:passion count:2
+/character items character:Thessaly class:passion count:0
 ```
 
 <!-- BEGIN GENERATED: /guild join -->
@@ -299,20 +324,22 @@ Takes something away from a character, e.g. an item that was lost or given away.
 <!-- BEGIN GENERATED: /catalog -->
 ### `/catalog`
 
-What an entry or guild gives, or everything
+What an entry, guild or item class gives, or everything
 
 | Option | Required | What it's for |
 |---|---|---|
-| `entry` | no | An entry or guild (everything if left out) |
+| `entry` | no | An entry, guild or item class (everything if left out) |
 
 <!-- END GENERATED: /catalog -->
 
-What an entry or guild gives, with its card text and the `/add` command for it. On its
-own, lists everything you can add. **Only you see the reply.**
+What an entry or guild gives, with its card text and the `/add` command for it. For an
+item class, what belongs to it, its other names, and the bonuses that depend on it. On
+its own, lists everything you can add. **Only you see the reply.**
 
 ```
 /catalog
 /catalog entry:Holy Aura
+/catalog entry:passion
 ```
 
 <!-- BEGIN GENERATED: /request -->

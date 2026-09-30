@@ -61,7 +61,7 @@ def load_catalog(directory: Path) -> Catalog:
     """Load the real catalog from ``directory`` (``catalog/*.yaml``).
 
     Every ``*.yaml`` file in the folder is part of the catalog, and may hold any of
-    ``stats``, ``entries`` and ``guilds``. IDs and names must be unique across all
+    ``stats``, ``entries``, ``guilds`` and ``item_classes``. IDs and names must be unique across all
     the files. Raises CatalogError.
     """
     merged, problems = _merge(directory)
@@ -80,7 +80,7 @@ def _merge(directory: Path) -> tuple[dict[str, dict[Any, Any]], list[str]]:
         if data is None:
             continue
         if not isinstance(data, Mapping):
-            problems.append(f"{path.name}: must be a mapping of `stats`, `entries` and `guilds`")
+            problems.append(f"{path.name}: must be a mapping of catalog sections")
             continue
         for section, items in data.items():
             if section not in SECTIONS:
@@ -129,12 +129,13 @@ def ids_of(catalog: Catalog) -> dict[str, set[str]]:
         "stats": set(catalog.stats),
         "entries": set(catalog.entries),
         "guilds": set(catalog.guilds),
+        "item_classes": set(catalog.item_classes),
     }
 
 
 def removed(previous: Mapping[str, set[str]], current: Mapping[str, set[str]]) -> list[str]:
     """Problems for every ID in ``previous`` that isn't in ``current`` (CT-7)."""
-    what = {"stats": "stat", "entries": "entry", "guilds": "guild"}
+    what = {"stats": "stat", "entries": "entry", "guilds": "guild", "item_classes": "item class"}
     return [
         f"{what[section]} {key!r} was in the previous catalog and has disappeared; "
         "mark it `retired: true` instead of removing it (CT-6)"
@@ -144,8 +145,9 @@ def removed(previous: Mapping[str, set[str]], current: Mapping[str, set[str]]) -
 
 
 def check_no_removed(previous: Catalog, current: Catalog) -> list[str]:
-    """Problems if any entry, guild or stat in ``previous`` is missing from ``current`` (CT-7).
+    """Problems if any entry, guild, stat or item class in ``previous`` is missing from
+    ``current`` (CT-7, CT-10).
 
-    Retired entries are still present, so retiring is allowed (CT-6).
+    Retired entries and classes are still present, so retiring is allowed (CT-6).
     """
     return removed(ids_of(previous), ids_of(current))

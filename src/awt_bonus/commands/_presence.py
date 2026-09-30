@@ -95,6 +95,7 @@ async def build_party(
         {i: tuple(EntryId(e) for e in c.entries) for i, c in counted.items()},
         {i: tuple(GuildId(g) for g in c.guilds) for i, c in counted.items()},
         ctx.catalog,
+        {i: c.item_counts for i, c in counted.items()},
     )
     return Party(channel, report, counted, states)
 
@@ -108,6 +109,7 @@ async def solo(ctx: Context, character: CharacterRecord) -> PartyReport:
         {character.id: character.entries},
         {character.id: character.guilds},
         ctx.catalog,
+        {character.id: character.item_counts},
     )
 
 

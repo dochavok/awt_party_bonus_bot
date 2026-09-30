@@ -10,6 +10,7 @@ from typing import Any
 
 from sqlalchemy import (
     BigInteger,
+    CheckConstraint,
     Column,
     DateTime,
     Dialect,
@@ -99,6 +100,23 @@ character_guild = Table(
     Column("guild_id", String, nullable=False),
     Column("joined_at", UTCDateTime, nullable=False),
     UniqueConstraint("character_id", "guild_id"),
+)
+
+character_item_count = Table(
+    "character_item_count",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "character_id",
+        Integer,
+        ForeignKey("character.id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+    Column("item_class_id", String, nullable=False),
+    # How many items of the class are in use (IC-1); no row means 0.
+    Column("count", Integer, nullable=False),
+    UniqueConstraint("character_id", "item_class_id"),
+    CheckConstraint("count BETWEEN 1 AND 30", name="ck_character_item_count_count"),
 )
 
 sit_out = Table(

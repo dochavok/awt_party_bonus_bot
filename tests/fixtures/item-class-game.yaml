@@ -1,0 +1,55 @@
+# The item class game from requirements section 9.2 (TF-2a).
+# ---------------------------------------------------------------------------
+# AWT Voice holds the section 9.2 party: Elizor, Chris, Mira, Gus and Tess are
+# counted; DM Sam is sitting out. Nobody has a Guild rank role, so only item
+# class bonuses are in play.
+#
+# The item class counts aren't stored in fixtures: tests set them with
+# /character items (IC-2), from the section 9.2 table:
+#   Elizor passion 2, Chris passion 1, Mira glizzy 1, Gus glizzy 1, Tess glizzy 2,
+#   and Sam's character Sable passion 3 (sitting out, so they add nothing).
+#
+# The entries are the test catalog's versions of the three class items
+# (requirements 8.4 and 8.5).
+#
+# Player display names differ from character names on purpose, so tests can
+# tell which one the bot used.
+# ---------------------------------------------------------------------------
+
+requirements: ["9.2", "4.14", "4.15", "IC-3"]
+clock: 2026-09-25T20:00:00Z
+catalog: catalog.yaml
+
+discord:
+  voice_channels:
+    - {id: 100, name: AWT Voice}
+  text_channels:
+    - {id: 200, name: bonus-bot-support}
+  members:
+    - {handle: eli,  id: 3001, name: Eli,    voice: AWT Voice}
+    - {handle: cam,  id: 3002, name: Cam,    voice: AWT Voice}
+    - {handle: mia,  id: 3003, name: Mia,    voice: AWT Voice}
+    - {handle: gil,  id: 3004, name: Gil,    voice: AWT Voice}
+    - {handle: tia,  id: 3005, name: Tia,    voice: AWT Voice}
+    - {handle: sam,  id: 3006, name: DM Sam, voice: AWT Voice}
+
+players:
+  - member: eli
+    characters:
+      - {name: Elizor, has: [will_passions_pendant]}
+  - member: cam
+    characters:
+      - {name: Chris, has: [will_passions_adventure_token]}
+  - member: mia
+    characters:
+      - {name: Mira}
+  - member: gil
+    characters:
+      - {name: Gus, has: [glizzy_from_god]}
+  - member: tia
+    characters:
+      - {name: Tess}
+  - member: sam
+    sitout_until: 2026-09-26T08:00:00Z
+    characters:
+      - {name: Sable}

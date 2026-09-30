@@ -1,0 +1,23 @@
+# /breakdown, run by eli: private, 1 message(s)
+--- message 1 of 1 ---
+**PARTY BREAKDOWN**: <#100> (5 counted)
+```
+Aura of Passion (item): +2 hearts damage to allies with a passion item
+  in use
+    Elizor
+
+Will Passions Adventure Token (Chris): +6 CM, +3 hearts damage (per passion item: Chris 1, Elizor 2)
+
+Glizzy Support (item): +5 hearts damage, +3 CM to the giver and allies
+  with a glizzy item in use
+    Gus
+
+-------------------------------------------------
+TOTALS
+Elizor   no bonuses
+Chris    CM 6 = +6    Damage 2+3 = +5 hearts
+Mira     CM 3 = +3    Damage +5 hearts
+Gus      CM 3 = +3    Damage +5 hearts
+Tess     CM 3 = +3    Damage +5 hearts
+```
+Not counted: DM Sam (sitting out until <t:1790409600:t>)

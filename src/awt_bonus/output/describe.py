@@ -7,7 +7,7 @@ from collections.abc import Iterable, Mapping
 from datetime import datetime
 
 from awt_bonus.catalog import Ability, AudienceKind, Catalog, Entry, EntryKind, StatKind
-from awt_bonus.ids import ChannelId, GuildId, StatId
+from awt_bonus.ids import ChannelId, GuildId, ItemClassId, StatId
 
 
 def timestamp(moment: datetime, style: str) -> str:
@@ -25,6 +25,26 @@ def channel_mention(channel_id: ChannelId) -> str:
 
 def plural(n: int, word: str) -> str:
     return f"{n} {word}" if n == 1 else f"{n} {word}s"
+
+
+def item_counts(counts: Mapping[ItemClassId, int], catalog: Catalog) -> str:
+    """A character's item class counts in catalog order, e.g. "passion 2, glizzy 1" (IC-3).
+
+    Empty if every count is 0. A class no longer in the catalog is shown by its ID.
+    """
+    order = [c for c in catalog.item_classes if c in counts]
+    order += sorted(c for c in counts if c not in catalog.item_classes)
+    return ", ".join(
+        f"{catalog.item_classes[c].name if c in catalog.item_classes else c} {counts[c]}"
+        for c in order
+        if counts[c] > 0
+    )
+
+
+def class_name(item_class: ItemClassId | None, catalog: Catalog) -> str:
+    """An item class's display name, e.g. "passion" (CT-10)."""
+    found = catalog.item_classes.get(item_class) if item_class is not None else None
+    return found.name if found is not None else str(item_class)
 
 
 def has_subtypes(stat: StatId, catalog: Catalog) -> bool:
@@ -122,11 +142,18 @@ def ability(
             for b in bonus.level_rules
         )
         parts.append(f"{who}, by the recipient's level: {rules}")
+    elif bonus.per_item_class is not None:
+        each = class_name(bonus.per_item_class, catalog)
+        parts.append(
+            f"{amounts(bonus.gives, catalog)} per {each} item in use in the party, to the holder"
+        )
     elif bonus.gives:
         parts.append(f"{amounts(bonus.gives, catalog)} {who}")
     if bonus.effect is not None:
         parts.append(f"effect {who}: {bonus.effect}")
     text = "; ".join(parts) if parts else "nothing to others"
+    if bonus.needs_item_class is not None:
+        text += f" (each needs a {class_name(bonus.needs_item_class, catalog)} item in use)"
     if bonus.condition is not None:
         text += f", only for {bonus.condition} (conditional: never in totals)"
     if not bonus.stacks:

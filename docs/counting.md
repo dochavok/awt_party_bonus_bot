@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-09-29
+reviewed: 2026-09-30
 ---
 
 # How bonuses are counted
@@ -64,6 +64,25 @@ A bonus can depend on the **receiving** character's level. The Cult of the Drago
 High Inquisitor gives other Cult members +1 heart of damage below level 10, and +10 CM
 at level 10 or higher. A character with no level recorded doesn't get it, and `/mybonus`
 tells them.
+
+## Some bonuses need an item of a class in use
+
+Some items give a bonus only to characters **using** at least one item of a class
+(what each character records with `/character items`). Will Passion's Pendant gives
+Aura of Passion, +2 hearts of damage, to each ally with a passion item in use. Glizzy
+from God gives +5 hearts of damage and +3 CM to each character with a glizzy item in
+use, its holder included. A character with none in use doesn't get it, and
+`/breakdown` says so, e.g. *no passion item in use*. More items of the class don't
+multiply it: one is enough. Otherwise these follow every other rule.
+
+## Some bonuses grow with the party's items of a class
+
+Will Passions Adventure Token gives **its holder** +2 CM and +1 heart of damage for
+each passion item in use across the party, the holder's own included. With the holder
+using 1 and another character using 2, the holder gets +6 CM and +3 hearts of damage.
+Only counted characters add to the count: anyone sitting out, or not in the voice
+channel, adds nothing. With no passion items in use in the party, the holder gets
+nothing, and `/breakdown` says so.
 
 ## Conditional bonuses are never in the totals
 

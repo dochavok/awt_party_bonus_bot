@@ -2,12 +2,13 @@
 
 It never shows which characters have an entry; /breakdown does that. Guild ranks
 and boons are shown only for guilds the player's current character belongs to;
-other guilds are listed by name, with the command to join.
+other guilds are listed by name, with the command to join. Item classes are shown
+with the entries that depend on them (IC-3).
 """
 
 from collections import defaultdict
 
-from awt_bonus.catalog import Entry, EntryKind, Guild, Membership
+from awt_bonus.catalog import Entry, EntryKind, Guild, ItemClass, Membership
 from awt_bonus.commands._base import REQUEST_HINT, Context, Refused, private
 from awt_bonus.commands._types import Reply
 from awt_bonus.ids import GuildId
@@ -32,8 +33,12 @@ async def catalog(ctx: Context) -> Reply:
     guild = ctx.catalog.guild_named(wanted)
     if guild is not None:
         return private(_guild(ctx, guild, who, joined))
+    item_class = ctx.catalog.item_class_named(wanted)
+    if item_class is not None:
+        return private(_item_class(ctx, item_class, who, joined))
     raise Refused(
-        f"There's no entry or guild called {wanted}. `/catalog` lists everything.", REQUEST_HINT
+        f"There's no entry, guild or item class called {wanted}. `/catalog` lists everything.",
+        REQUEST_HINT,
     )
 
 
@@ -91,6 +96,37 @@ def _guild(ctx: Context, guild: Guild, who: str, joined: frozenset[GuildId]) -> 
     return block
 
 
+def _item_class(ctx: Context, item_class: ItemClass, who: str, joined: frozenset[GuildId]) -> Block:
+    """A class, its other names, the entries that depend on it, and how to set a count."""
+    also = f", also called {', '.join(item_class.other_names)}" if item_class.other_names else ""
+    block = text(f"**{item_class.name}** (item class{also})", item_class.description)
+    entries = [
+        e
+        for e in ctx.catalog.class_entries(item_class.id)
+        if not e.retired and (e.guild is None or e.guild in joined)
+    ]
+    if entries:
+        block.add("Bonuses that depend on it:", *(_line(ctx, e) for e in entries))
+    if item_class.retired:
+        block.add("Retired: counts can't be set any more.")
+    else:
+        block.add(
+            f"Set how many {item_class.name} items {who} has in use with "
+            f"`/character items {who} {item_class.name} <count>`"
+        )
+    return block
+
+
+def _classes(ctx: Context) -> Block:
+    """Every item class, for the full list (CT-10)."""
+    lines = []
+    for item_class in ctx.catalog.item_classes.values():
+        if not item_class.retired:
+            also = f" (also {', '.join(item_class.other_names)})" if item_class.other_names else ""
+            lines.append(f"- **{item_class.name}**{also}: {item_class.description}")
+    return text("", "__Item classes__", *lines) if lines else text()
+
+
 def _role_lines(ctx: Context, guild: Guild) -> list[str]:
     """A guild whose membership comes from Discord roles (HV-3, CT-5, CT-8).
 
@@ -120,7 +156,12 @@ def _everything(ctx: Context, who: str, joined: frozenset[GuildId]) -> list[Bloc
             skills[entry.tree or "Other"].append(entry)
         else:
             others[entry.kind].append(entry)
-    blocks = [text("**The catalog**: `/catalog <entry or guild>` shows one, with its card text.")]
+    blocks = [
+        text(
+            "**The catalog**: `/catalog <entry, guild or item class>` shows one, "
+            "with its card text."
+        )
+    ]
     for tree, entries in skills.items():
         blocks.append(_group(ctx, f"{tree} skills", entries))
     for guild in ctx.catalog.guilds.values():
@@ -136,6 +177,7 @@ def _everything(ctx: Context, who: str, joined: frozenset[GuildId]) -> list[Bloc
     for kind, heading in KIND_HEADINGS.items():
         if others[kind]:
             blocks.append(_group(ctx, heading, others[kind]))
+    blocks.append(_classes(ctx))
     blocks.append(text("", REQUEST_HINT))
     return blocks
 

@@ -25,7 +25,9 @@ from awt_bonus.output.describe import (
     amounts,
     band,
     channel_mention,
+    class_name,
     guild_name,
+    item_counts,
     names,
     plural,
     timestamp,
@@ -165,6 +167,8 @@ def _lines(party: Party, recipient: RecipientReport, stat: StatId) -> list[_Line
         else:
             givers = [party.name_of(give.giver), *not_stacked.get(give.id, [])]
             source = f"from {', '.join(givers)}{_rank(give) if len(givers) == 1 else ''}"
+            if give.per_item_class is not None:
+                source = f"({_per_item(party, give)})"
             source += adjusted(give, party.catalog)
             if len(givers) > 1:
                 source += " (doesn't stack: counted once)"
@@ -297,7 +301,12 @@ def audience(give: Give, catalog: Catalog) -> str:
         entry = catalog.entries.get(target.entry) if target.entry is not None else None
         held = entry.name if entry is not None else give.bonus
         return f"to all {held} holders" if give.includes_giver else f"to other {held} holders"
-    return "to the giver and allies" if give.includes_giver else "to allies"
+    if target.kind is AudienceKind.HOLDER:
+        return "to the holder"
+    who = "to the giver and allies" if give.includes_giver else "to allies"
+    if give.needs_item_class is not None:
+        who += f" with a {class_name(give.needs_item_class, catalog)} item in use"
+    return who
 
 
 def gives_text(give: Give, catalog: Catalog) -> str:
@@ -546,7 +555,35 @@ def _group_header(give: Give, catalog: Catalog) -> str:
     return header
 
 
+def _per_item(party: Party, give: Give) -> str:
+    """Who a bonus counted across the party counts, e.g. "per passion item: Chris 1, Elizor 2"."""
+    # The holder first, then the others in party order, as in IC-3.
+    ordered = sorted(give.class_counts, key=lambda pair: pair[0] != give.giver)
+    counted = ", ".join(f"{party.name_of(user)} {n}" for user, n in ordered)
+    return f"per {class_name(give.per_item_class, party.catalog)} item: {counted}"
+
+
+def _per_item_lines(party: Party, group: _Group) -> list[str]:
+    """One line for each holder of a bonus counted across the party, with its working
+    (rule 4.15), e.g. "Will Passions Adventure Token (Chris): +6 CM (per passion item: ...)"."""
+    lines = []
+    for give in group.gives:
+        holder = next(r for r in party.report.recipients if r.user_id == give.giver)
+        applied = next((a for a in holder.applied if a.give == give.id), None)
+        if applied is None:
+            item = class_name(give.per_item_class, party.catalog)
+            working = f"nothing: no {item} items in use in the party"
+        else:
+            working = f"{amounts(applied.amounts, party.catalog)} ({_per_item(party, give)})"
+        retired = " (retired)" if give.retired else ""
+        # One line, never wrapped: the working reads as one sum.
+        lines.append(f"{give.bonus} ({holder.name}): {working}{retired}")
+    return lines
+
+
 def _group_lines(party: Party, group: _Group) -> list[str]:
+    if group.gives[0].per_item_class is not None:
+        return _per_item_lines(party, group)
     lines = wrapped(group.header, indent=2)
     if group.gives[0].level_rules:
         for give in group.gives:
@@ -684,7 +721,7 @@ def mybonus(party: Party, recipient: RecipientReport, notice: Sequence[str]) -> 
             lines += wrapped(conditional_line(party, party.report.give(c.give), c.amounts))
     lines += _secret_detail(party, recipient)
     blocks.append(code(*lines))
-    footer = []
+    footer = _class_notes(party, recipient)
     missed = _no_level(recipient)
     if missed:
         name = recipient.character.name if recipient.character else "<character>"
@@ -725,6 +762,29 @@ def _secret_detail(party: Party, recipient: RecipientReport) -> list[str]:
     return lines
 
 
+def _class_notes(party: Party, recipient: RecipientReport) -> list[str]:
+    """One note for each class bonus in play the character misses with a count of 0 (IC-3)."""
+    if recipient.character is None:
+        return []
+    notes: dict[str, str] = {}
+    for n in recipient.not_applied:
+        give = party.report.give(n.give)
+        if n.reason is not Reason.NO_ITEM_CLASS or give.secret_guild is not None:
+            continue
+        item = class_name(give.needs_item_class or give.per_item_class, party.catalog)
+        what = amounts(give.amounts, party.catalog)
+        fix = (
+            f"If you're using one, set it with "
+            f"`/character items {recipient.character.name} {item} 1`."
+        )
+        if give.per_item_class is not None:
+            missed = f"({what} per {item} item) has no {item} items in use in the party."
+        else:
+            missed = f"({what}) needs a {item} item in use."
+        notes.setdefault(give.bonus, f"{give.bonus} {missed} {fix}")
+    return list(notes.values())
+
+
 def _title(recipient: RecipientReport) -> str:
     character = recipient.character
     if character is None:
@@ -746,7 +806,10 @@ def character_breakdown(
 ) -> list[Block]:
     """OUT-3a: each stat, the sum written out, every contribution; not applied; gives."""
     catalog = party.catalog
-    blocks = [text(_breakdown_title(party, recipient)), notice_lines(notice)]
+    blocks = [
+        text(_breakdown_title(party, recipient), *_counts_line(party, recipient)),
+        notice_lines(notice),
+    ]
     lines: list[str] = []
     stats = [s for s in roll_columns(party) if recipient.totals.get(s, 0)] + [
         s for s in combat_notes(catalog) if recipient.totals.get(s, 0)
@@ -776,6 +839,23 @@ def character_breakdown(
     return [b for b in blocks if b.lines]
 
 
+def _counts_line(party: Party, recipient: RecipientReport) -> list[str]:
+    """The character's item class counts and how to change them (IC-3). Shown when it
+    has any, or when a class bonus in play wasn't applied for lack of one."""
+    character = recipient.character
+    missed = any(
+        n.reason is Reason.NO_ITEM_CLASS and party.report.give(n.give).secret_guild is None
+        for n in recipient.not_applied
+    )
+    if character is None or not (recipient.item_counts or missed):
+        return []
+    counts = item_counts(recipient.item_counts, party.catalog) or "none"
+    return [
+        f"Item classes in use: {counts}. "
+        f"Change with `/character items {character.name} <class> <count>`."
+    ]
+
+
 def _breakdown_title(party: Party, recipient: RecipientReport) -> str:
     character = recipient.character
     where = f": {channel_mention(party.channel)}" if party.channel is not None else ""
@@ -798,7 +878,8 @@ def _stat_lines(party: Party, recipient: RecipientReport, stat: StatId) -> list[
     shown = total(stat, recipient.totals.get(stat, 0), catalog)
     lines = [f"{stat} = {' + '.join(terms)} = {shown}"]
     for line in contributions:
-        lines.append(f"   {line.amount:+d}   {line.bonus:<22}{line.source}")
+        width = max(22, len(line.bonus) + 2)  # a long name still gets a gap
+        lines.append(f"   {line.amount:+d}   {line.bonus:<{width}}{line.source}")
     return lines
 
 
@@ -820,22 +901,29 @@ def _not_stacked(party: Party, recipient: RecipientReport) -> dict[int, list[str
 def _not_applied(party: Party, recipient: RecipientReport) -> list[str]:
     """Bonuses in play this character doesn't receive, and why (OUT-3a).
 
-    Replaced entries and not-stacked duplicates aren't listed.
+    Replaced entries, not-stacked duplicates and other holders' bonuses counted
+    across the party aren't listed. A class bonus gets a line of its own, with its
+    reason (IC-3).
     """
     reasons: dict[str, list[str]] = {}
+    by_class: dict[str, None] = {}
     for n in recipient.not_applied:
         give = party.report.give(n.give)
         if n.reason in (Reason.REPLACED, Reason.NOT_STACKED) or give.secret_guild is not None:
             continue  # secret guild bonuses are never listed here (SG-3)
+        if give.audience.kind is AudienceKind.HOLDER and n.reason is Reason.NOT_IN_AUDIENCE:
+            continue  # another character's own bonus (rule 4.15)
         why = _reason(party, recipient, give, n.reason)
-        if give.bonus not in reasons.setdefault(why, []):
+        if n.reason is Reason.NO_ITEM_CLASS:
+            by_class[f"  {give.bonus}: {why}"] = None
+        elif give.bonus not in reasons.setdefault(why, []):
             reasons[why].append(give.bonus)
-    if not reasons:
+    if not (reasons or by_class):
         return []
     lines = [RULE, "NOT APPLIED"]
     for why, bonuses in reasons.items():
         lines += [f"  {why}:", *wrapped(f"    {', '.join(bonuses)}", indent=0)]
-    return lines
+    return lines + list(by_class)
 
 
 def _reason(party: Party, recipient: RecipientReport, give: Give, reason: Reason) -> str:
@@ -844,6 +932,11 @@ def _reason(party: Party, recipient: RecipientReport, give: Give, reason: Reason
         return f"allies only ({name} is the giver)"
     if reason is Reason.NO_LEVEL:
         return f"level not recorded: use /character level {name} <n>"
+    if reason is Reason.NO_ITEM_CLASS:
+        item = class_name(give.needs_item_class or give.per_item_class, party.catalog)
+        if give.per_item_class is not None:
+            return f"no {item} items in use in the party"  # rule 4.15
+        return f"no {item} item in use"  # rule 4.14
     target = give.audience
     if target.kind is AudienceKind.GUILD:
         guild = guild_name(target.guild, party.catalog)
@@ -866,11 +959,18 @@ def _gives_lines(party: Party, user_id: UserId) -> list[str]:
         line = f"  {give.bonus}{rank}"
         if give.amounts:
             line += f" {amounts(give.amounts, catalog)}{adjusted(give, catalog)}"
+        if give.per_item_class is not None:
+            item = class_name(give.per_item_class, catalog)
+            line += f" per {item} item in use in the party"
         if give.level_rules:
             line += f": {gives_text(give, catalog)}"
         if give.effect is not None:
             line += f": {give.effect}" if not give.amounts else f"; effect: {give.effect}"
-        if give.audience.kind is not AudienceKind.PARTY or give.includes_giver:
+        if (
+            give.audience.kind is not AudienceKind.PARTY
+            or give.includes_giver
+            or give.needs_item_class is not None
+        ):
             line += f", {audience(give, catalog)}"
         if not give.stacks:
             line += ", doesn't stack"

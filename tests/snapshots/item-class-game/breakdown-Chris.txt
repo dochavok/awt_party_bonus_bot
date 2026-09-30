@@ -1,0 +1,18 @@
+# /breakdown Chris, run by cam (the token holder): private, 1 message(s)
+--- message 1 of 1 ---
+**BREAKDOWN**: Chris (level not recorded): <#100>
+Item classes in use: passion 1. Change with `/character items Chris <class> <count>`.
+```
+CM = 6 = +6
+   +6   Will Passions Adventure Token  (per passion item: Chris 1, Elizor 2)
+Damage = 2 + 3 = +5 hearts
+   +2   Aura of Passion       from Elizor
+   +3   Will Passions Adventure Token  (per passion item: Chris 1, Elizor 2)
+-------------------------------------------------
+NOT APPLIED
+  Glizzy Support: no glizzy item in use
+-------------------------------------------------
+WHAT Chris GIVES
+  Will Passions Adventure Token +2 CM, +1 heart damage per passion item
+      in use in the party, to the holder
+```

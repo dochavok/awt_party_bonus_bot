@@ -18,7 +18,7 @@ CR vs fear = 5 (all CR) + 3 = +8
 CR stealth = 5 (all CR) = +5
 CR escape = 5 (all CR) = +5
 Healing = 1 = +1 heart
-   +1   Helm of the Caladrius from Pell
+   +1   Helm of the Caladrius  from Pell
 -------------------------------------------------
 CONDITIONAL BONUSES (not in totals: add them when they apply)
   +5 CM from Osk (Commanding Presence): allies in the same range

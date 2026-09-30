@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-09-29
+reviewed: 2026-09-30
 ---
 
 # What the bot doesn't track
@@ -15,6 +15,18 @@ party bonuses to add on top.
 
 Some cards give both: Hero of Passion gives its holder +3 CM (yours to track) and other
 Hero of Passion holders +1 CM (tracked by the bot).
+
+The exception is a bonus to its holder that grows with how many items of a class the
+**party** is using, like Will Passions Adventure Token. It depends on who else is
+present, so the bot counts it. See
+[How bonuses are counted](counting.md#some-bonuses-grow-with-the-partys-items-of-a-class).
+
+## Which items you're wearing
+
+The bot doesn't know what your character owns or wears. For item classes, like
+passion items, it only knows **how many** your character is using, which you set with
+`/character items`. Whether an item belongs to a class, and whether it's in use, is
+your call.
 
 ## Abilities you use, rather than always-on bonuses
 

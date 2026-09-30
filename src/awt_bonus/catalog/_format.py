@@ -1,6 +1,6 @@
-"""The catalog file format (CT-4, CT-5), as pydantic models of the YAML.
+"""The catalog file format (CT-4, CT-5, CT-10), as pydantic models of the YAML.
 
-These describe one stat, entry or guild exactly as written in the files. Checks
+These describe one stat, entry, guild or item class exactly as written in the files. Checks
 that need the whole catalog (references, duplicates) are in ``_parse``.
 """
 
@@ -62,16 +62,41 @@ class BonusFields(_Spec):
     stacks: StrictBool | None = None
     level_rules: list[LevelRuleSpec] | None = None
     """Amounts that depend on the recipient's level (rule 4.10)."""
+    needs_item_class: StrictStr | None = None
+    """Only recipients with an item of this class in use receive it (rule 4.14)."""
+    per_item_class: StrictStr | None = None
+    """Goes to the holder only, once per item of this class in use in the party (rule 4.15)."""
 
     def bonus_problems(self) -> list[str]:
         problems = []
         if self.gives is not None and self.level_rules is not None:
             problems.append("has both `gives` and `level_rules`; use one")
+        if self.per_item_class is not None:
+            if self.needs_item_class is not None:
+                problems.append("has both `needs_item_class` and `per_item_class`; use one")
+            if not self.gives:
+                problems.append("`per_item_class` needs `gives`")
+            holder_only = [
+                name
+                for name in ("condition", "audience", "includes_giver", "stacks", "level_rules")
+                if getattr(self, name) is not None
+            ]
+            if holder_only:
+                problems.append(
+                    "`per_item_class` goes only to the holder, so it can't set "
+                    + ", ".join(holder_only)
+                )
         gives_something = self.gives or self.level_rules or self.effect
         if not gives_something:
             settings = [
                 name
-                for name in ("condition", "audience", "includes_giver", "stacks")
+                for name in (
+                    "condition",
+                    "audience",
+                    "includes_giver",
+                    "stacks",
+                    "needs_item_class",
+                )
                 if getattr(self, name) is not None
             ]
             if settings:
@@ -153,6 +178,19 @@ class EntrySpec(BonusFields):
         if problems:
             raise ValueError("; ".join(problems))
         return self
+
+
+class ItemClassSpec(_Spec):
+    """An item class (CT-10), e.g. passion items."""
+
+    name: StrictStr | None = None
+    """Display name; defaults to the ID."""
+    other_names: list[StrictStr] = []
+    """Other names players use, e.g. "Will Passion" for passion."""
+    description: StrictStr
+    """What belongs to the class."""
+    retired: StrictBool = False
+    """Counts can't be set any more; existing counts are kept (CT-6)."""
 
 
 class GuildSpec(_Spec):
