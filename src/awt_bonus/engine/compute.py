@@ -26,7 +26,7 @@ from awt_bonus.engine.report import (
     Source,
     SourceKind,
 )
-from awt_bonus.ids import CharacterId, EntryId, GuildId, StatId, UserId
+from awt_bonus.ids import CharacterId, EntryId, GuildId, ItemClassId, StatId, UserId
 
 
 def compute(
@@ -35,8 +35,13 @@ def compute(
     character_entries: Mapping[CharacterId, Sequence[EntryId]],
     character_guilds: Mapping[CharacterId, Sequence[GuildId]],
     catalog: Catalog,
+    character_item_counts: Mapping[CharacterId, Mapping[ItemClassId, int]] | None = None,
 ) -> PartyReport:
-    """Work out every counted player's bonuses (section 11, steps 0-6)."""
+    """Work out every counted player's bonuses (section 11, steps 0-6).
+
+    ``character_item_counts`` holds each character's item class counts (IC-1); a
+    character or class left out has 0. Not used yet: item classes are M8.
+    """
     # Step 0: who is counted. Bots are ignored entirely (SE-6); anyone with an
     # active sit-out is listed, but gives and receives nothing (SE-2, SE-4).
     people = [p for p in present_players if not p.is_bot]

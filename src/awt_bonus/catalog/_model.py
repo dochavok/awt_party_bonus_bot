@@ -4,7 +4,7 @@ from collections.abc import Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
-from awt_bonus.ids import EntryId, GuildId, StatId
+from awt_bonus.ids import EntryId, GuildId, ItemClassId, StatId
 
 
 class CatalogError(Exception):
@@ -149,6 +149,18 @@ class Guild:
     """What to tell players about joining, e.g. a Patreon link, instead of /guild join (CT-5)."""
 
 
+@dataclass(frozen=True)
+class ItemClass:
+    """A family of items with a common theme, e.g. passion items (CT-10)."""
+
+    id: ItemClassId
+    name: str
+    other_names: tuple[str, ...]
+    """Other names players use, e.g. "Will Passion" for passion."""
+    description: str
+    retired: bool = False
+
+
 class Catalog:
     """A loaded, validated catalog. ``Catalog()`` is an empty one.
 
@@ -161,11 +173,14 @@ class Catalog:
         stats: Iterable[Stat] = (),
         entries: Iterable[Entry] = (),
         guilds: Iterable[Guild] = (),
+        item_classes: Iterable[ItemClass] = (),
     ) -> None:
         self.stats: Mapping[StatId, Stat] = {s.id: s for s in stats}
         """In file order."""
         self.entries: Mapping[EntryId, Entry] = {e.id: e for e in entries}
         self.guilds: Mapping[GuildId, Guild] = {g.id: g for g in guilds}
+        self.item_classes: Mapping[ItemClassId, ItemClass] = {c.id: c for c in item_classes}
+        """Item classes (CT-10). Not loaded from files yet: item classes are M8."""
         self._entry_names = {e.name.casefold(): e for e in self.entries.values()}
         self._guild_names = {
             name.casefold(): g for g in self.guilds.values() for name in (g.short_name, g.full_name)

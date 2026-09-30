@@ -19,3 +19,6 @@ GuildId = NewType("GuildId", str)
 
 StatId = NewType("StatId", str)
 """A catalog stat's ID, e.g. "CM" or "CR vs fear"."""
+
+ItemClassId = NewType("ItemClassId", str)
+"""A catalog item class's permanent ID (CT-10), e.g. "passion"."""

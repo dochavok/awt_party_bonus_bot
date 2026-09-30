@@ -22,6 +22,9 @@ class Reason(StrEnum):
     """Not a member of the guild, or doesn't hold the entry (holders audience)."""
     NO_LEVEL = "no_level"
     """In the audience, but a level rule applies and no level is recorded."""
+    NO_ITEM_CLASS = "no_item_class"
+    """The recipient has no item of the class in use (rule 4.14), or, for a bonus
+    counted across the party, the party has none in use (rule 4.15)."""
     REPLACED = "replaced"
     """The giver also has the entry that replaces this one (rule 4.5)."""
     NOT_STACKED = "not_stacked"

@@ -31,11 +31,11 @@ class TaggedTest:
 
 
 def _sort_key(req_id: str) -> tuple[int, str, int, str]:
-    """Document order: section 4 rules, then 9.1, then IDs by prefix and number."""
+    """Document order: section 4 rules, then the section 9 examples, then IDs by prefix."""
     if req_id.startswith("4."):
         return (0, "", int(req_id[2:]), "")
-    if req_id == "9.1":
-        return (1, "", 0, "")
+    if req_id.startswith("9."):
+        return (1, "", int(req_id[2:]), "")
     prefix, _, number = req_id.partition("-")
     digits = re.match(r"\d+", number)
     return (2, prefix, int(digits.group()) if digits else 0, number)

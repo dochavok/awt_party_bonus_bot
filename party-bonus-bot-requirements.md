@@ -523,7 +523,7 @@ What's in play:
 | Gus | +3 | 5 | Glizzy Support (the holder included) |
 | Tess | +3 | 5 | Glizzy Support |
 
-`/mybonus` notes (IC-3): Mira, Gus and Tess each get the Aura of Passion note, and Elizor gets the Glizzy Support note.
+`/mybonus` notes (IC-3): Mira, Gus and Tess each get the Aura of Passion note, and Elizor and Chris get the Glizzy Support note.
 
 The output for this game is added here once its layout is approved with the snapshots (TS-5).
 
