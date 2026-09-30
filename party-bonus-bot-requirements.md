@@ -525,7 +525,80 @@ What's in play:
 
 `/mybonus` notes (IC-3): Mira, Gus and Tess each get the Aura of Passion note, and Elizor and Chris get the Glizzy Support note.
 
-The output for this game is added here once its layout is approved with the snapshots (TS-5).
+The output below matches the test snapshots in `tests/snapshots/item-class-game/`, shown as Discord displays it: the sit-out end is a Discord timestamp (NF-10), shown here as 8:00 AM.
+
+`/partybonus` (public):
+
+```
+PARTY BONUSES: AWT Voice (5 counted)
+CHARACTER   CM   CR
+Elizor      +0   +0
+Chris       +6   +0
+Mira        +3   +0
+Gus         +3   +0
+Tess        +3   +0
+-------------------------------------------------
+COMBAT NOTES
+Chris     Damage +5 hearts (extra hearts dealt when attacking)
+Mira      Damage +5 hearts (extra hearts dealt when attacking)
+Gus       Damage +5 hearts (extra hearts dealt when attacking)
+Tess      Damage +5 hearts (extra hearts dealt when attacking)
+Not counted: DM Sam (sitting out until 8:00 AM)
+```
+
+`/breakdown` (whole party; private):
+
+```
+PARTY BREAKDOWN: AWT Voice (5 counted)
+Aura of Passion (item): +2 hearts damage to allies with a passion item
+  in use
+    Elizor
+
+Will Passions Adventure Token (Chris): +6 CM, +3 hearts damage (per passion item: Chris 1, Elizor 2)
+
+Glizzy Support (item): +5 hearts damage, +3 CM to the giver and allies
+  with a glizzy item in use
+    Gus
+
+-------------------------------------------------
+TOTALS
+Elizor   no bonuses
+Chris    CM 6 = +6    Damage 2+3 = +5 hearts
+Mira     CM 3 = +3    Damage +5 hearts
+Gus      CM 3 = +3    Damage +5 hearts
+Tess     CM 3 = +3    Damage +5 hearts
+Not counted: DM Sam (sitting out until 8:00 AM)
+```
+
+`/breakdown Chris` (private; Chris holds the token):
+
+```
+BREAKDOWN: Chris (level not recorded): AWT Voice
+Item classes in use: passion 1. Change with /character items Chris <class> <count>.
+CM = 6 = +6
+   +6   Will Passions Adventure Token  (per passion item: Chris 1, Elizor 2)
+Damage = 2 + 3 = +5 hearts
+   +2   Aura of Passion       from Elizor
+   +3   Will Passions Adventure Token  (per passion item: Chris 1, Elizor 2)
+-------------------------------------------------
+NOT APPLIED
+  Glizzy Support: no glizzy item in use
+-------------------------------------------------
+WHAT Chris GIVES
+  Will Passions Adventure Token +2 CM, +1 heart damage per passion item
+      in use in the party, to the holder
+```
+
+`/mybonus Mira` (private):
+
+```
+Mira (level not recorded): AWT Voice
+CM      +3
+CR      +0
+Damage  +5 hearts (extra hearts dealt when attacking)
+Aura of Passion (+2 hearts damage) needs a passion item in use. If you're using one, set it with /character items Mira passion 1.
+See how this was worked out: /breakdown Mira
+```
 
 ## 10. Non-Functional Requirements
 

@@ -557,7 +557,9 @@ def _group_header(give: Give, catalog: Catalog) -> str:
 
 def _per_item(party: Party, give: Give) -> str:
     """Who a bonus counted across the party counts, e.g. "per passion item: Chris 1, Elizor 2"."""
-    counted = ", ".join(f"{party.name_of(user)} {n}" for user, n in give.class_counts)
+    # The holder first, then the others in party order, as in IC-3.
+    ordered = sorted(give.class_counts, key=lambda pair: pair[0] != give.giver)
+    counted = ", ".join(f"{party.name_of(user)} {n}" for user, n in ordered)
     return f"per {class_name(give.per_item_class, party.catalog)} item: {counted}"
 
 
@@ -876,7 +878,8 @@ def _stat_lines(party: Party, recipient: RecipientReport, stat: StatId) -> list[
     shown = total(stat, recipient.totals.get(stat, 0), catalog)
     lines = [f"{stat} = {' + '.join(terms)} = {shown}"]
     for line in contributions:
-        lines.append(f"   {line.amount:+d}   {line.bonus:<22}{line.source}")
+        width = max(22, len(line.bonus) + 2)  # a long name still gets a gap
+        lines.append(f"   {line.amount:+d}   {line.bonus:<{width}}{line.source}")
     return lines
 
 

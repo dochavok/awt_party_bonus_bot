@@ -22,6 +22,7 @@ from pathlib import Path
 import pytest
 
 from awt_bonus.commands import Reply
+from tests.commands.test_item_classes import play_9_2
 from tests.support.world import MakeWorld
 
 SNAPSHOTS = Path(__file__).resolve().parents[1] / "snapshots" / "sample-game"
@@ -81,6 +82,36 @@ async def test_sample_game_output_matches_its_snapshot(make_world: MakeWorld, vi
     actual = render(view, await world.run(view.handle, view.command, **options))
 
     path = SNAPSHOTS / f"{view.file}.txt"
+    if os.environ.get("UPDATE_SNAPSHOTS") == "1":
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(actual, encoding="utf-8", newline="\n")
+        pytest.fail(f"wrote {path.name}: review the diff, then run again without UPDATE_SNAPSHOTS")
+    assert path.exists(), f"no snapshot {path.name} (see this module's docstring)"
+    assert actual == path.read_text(encoding="utf-8"), f"/{view.command} differs from {path.name}"
+
+
+ITEM_CLASS_SNAPSHOTS = SNAPSHOTS.parent / "item-class-game"
+
+ITEM_CLASS_VIEWS = [
+    View("partybonus", "eli", "partybonus"),
+    View("breakdown", "eli", "breakdown"),
+    View("breakdown-Chris", "cam", "breakdown", "Chris", about="the token holder"),
+    View("mybonus-Mira", "mia", "mybonus", "Mira", about="misses Aura of Passion"),
+]
+"""The section 9.2 item class game. Its layout was approved in M8."""
+
+
+@pytest.mark.milestone("M8")
+@pytest.mark.req("TS-5", "9.2", "IC-3")
+@pytest.mark.parametrize("view", ITEM_CLASS_VIEWS, ids=[v.file for v in ITEM_CLASS_VIEWS])
+async def test_item_class_game_output_matches_its_snapshot(
+    make_world: MakeWorld, view: View
+) -> None:
+    world = await play_9_2(make_world)
+    options = {"character": view.character} if view.character else {}
+    actual = render(view, await world.run(view.handle, view.command, **options))
+
+    path = ITEM_CLASS_SNAPSHOTS / f"{view.file}.txt"
     if os.environ.get("UPDATE_SNAPSHOTS") == "1":
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(actual, encoding="utf-8", newline="\n")
