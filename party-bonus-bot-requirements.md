@@ -273,6 +273,8 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 | Will's Ward Stone | Item | +5 CM | Confirmed (Q4) |
 | NF (nobuFest pin) | Item | +1 CM to **NF pin holders only**, the holder included; stacks (with three holders present, each gets +3) | Confirmed (Q4) |
 | Will Passion's Pendant | Item | **Aura of Passion:** +2 hearts of damage to allies wearing a Will Passion item. Conditional (rule 4.12): shown separately, never in totals. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
+| Glizzy from God | Item | **Glizzy Support:** +5 hearts of damage and +3 CM to the party, the holder included, for glizzy based items. Conditional (rule 4.12): shown separately, never in totals. An item, so not an aura for Devotion III (rule 4.6). Its +13 CM is the holder's own (section 2), on the card, not calculated. The card's "+3" is CM (Craig) | Card text from Craig |
+| Will Passions Adventure Token | Item | No party bonus: in an arcane slot, the holder gains a flat +2 CM and +1 heart of Passion damage for each equipped Will Passion item in the party, the holder's own included. Both are the holder's own (section 2): on the card, not calculated | Card text from Craig |
 | Easy Back Oven | Item | Effect: effects of extreme cold are negated, for the party, the holder included | Card text from Craig |
 | Pants of the Water Valkyrie | Item | +1 heart damage reduction to the party, the holder included | Card text from Craig |
 | Protection Charm | Item | +1 heart damage reduction to allies. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
