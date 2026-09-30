@@ -1,7 +1,7 @@
 """The database (requirements section 11 data model, 12.1).
 
-Holds characters, their entries and guilds, current characters, sit-outs and the
-audit log. The catalog and settings aren't stored here; only catalog IDs are.
+Holds characters, their entries, guilds and item class counts, current characters,
+sit-outs and the audit log. The catalog and settings aren't stored here; only catalog IDs are.
 All times are stored in UTC (NF-10).
 """
 
@@ -21,7 +21,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, create_async_engine
 
 from awt_bonus import schema
-from awt_bonus.ids import CharacterId, EntryId, GuildId, UserId
+from awt_bonus.ids import CharacterId, EntryId, GuildId, ItemClassId, UserId
 
 BUSY_TIMEOUT_MS = 5000
 """How long SQLite waits for a lock before giving up (DB-3)."""
@@ -37,6 +37,8 @@ class CharacterRecord:
     level_updated_at: datetime | None
     entries: tuple[EntryId, ...]
     guilds: tuple[GuildId, ...]
+    item_counts: Mapping[ItemClassId, int]
+    """How many items of each class are in use, above 0 (IC-1). A class not here is 0."""
 
 
 @dataclass(frozen=True)
@@ -174,6 +176,29 @@ class Store:
         async with self._connect() as connection:
             await connection.execute(statement)
 
+    async def set_item_count(
+        self, character_id: CharacterId, item_class: ItemClassId, count: int
+    ) -> None:
+        """Set how many items of a class the character has in use (IC-2). 0 clears it."""
+        table = schema.character_item_count
+        async with self._connect() as connection:
+            if count == 0:
+                await connection.execute(
+                    delete(table).where(
+                        table.c.character_id == character_id,
+                        table.c.item_class_id == item_class,
+                    )
+                )
+                return
+            statement = sqlite_insert(table).values(
+                character_id=character_id, item_class_id=item_class, count=count
+            )
+            statement = statement.on_conflict_do_update(
+                index_elements=[table.c.character_id, table.c.item_class_id],
+                set_={"count": count},
+            )
+            await connection.execute(statement)
+
     async def set_current(self, owner: UserId, character_id: CharacterId | None) -> None:
         """Set (or clear) the player's current character (CH-3)."""
         statement = sqlite_insert(schema.player).values(
@@ -242,9 +267,9 @@ class Store:
             await connection.execute(statement)
 
     async def delete_character(self, character_id: CharacterId) -> None:
-        """Delete a character (CH-2, by the maintainer only). Its entries and guild
-        memberships go with it, and it stops being anyone's current character; its
-        audit records stay (HV-5).
+        """Delete a character (CH-2, by the maintainer only). Its entries, guild
+        memberships and item class counts go with it, and it stops being anyone's
+        current character; its audit records stay (HV-5).
         """
         statement = delete(schema.character).where(schema.character.c.id == character_id)
         async with self._connect() as connection:
@@ -358,6 +383,16 @@ class Store:
             ids = [row.id for row in rows]
             entries = await _grouped(connection, schema.character_entry.c.entry_id, ids)
             guilds = await _grouped(connection, schema.character_guild.c.guild_id, ids)
+            counts = await connection.execute(
+                select(
+                    schema.character_item_count.c.character_id,
+                    schema.character_item_count.c.item_class_id,
+                    schema.character_item_count.c.count,
+                ).where(schema.character_item_count.c.character_id.in_(ids))
+            )
+            item_counts: dict[int, dict[ItemClassId, int]] = {}
+            for character_id, item_class, count in counts:
+                item_counts.setdefault(character_id, {})[ItemClassId(item_class)] = count
         return [
             CharacterRecord(
                 id=CharacterId(row.id),
@@ -367,6 +402,7 @@ class Store:
                 level_updated_at=row.level_updated_at,
                 entries=tuple(EntryId(e) for e in entries.get(row.id, ())),
                 guilds=tuple(GuildId(g) for g in guilds.get(row.id, ())),
+                item_counts=item_counts.get(row.id, {}),
             )
             for row in rows
         ]

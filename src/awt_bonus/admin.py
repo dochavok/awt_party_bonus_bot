@@ -34,6 +34,7 @@ from pathlib import Path
 from awt_bonus.backup import take_snapshot
 from awt_bonus.catalog import Catalog, load_catalog
 from awt_bonus.ids import UserId
+from awt_bonus.output.describe import item_counts
 from awt_bonus.ports import Clock, SystemClock
 from awt_bonus.settings import Environment
 from awt_bonus.startup import StartupError, database_path
@@ -99,6 +100,7 @@ async def remove_character(
             f"  Level: {record.level if record.level is not None else 'not recorded'}",
             f"  Entries: {_entry_names(record, catalog)}",
             f"  Guilds: {_guild_names(record, catalog)}",
+            f"  Item classes in use: {item_counts(record.item_counts, catalog) or 'none'}",
             after,
         ],
         character=record,
@@ -116,6 +118,7 @@ async def remove_character(
                     "level": record.level,
                     "entries": list(record.entries),
                     "guilds": list(record.guilds),
+                    "item_counts": dict(record.item_counts),
                 },
                 None,
                 now,
@@ -185,8 +188,9 @@ async def transfer(
     description = [
         f"Move the character {record.name} from Discord user {record.owner} "
         f"to Discord user {owner}.",
-        f"  It keeps its level, entries ({_entry_names(record, catalog)}) and guilds "
-        f"({_guild_names(record, catalog)}).",
+        f"  It keeps its level, entries ({_entry_names(record, catalog)}), guilds "
+        f"({_guild_names(record, catalog)}) and item class counts "
+        f"({item_counts(record.item_counts, catalog) or 'none'}).",
     ]
     if old_current is not None and old_current.id == record.id:
         others = [c for c in await store.characters_of(record.owner) if c.id != record.id]

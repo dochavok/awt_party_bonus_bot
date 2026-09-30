@@ -7,7 +7,7 @@ from collections.abc import Iterable, Mapping
 from datetime import datetime
 
 from awt_bonus.catalog import Ability, AudienceKind, Catalog, Entry, EntryKind, StatKind
-from awt_bonus.ids import ChannelId, GuildId, StatId
+from awt_bonus.ids import ChannelId, GuildId, ItemClassId, StatId
 
 
 def timestamp(moment: datetime, style: str) -> str:
@@ -25,6 +25,20 @@ def channel_mention(channel_id: ChannelId) -> str:
 
 def plural(n: int, word: str) -> str:
     return f"{n} {word}" if n == 1 else f"{n} {word}s"
+
+
+def item_counts(counts: Mapping[ItemClassId, int], catalog: Catalog) -> str:
+    """A character's item class counts in catalog order, e.g. "passion 2, glizzy 1" (IC-3).
+
+    Empty if every count is 0. A class no longer in the catalog is shown by its ID.
+    """
+    order = [c for c in catalog.item_classes if c in counts]
+    order += sorted(c for c in counts if c not in catalog.item_classes)
+    return ", ".join(
+        f"{catalog.item_classes[c].name if c in catalog.item_classes else c} {counts[c]}"
+        for c in order
+        if counts[c] > 0
+    )
 
 
 def has_subtypes(stat: StatId, catalog: Catalog) -> bool:
