@@ -8,7 +8,8 @@
 #   - keys are permanent IDs that differ from the display names (CT-2);
 #     `name` is the display name (it defaults to the key when left out);
 #   - `card` holds the card text quoted from the source (CT-4, CT-8);
-#   - guilds have `short_name` and `full_name` (CT-5).
+#   - guilds have `short_name` and `full_name` (CT-5);
+#   - item classes have other names and a description (CT-10).
 # Values mirror the starting catalog (requirements section 8).
 # Card text is quoted from the source where the requirements or the DM
 # questions quote it, and is test text otherwise.
@@ -231,6 +232,28 @@ entries:
   joy_maker:             {name: Joy-Maker, kind: title, card: "Test card text: no party bonus."}
   story_teller:          {name: Story Teller, kind: title, card: "Test card text: no party bonus."}
 
+  will_passions_pendant:
+    name: Will Passion's Pendant
+    kind: item
+    ability: Aura of Passion
+    gives: {Damage: 2}
+    needs_item_class: passion
+    card: "Test card text: allies with a passion item in use gain +2 hearts of damage."
+  glizzy_from_god:
+    name: Glizzy from God
+    kind: item
+    ability: Glizzy Support
+    includes_giver: true
+    gives: {Damage: 5, CM: 3}
+    needs_item_class: glizzy
+    card: "Test card text: you and your allies with a glizzy item in use gain +5 hearts of damage and +3 CM."
+  will_passions_adventure_token:
+    name: Will Passions Adventure Token
+    kind: item
+    gives: {CM: 2, Damage: 1}
+    per_item_class: passion
+    card: "Test card text: you gain +2 CM and +1 heart of damage for each passion item in use in your party."
+
   # ------------------------------------------------------------ test-only
   old_charm:
     name: Old Charm
@@ -272,3 +295,12 @@ guilds:
     short_name: Cookery
     full_name: Order of Cookery
     membership: open
+
+item_classes:
+  # ------------------------------------------------------------ item classes (8.5)
+  passion:
+    other_names: [Will Passion]
+    description: Items made by Will Passion or through the Path of Passion quest
+  glizzy:
+    other_names: [hotdog]
+    description: Glizzy (hot dog) themed items
