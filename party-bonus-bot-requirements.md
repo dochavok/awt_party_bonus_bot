@@ -203,7 +203,7 @@ Some items give a bonus that depends on the items of a class (CT-10) that charac
 |---|---|---|
 | IC-1 | **In use, not owned.** A character's count for a class is how many items of that class they are **using**, not how many they own. Whether an item belongs to a class, and whether it's in use, is the player's call: the bot doesn't check. Players keep their counts current, lowering them when they stop using an item. A character with no count recorded for a class has 0. | M |
 | IC-2 | **`/character items <character> <class> <count>`** sets how many items of a class the character has in use, from 0 to 30. 0 clears it. Players change only their own characters (NF-4), and each change is written to the audit log (HV-5). Class autocomplete matches display names and other names (e.g. *hotdog* finds glizzy). The private reply confirms the new count and lists the character's other counts, e.g. *"Chris now has 2 passion items in use. Other counts: glizzy 1. Change it whenever you stop or start using one."* | M |
-| IC-3 | **Showing counts and class bonuses.**<br>• **`/character list`** adds a line for each character with any count above 0, e.g. *"Item classes: passion 2, glizzy 1"*.<br>• **`/breakdown <character>`** shows the character's counts near the top, with the command to change them, and the reasons a class bonus wasn't applied: *"no passion item in use"* (rule 4.14), or, for the holder of a bonus counted across the party, *"no passion items in use in the party"* (rule 4.15).<br>• **The party `/breakdown`** shows a class-counted bonus with its working, naming each counted character who has items of that class in use, e.g. *"Will Passions Adventure Token (Chris): +6 CM, +3 hearts of damage (per passion item: Chris 1, Elizor 2)"*.<br>• **`/mybonus`** adds one line when the character misses a class bonus that's in play because their count is 0, like the missing-level note (CH-5), e.g. *"Aura of Passion (+2 hearts of damage) needs a passion item in use. If you're using one, set it with `/character items Mira passion 1`."*<br>• **`/catalog <class>`** shows the class's description, its other names, the entries that depend on it, and the command to set a count. An entry that depends on a class says so, e.g. *"needs a passion item in use"* or *"+1 heart per passion item in use in the party, to the holder"*. | M |
+| IC-3 | **Showing counts and class bonuses.**<br>• **`/character list`** adds a line for each character with any count above 0, e.g. *"Item classes: passion 2, glizzy 1"*.<br>• **`/breakdown <character>`** shows the character's counts near the top, with the command to change them, and the reasons a class bonus wasn't applied: *"no passion item in use"* (rule 4.14), or, for the holder of a bonus counted across the party, *"no passion items in use in the party"* (rule 4.15).<br>• **The party `/breakdown`** shows a class-counted bonus with its working, naming each counted character who has items of that class in use, e.g. *"Will Passions Adventure Token (Chris): +6 CM, +3 hearts of damage (per passion item: Chris 1, Elizor 2)"*.<br>• **`/mybonus`** adds one line for each class bonus that's in play and the character misses because their count is 0, like the missing-level note (CH-5), e.g. *"Aura of Passion (+2 hearts of damage) needs a passion item in use. If you're using one, set it with `/character items Mira passion 1`."*<br>• **`/catalog <class>`** shows the class's description, its other names, the entries that depend on it, and the command to set a count. An entry that depends on a class says so, e.g. *"needs a passion item in use"* or *"+1 heart per passion item in use in the party, to the holder"*. | M |
 | IC-4 | **Bonuses that need an item class** apply only to recipients with one in use (rule 4.14). | M |
 | IC-5 | **Bonuses counted across the party** go to their holder, multiplied by the party's count of the class (rule 4.15). The amount can be 0; it is never negative. | M |
 
@@ -495,6 +495,37 @@ If Crateris's player were actually playing another character, `/mybonus Crateris
 NOTE: Crateris isn't your current character (you're playing Elowen).
 These totals show Crateris in Elowen's place. Use /play Crateris to switch.
 ```
+
+### 9.2 Item class game
+
+A second, smaller game for the item class rules (section 6.8, rules 4.14 and 4.15). It uses the same test catalog, with its passion and glizzy classes and test versions of the three class items. Nobody has a Guild rank role, so only class bonuses are in play.
+
+Voice channel: *AWT Voice*. DM Sam has used `/sitout`; Sam's character has 3 passion items in use. Counted characters:
+
+| Character | Has | Item classes in use |
+|---|---|---|
+| Elizor | Will Passion's Pendant | passion 2 |
+| Chris | Will Passions Adventure Token | passion 1 |
+| Mira | | glizzy 1 |
+| Gus | Glizzy from God | glizzy 1 |
+| Tess | | glizzy 2 |
+
+What's in play:
+- **Aura of Passion** (Elizor): +2 hearts of damage to each ally with a passion item in use: only Chris. Elizor is the giver. Mira, Gus and Tess have no passion item in use.
+- **Glizzy Support** (Gus): +3 CM and +5 hearts of damage to each character with a glizzy item in use, **Gus included**: Mira, Gus and Tess. Tess's 2 glizzy items don't double it. Elizor and Chris have no glizzy item in use.
+- **Will Passions Adventure Token** (Chris): the party has 3 passion items in use (Elizor 2, Chris 1), so Chris receives +6 CM and +3 hearts of damage. Sam's 3 add nothing, because Sam is sitting out. If they counted, Chris would receive +12 CM.
+
+| Character | CM | Damage (hearts) | Working |
+|---|---|---|---|
+| Elizor | +0 | 0 | nothing applies |
+| Chris | +6 | 5 | CM: token 6. Damage: Aura of Passion 2 + token 3 |
+| Mira | +3 | 5 | Glizzy Support |
+| Gus | +3 | 5 | Glizzy Support (the holder included) |
+| Tess | +3 | 5 | Glizzy Support |
+
+`/mybonus` notes (IC-3): Mira, Gus and Tess each get the Aura of Passion note, and Elizor gets the Glizzy Support note.
+
+The output for this game is added here once its layout is approved with the snapshots (TS-5).
 
 ## 10. Non-Functional Requirements
 
