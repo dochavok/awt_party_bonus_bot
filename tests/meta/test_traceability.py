@@ -39,14 +39,14 @@ def test_requirement_ids_are_read_from_the_document() -> None:
 @pytest.mark.req("TF-3")
 def test_section_4_rules_and_sample_game_are_requirements() -> None:
     reqs = requirements()
-    assert {f"4.{n}" for n in range(1, 14)} <= set(reqs)
-    assert "4.14" not in reqs
+    assert {f"4.{n}" for n in range(1, 16)} <= set(reqs)
+    assert "4.16" not in reqs
     assert "9.1" in reqs
 
 
 @pytest.mark.req("TF-4")
 def test_milestones_are_read_from_section_17() -> None:
-    assert milestones() == ("M1", "M2", "M3", "M4", "M5", "M6", "M7")
+    assert milestones() == ("M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
 
 
 @pytest.mark.req("TF-4")

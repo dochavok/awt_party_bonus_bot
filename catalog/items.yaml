@@ -41,9 +41,9 @@ entries:
       +13. Toe ring (foot slot). Glizzy Support (aura): All glizzy based items do
       +5<3s of damage and gain a +3
 
-  # Everything it gives is the holder's own (section 2), so it has no party bonus yet.
-  # The +1 heart per equipped Will Passion item in the party (the holder's own count,
-  # Craig) waits on item classes; its +2 CM is flat, not per item (Craig).
+  # To the holder only: +2 CM and +1 heart per passion item in use in the party, the
+  # holder's own included; both amounts are multiplied (Craig). No party bonus until
+  # item classes are built (rule 4.15, M8), so card only for now.
   will_passions_adventure_token:
     name: Will Passions Adventure Token
     kind: item                              # Divine, Arcane
