@@ -301,19 +301,19 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 | Part of the Ship, Part of the Crew | Title | +2 CM to each **other** holder of the title (stacks). Its +5 CM to the holder, and its effect (sea legs: can't be knocked off a ship), are self-only (section 2): on the card, not calculated. Two holders present each get +2 from the bot and add their own +5 | Card text from Craig |
 | Helping Hands | Title | No party bonus: +1 to the buffs and heals the holder casts, which the bot doesn't track; not auras or other always-on bonuses. Card text: "Anytime you buff or heal an ally/allies the numerical value is increased by 1." | Answered (Q7) |
 | Helping Hands v2.0 | Title | As Helping Hands, but +3; replaces Helping Hands. No party bonus | Answered (Q7) |
-| Power Supporter | Title | No party bonus | Listed for completeness |
-| Charitable Adventurer | Title | No party bonus | Listed for completeness |
-| Element Savant | Title | No party bonus | Listed for completeness |
-| Joy-Maker | Title | No party bonus | Listed for completeness |
-| Story Teller | Title | No party bonus | Listed for completeness |
-| Spook Survivor | Title | No party bonus (its +2 CR vs fear is for the holder only) | Listed for completeness |
-| Champion of the Threads | Title | No party bonus (its +5 CM with every body slot filled, and +10 CM when wearing anything Embroidered by AWT, are for the holder only) | Listed for completeness |
-| Experimental Champion | Title | No party bonus (its +5 CM is for the holder only; its aid-action ability is 1/combat) | Listed for completeness |
-| Savior of the Crossroads | Title | No party bonus (1/combat, for the holder) | Listed for completeness |
-| Master Chef | Title | No party bonus (raises the holder's own consumables) | Listed for completeness |
-| Harbingers of Doom | Title | No party bonus (1 per day, at the DM's discretion) | Listed for completeness |
+| Power Supporter | Title | No party bonus | Retired (CT-6) |
+| Charitable Adventurer | Title | No party bonus | Retired (CT-6) |
+| Element Savant | Title | No party bonus | Retired (CT-6) |
+| Joy-Maker | Title | No party bonus | Retired (CT-6) |
+| Story Teller | Title | No party bonus | Retired (CT-6) |
+| Spook Survivor | Title | No party bonus (its +2 CR vs fear is for the holder only) | Retired (CT-6) |
+| Champion of the Threads | Title | No party bonus (its +5 CM with every body slot filled, and +10 CM when wearing anything Embroidered by AWT, are for the holder only) | Retired (CT-6) |
+| Experimental Champion | Title | No party bonus (its +5 CM is for the holder only; its aid-action ability is 1/combat) | Retired (CT-6) |
+| Savior of the Crossroads | Title | No party bonus (1/combat, for the holder) | Retired (CT-6) |
+| Master Chef | Title | No party bonus (raises the holder's own consumables) | Retired (CT-6) |
+| Harbingers of Doom | Title | No party bonus (1 per day, at the DM's discretion) | Retired (CT-6) |
 
-Titles with no party bonus can still be added with `/add`; they show in `/catalog` and in what a character has, but never change totals.
+Helping Hands and Helping Hands v2.0 can be added with `/add`; they show in `/catalog` and in what a character has, but never change totals. To keep the catalog trim, the other titles with no party bonus are retired (CT-6): they can't be added and `/catalog` doesn't list them, but they stay in the catalog and can be brought back.
 
 Bonuses players count whose source isn't known yet are listed under "Waiting on players" in section 16 (none at the moment).
 
@@ -817,7 +817,7 @@ The bot doesn't roll dice. `/bogsy` replies privately with Bogsy `/modifier` com
 - **Reply visibility:** only `/partybonus` is public (with `private:true` for a quiet check); every other reply is always private.
 - **Tech stack:** Python 3.12+ with discord.py, SQLite and SQLAlchemy (section 12).
 - **Tests first:** functional tests are written from the requirements before any code (M1). Tests change only when a human confirms they're wrong, and only after the requirements are corrected (TF-5).
-- **Titles:** Champion of Power and Hero of Passion (HoP) are titles. HoP goes only to other HoP holders. Titles with no party bonus are listed anyway for completeness.
+- **Titles:** Champion of Power and Hero of Passion (HoP) are titles. HoP goes only to other HoP holders. Titles with no party bonus are retired to keep the catalog trim, except Helping Hands and Helping Hands v2.0 (section 8.4).
 - **`/request`** posts to `#bonus-bot-support`.
 - **The Cult bonus** comes only from the High Inquisitor. The rank entry is *High Inquisitor*; the bonus it gives is named *Cult of the Dragon*.
 - **One holder at a time:** High Inquisitor and Champion of Power can each be held by only one character on the server. `/add` refuses a second holder (HV-6).
