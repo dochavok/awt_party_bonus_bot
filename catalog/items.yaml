@@ -118,11 +118,13 @@ entries:
       Helping Hand Title. If you already had the title you increase its effects by +2.
       Well done Adventurers!
 
-  # No always-on party bonus: listed so they can be added and shown (8.4). What they
-  # give is self-only, for one ally, or once per combat or weekend, so it isn't tracked.
+  # No always-on party bonus: what they give is self-only, for one ally, or once per
+  # combat or weekend, so it isn't tracked. Retired so they aren't offered (CT-6);
+  # set `retired: false` to bring one back.
   power_supporter:
     name: Power Supporter
     kind: title
+    retired: true
     card: >-
       This title grants you a permanent +1 <3 of True Damage. and an aura that boosts
       one of your allies existing resistance(the same resistance cannot be added more
@@ -131,6 +133,7 @@ entries:
   charitable_adventurer:
     name: Charitable Adventurer
     kind: title
+    retired: true
     card: >-
       Whenever you want to pass an item to another adventurer it can be done without
       tasking. 1/combat When you pass an item to an adventurer this way they gain a +1
@@ -140,6 +143,7 @@ entries:
   element_savant:
     name: Element Savant
     kind: title
+    retired: true
     card: >-
       1/combat you can change your or an allies damage to a element type you have
       access to.
@@ -147,6 +151,7 @@ entries:
   joy_maker:
     name: Joy-Maker
     kind: title
+    retired: true
     card: >-
       1/combat if something you do makes a fellow ally or allies laugh or smile(please
       try to let it be natural and not forced) that/those allies will gain a +5 to
@@ -155,6 +160,7 @@ entries:
   story_teller:
     name: Story Teller
     kind: title
+    retired: true
     card: >-
       1/weekend if you tell a short story to any of the Members of the guild hall and
       it pleases them you can gain a minor loot roll(must be done at a faire no online
@@ -163,6 +169,7 @@ entries:
   spook_survivor:
     name: Spook Survivor
     kind: title
+    retired: true
     card: >-
       Your experience with spooks and terrors has given you a thick skin. you gain a +2
       to CRs vs Fear based effects if an effect does not give you a CR you get a Hard CR
@@ -171,6 +178,7 @@ entries:
   champion_of_the_threads:
     name: Champion of the Threads
     kind: title                             # its bonuses are the holder's own (section 2)
+    retired: true
     card: >-
       Gain an extra +5 CM when all of your body slots are filled. Add +10CM if your
       wearing anything Embroidered by AWT.
@@ -178,6 +186,7 @@ entries:
   experimental_champion:
     name: Experimental Champion
     kind: title                             # +5 CM is the holder's own (section 2)
+    retired: true
     card: >-
       +5cm. 1/combat when you take the aid action you may also use an item or skill.
       (This does not take an action)
@@ -185,11 +194,13 @@ entries:
   savior_of_the_crossroads:
     name: Savior of the Crossroads
     kind: title                             # 1/combat: not tracked
+    retired: true
     card: "1/combat Gain +1<3 of damage for each adventurer in your party"
 
   master_chef:
     name: Master Chef
     kind: title                             # raises the holder's own consumables: not tracked
+    retired: true
     card: >-
       Any time you eat or drink an item that is a consumable you increase its effects
       by 2. If the consumable doesn't have a value attached to it, DM discretion on how
@@ -198,6 +209,7 @@ entries:
   harbingers_of_doom:
     name: Harbingers of Doom
     kind: title                             # 1 per day: not tracked
+    retired: true
     card: "1 per day, dm discretion, +2 to combat roll"
 
 item_classes:

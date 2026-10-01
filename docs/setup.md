@@ -60,7 +60,9 @@ Add each skill, guild rank, boon, item and title that gives a party bonus:
 - **Guild ranks and boons only appear once your character has joined the guild.**
 - **Add your rank, not every rank below it.** A higher rank replaces the lower ones, so
   adding both does no harm, but only the higher one counts.
-- **Titles with no party bonus** can be added too. They never change anyone's totals.
+- **Missing a title? It may have no party bonus.** To keep the catalog trim, we've
+  chosen not to list titles that never change anyone's totals. There's nothing to add
+  for them.
 
 To see what an entry gives before adding it, and the exact `/add` command for it:
 
