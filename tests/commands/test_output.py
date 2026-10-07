@@ -53,6 +53,25 @@ def _all_totals(reply_totals: Mapping[StatId, int]) -> dict[str, int]:
     return {stat: reply_totals.get(StatId(stat), 0) for stat in SAMPLE_TOTALS["Ioseph"]}
 
 
+def _table(text: str) -> dict[str, dict[str, int]]:
+    """The /partybonus table as shown: character -> column -> value (TF-7).
+
+    Columns are split on runs of two or more spaces; the ``*`` that marks a player
+    with no character is dropped from the name.
+    """
+    lines = text.splitlines()
+    start = next(n for n, line in enumerate(lines) if line.startswith("CHARACTER"))
+    columns = re.split(r"\s{2,}", lines[start].strip())[1:]
+    rows: dict[str, dict[str, int]] = {}
+    for line in lines[start + 1 :]:
+        if not line.strip() or line.startswith(("---", "```")):
+            break
+        name, *values = re.split(r"\s{2,}", line.strip())
+        assert len(values) == len(columns), f"row doesn't fit the columns: {line!r}"
+        rows[name.rstrip("*")] = {c: int(v) for c, v in zip(columns, values, strict=True)}
+    return rows
+
+
 # ---------------------------------------------------------------- OUT-1: /partybonus
 
 
@@ -69,10 +88,12 @@ async def test_partybonus_is_public_with_every_counted_characters_totals(
     assert counted(reply) == set(SAMPLE_TOTALS)
     for name, expected in SAMPLE_TOTALS.items():
         assert _all_totals(recipient(reply, name).totals) == expected, name
-    for name in SAMPLE_TOTALS:
-        assert name in reply.text
-    for value in ["+10", "+18", "+12", "+23", "+33", "+20"]:
-        assert value in reply.text
+    shown = _table(reply.text)
+    assert set(shown) == set(SAMPLE_TOTALS), "one row per counted character"
+    for name, row in shown.items():
+        assert set(row) == {"CM", "CR", "CR vs fear", "CR stealth", "CR escape"}, name
+        for column, value in row.items():
+            assert value == SAMPLE_TOTALS[name][column], f"{name}'s {column} is shown as {value}"
 
 
 @M4

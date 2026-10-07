@@ -4,6 +4,7 @@ cases at command level.
 Uses the presence fixture (one voice channel per case; see the fixture's header).
 """
 
+import re
 from datetime import timedelta
 
 import pytest
@@ -151,7 +152,15 @@ async def test_an_empty_channel_gives_an_empty_party(make_world: MakeWorld) -> N
     reply = await world.run("ada", "partybonus", channel=world.channel("Empty Room"))
 
     assert counted(reply) == set()
-    assert reply.text
+    assert reply.report is not None
+    assert not reply.report.not_counted
+    assert not reply.report.no_character
+    assert f"<#{world.channel('Empty Room')}>" in reply.text, "the heading names that channel"
+    shown = {c.name for p in world.spec.players for c in p.characters} | {
+        m.name for m in world.spec.discord.members
+    }
+    named = {n for n in shown if re.search(rf"\b{re.escape(n)}\b", reply.text)}
+    assert not named, "nobody from another channel is shown"
 
 
 # ---------------------------------------------------------------- SE-3: current character

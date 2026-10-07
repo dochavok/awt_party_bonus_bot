@@ -58,6 +58,10 @@ When a DM answers a question in `dm-rule-questions.md`, start at step 2.
 
 - Every test names the requirement ID(s) it checks (e.g. `HV-4`) and any DM
   question it depends on (e.g. `Q7`).
+- **Assertions must be able to fail** (TF-7): tie each value to the character and
+  stat it belongs to, check a refusal is private and names what was refused, and
+  never accept "any non-empty reply". Before trusting a new test, break the code it
+  guards and watch it fail.
 - **Requirement IDs are permanent** (TF-3): never renumber or reuse one. A removed
   requirement keeps its row, marked *removed*.
 - **Catalog entries are retired, never deleted** (CT-6, CT-7): set `retired: true`

@@ -37,9 +37,12 @@ async def test_export_lists_roll_stat_modifiers_to_copy(make_world: MakeWorld) -
     reply = await world.run("maya", "bogsy")
 
     assert reply.private
-    assert "/modifier name:bonus_cm value:33" in reply.text
-    assert "/modifier name:bonus_cr value:10" in reply.text
-    assert "/modifier name:bonus_fear value:3" in reply.text  # 13 - 10: only the extra
+    values = dict(_modifiers(reply.text))
+    assert values["bonus_cm"] == 33
+    assert values["bonus_cr"] == 10
+    assert values["bonus_fear"] == 3  # 13 - 10: only the extra
+    assert values["bonus_stealth"] == 2  # 12 - 10
+    assert values["bonus_escape"] == 1  # 11 - 10
 
 
 @pytest.mark.req("BG-1", "4.12")
@@ -54,7 +57,7 @@ async def test_export_leaves_out_combat_notes_effects_and_conditional_bonuses(
     assert "heart" not in reply.text
     assert "Resistance" not in reply.text
     assert "Commanding Presence" not in reply.text
-    assert "/modifier name:bonus_cm value:28" in reply.text  # 18 + Vex's Aura of Hope
+    assert dict(_modifiers(reply.text))["bonus_cm"] == 28  # 18 + Vex's Aura of Hope
 
 
 @pytest.mark.req("BG-3")
@@ -62,9 +65,9 @@ async def test_export_sets_stats_that_are_now_zero_to_0(make_world: MakeWorld) -
     world = await make_world("presence")
     reply = await world.run("ada", "bogsy")  # Aria: CR vs fear +2, nothing else
 
-    assert "/modifier name:bonus_fear value:2" in reply.text
-    assert "/modifier name:bonus_cm value:0" in reply.text
-    assert "/modifier name:bonus_cr value:0" in reply.text
+    assert dict(_modifiers(reply.text)) == {
+        name: 2 if name == "bonus_fear" else 0 for name in NAMES
+    }
 
 
 @pytest.mark.req("BG-1", "BG-2", "BG-3", "OUT-5", "OUT-3b", "9.1")
