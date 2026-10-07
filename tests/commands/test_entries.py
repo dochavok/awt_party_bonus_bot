@@ -48,7 +48,8 @@ async def test_add_refuses_anything_not_in_the_catalog(make_world: MakeWorld) ->
     reply = await world.run("craig", "add", character="Elowen", entry="Mega Aura of Doom")
 
     assert (await _get(world, "Elowen")).entries == ()
-    assert reply.text
+    assert reply.private
+    assert "Mega Aura of Doom" in reply.text, "the refusal names what was refused"
 
 
 @M3

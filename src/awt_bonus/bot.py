@@ -2,8 +2,9 @@
 
 This module only translates: slash commands and autocomplete into ``App`` calls,
 replies into Discord messages, and the ``DiscordGateway`` port onto discord.py.
-It isn't tested by pytest (only ``intents``); it's checked by hand on the private
-test server (TS-13, TS-15).
+That translation, startup and shutdown are checked automatically with stand-ins
+for discord.py's objects; what only real Discord can show is checked by hand on
+the private test server (TS-13, TS-15).
 """
 
 import asyncio

@@ -6,13 +6,18 @@ member.
 
 Line-based checks: a member's name must never share a line with anything that
 marks a secret guild bonus, so no output ever says who gave one or who belongs.
+A recipient's own totals may show a secret amount (SG-4), so these checks are by
+line. The unnamed secret guild block itself is checked whole (TF-7): no line in it
+may name anyone, including lines that don't say "secret".
 """
+
+import re
 
 import pytest
 
 from awt_bonus.commands import OptionValue
 from tests.support.text import lines_with, stat
-from tests.support.world import MakeWorld
+from tests.support.world import MakeWorld, World
 
 pytestmark = pytest.mark.milestone("M4")
 
@@ -26,6 +31,41 @@ def _assert_no_member_next_to_a_secret(text: str) -> None:
     for name in MEMBER_NAMES:
         for marker in SECRET_MARKERS:
             assert not lines_with(text, name, marker), f"{name!r} next to {marker!r}"
+
+
+_SEPARATOR = re.compile(r"^\s*$|^-{3,}\s*$|^```")
+
+
+def _secret_blocks(text: str) -> list[list[str]]:
+    """Each block of output that starts with a secret guild heading, as its lines.
+
+    A block runs until a blank line, a ``---`` rule or a code fence, so it includes
+    the wrapped and indented lines under the heading.
+    """
+    blocks: list[list[str]] = []
+    current: list[str] = []
+    for line in [*text.splitlines(), ""]:
+        if _SEPARATOR.match(line):
+            if current and "secret guild" in current[0].casefold():
+                blocks.append(current)
+            current = []
+        else:
+            current.append(line)
+    return blocks
+
+
+def _everyone(world: World) -> set[str]:
+    """Every character name and Discord display name in the fixture."""
+    names = {m.name for m in world.spec.discord.members}
+    names |= {c.name for p in world.spec.players for c in p.characters}
+    return names
+
+
+def _assert_secret_blocks_name_nobody(world: World, text: str) -> None:
+    for block in _secret_blocks(text):
+        for line in block:
+            named = {n for n in _everyone(world) if re.search(rf"\b{re.escape(n)}\b", line)}
+            assert not named, f"the secret guild block names {named}: {line!r}"
 
 
 def _views() -> list[tuple[str, str, dict[str, OptionValue]]]:
@@ -58,6 +98,7 @@ async def test_a_non_member_never_sees_who_is_in_the_secret_guild(
 
     assert reply.text
     _assert_no_member_next_to_a_secret(reply.text)
+    _assert_secret_blocks_name_nobody(world, reply.text)
     for ability in SECRET_ABILITIES:
         assert ability not in reply.text, f"{ability} must not be named to a non-member"
 
@@ -77,6 +118,7 @@ async def test_members_dont_see_who_the_other_members_are_in_the_party_breakdown
         reply = await world.run(viewer, command, **options)
         assert "Ioseph" in reply.text
         _assert_no_member_next_to_a_secret(reply.text)
+        _assert_secret_blocks_name_nobody(world, reply.text)
 
 
 @pytest.mark.req("SG-4", "9.1")
@@ -99,10 +141,12 @@ async def test_a_non_member_sees_one_unnamed_secret_guild_bonus_block(
     world = await make_world("sample-game")
     reply = await world.run("isla", "breakdown")
 
-    assert "secret guild" in reply.text.casefold()
-    for line in lines_with(reply.text.casefold(), "secret guild"):
-        for name in MEMBER_NAMES:
-            assert name.casefold() not in line
+    blocks = _secret_blocks(reply.text)
+    assert len(blocks) == 1, f"one secret guild block, not {len(blocks)}"
+    assert len(blocks[0]) > 1, "the block's own lines are checked, not just its heading"
+    _assert_secret_blocks_name_nobody(world, reply.text)
+    for ability in SECRET_ABILITIES:
+        assert ability not in reply.text, f"{ability} must not be named in the party breakdown"
 
 
 # ---------------------------------------------------------------- SG-5
@@ -119,7 +163,9 @@ async def test_a_member_sees_secret_bonuses_in_detail_with_a_count_not_names(
     assert reply.private
     rat_pack = lines_with(reply.text, "Rat Pack")
     assert rat_pack, "Rat Pack is shown to a member"
-    assert any("1" in line for line in rat_pack), "with how many members contributed"
+    assert all("(1 other member present)" in line for line in rat_pack), (
+        "with how many other members contributed: Chris, so 1"
+    )
     assert lines_with(reply.text, "Leadership")
     for line in rat_pack + lines_with(reply.text, "Leadership"):
         assert "Chris" not in line
@@ -182,6 +228,10 @@ async def test_joining_the_secret_guild_changes_totals_but_names_nobody(
 
     # Kael now gets Rat Pack from Chris and Mira (+2 CM), and Leadership (+2 CM).
     assert stat(reply, "Kael", "CM") == 18 + 4
-    for line in reply.text.splitlines():
-        if "secret" in line.casefold():
-            assert "Kael" not in line
+    assert _secret_blocks(reply.text), "the party breakdown still has its secret guild block"
+    _assert_secret_blocks_name_nobody(world, reply.text)
+    for ability in SECRET_ABILITIES:
+        assert ability not in reply.text, f"{ability} must not be named in the party breakdown"
+    for name in ["Kael", *MEMBER_NAMES]:
+        for marker in SECRET_MARKERS:
+            assert not lines_with(reply.text, name, marker), f"{name!r} next to {marker!r}"
