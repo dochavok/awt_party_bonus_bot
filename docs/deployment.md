@@ -155,7 +155,7 @@ Done once on 2026-09-26; repeat it for a new host, or to hand the bot over.
    Then, in a separate PowerShell window, create the token and store it without it
    ever appearing on screen:
    ```
-   $t = fly tokens create deploy --app awt-party-bonus-bot --expiry 8760h
+   $t = fly tokens create deploy --app awt-party-bonus-bot --expiry 175200h
    gh secret set FLY_API_TOKEN --env production --body "$t"
    Remove-Variable t
    ```
@@ -195,7 +195,7 @@ merge of the pull request that adds it. Check it with `fly logs`: you should see
 
 | When | Do |
 |---|---|
-| The deploy token expires (a year after it was made; the Deploy workflow fails with an authentication error) | Repeat the `fly tokens create deploy` and `gh secret set` step (Fly.io step 4). Revoke the old one: `fly tokens list --app awt-party-bonus-bot`, then `fly tokens revoke <ID>`. |
+| The deploy token expires (20 years after it was made, chosen to outlive the bot; `fly tokens list --app awt-party-bonus-bot` shows the date), or leaks (the Deploy workflow fails with an authentication error) | Repeat the `fly tokens create deploy` and `gh secret set` step (Fly.io step 4). Then revoke the old one, and any extra tokens left by failed attempts: `fly tokens list --app awt-party-bonus-bot`, then `fly tokens revoke <ID>`. Only one deploy token should be active. |
 | AWT goes live | Follow "Going live at AWT" below. |
 | The bot token leaks | Discord developer portal → the bot → **Reset Token**, then set the new one (step 3, without `--stage`). |
 | The storage key leaks or is lost | Delete it in B2, make a new one (B2 step 4) and set it (B2 step 5, without `--stage`). |
