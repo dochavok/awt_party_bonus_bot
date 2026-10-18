@@ -99,13 +99,14 @@ familiar when it matters.
 
 ## Renewing secrets
 
-The Fly deploy token expires a year after it's made: the Deploy workflow fails with an
-authentication error. If the bot token or the storage key leaks, replace it at once.
+The Fly deploy token expires 20 years after it's made, so in practice it only needs
+replacing if it leaks; an expired or revoked token makes the Deploy workflow fail with
+an authentication error. If the bot token or the storage key leaks, replace it at once.
 The steps for each: [Renewing and changing secrets in
 deployment.md](deployment.md#renewing-and-changing-secrets).
 
-Paste secrets in a separate PowerShell window, not VS Code's terminal, which can add
-invisible characters.
+Paste secrets at a `Read-Host` prompt in a separate PowerShell window, and never pipe
+them into `fly` or `gh`: PowerShell can add an invisible character to piped text.
 
 ## Updating the documentation
 
