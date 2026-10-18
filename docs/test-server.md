@@ -46,10 +46,11 @@ merging a milestone that changes Discord behaviour.
 
 ## Run the bot
 
-From the repository folder, in PowerShell:
+From the repository folder, in PowerShell, pasting the token at the prompt so it
+isn't kept in PowerShell's history:
 
 ```
-$env:DISCORD_TOKEN = "<test bot token>"
+$env:DISCORD_TOKEN = Read-Host 'Test bot token'
 $env:DISCORD_GUILD_ID = "<test server ID>"
 uv run python -m awt_bonus
 ```

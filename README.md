@@ -24,10 +24,10 @@ In Discord, `/help` shows how to get started and your own next step.
 
 ## Running the bot (for testing)
 
-On the private test server (TS-13), with the test bot's own token:
+On the private test server (TS-13), with the test bot's own token, pasted at the prompt so it isn't kept in PowerShell's history:
 
 ```
-$env:DISCORD_TOKEN = "<test bot token>"
+$env:DISCORD_TOKEN = Read-Host 'Test bot token'
 $env:DISCORD_GUILD_ID = "<test server ID>"
 uv run python -m awt_bonus
 ```

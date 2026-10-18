@@ -104,11 +104,14 @@ safeguards above, and can leave a removed character's entries behind.
 
 Done once on 2026-09-26; repeat it for a new host, or to hand the bot over.
 
-> **Piping secrets:** run any command that pipes a secret (`... | fly secrets import`,
-> `... | gh secret set`) in a **separate PowerShell window**, not VS Code's terminal.
-> VS Code's terminal adds an invisible byte-order mark to piped text, and Fly then
-> refuses the secret's name (`"﻿DISCORD_TOKEN" is not a valid secret name`).
-> Type secret values at the prompts; never put them in a command, a file or a chat.
+> **Secrets:** run these commands in a **separate PowerShell window**, not VS Code's
+> terminal. Never pipe a secret into `fly` or `gh`: on Windows, PowerShell can add an
+> invisible byte-order mark to piped text, even in its own window and with
+> `$OutputEncoding` set, and Fly then refuses the secret's name
+> (`"﻿DISCORD_TOKEN" is not a valid secret name`). Instead, read the value into a
+> variable with `Read-Host`, pass the variable, then remove it, as the steps below do.
+> `Read-Host` shows what you paste, but it isn't kept in PowerShell's history. Never
+> put a secret's value in a command, a file or a chat.
 
 ### GitHub
 
@@ -133,10 +136,12 @@ Done once on 2026-09-26; repeat it for a new host, or to hand the bot over.
    ```
    fly volumes create awt_bonus_data --size 1 --region iad --app awt-party-bonus-bot
    ```
-3. Set the bot's secrets (separate PowerShell window). The token is typed at the
-   prompt, so it isn't kept in PowerShell's history:
+3. Set the bot's secrets (separate PowerShell window). Paste the token at the
+   prompt:
    ```
-   "DISCORD_TOKEN=$(Read-Host 'Bot token')" | fly secrets import --stage --app awt-party-bonus-bot
+   $t = Read-Host 'Bot token'
+   fly secrets set "DISCORD_TOKEN=$t" --stage --app awt-party-bonus-bot
+   Remove-Variable t
    fly secrets set DISCORD_GUILD_ID=<server ID> --stage --app awt-party-bonus-bot
    ```
    The token and server ID must belong together: the test bot and test server
@@ -150,7 +155,9 @@ Done once on 2026-09-26; repeat it for a new host, or to hand the bot over.
    Then, in a separate PowerShell window, create the token and store it without it
    ever appearing on screen:
    ```
-   fly tokens create deploy --app awt-party-bonus-bot --expiry 8760h | gh secret set FLY_API_TOKEN --env production
+   $t = fly tokens create deploy --app awt-party-bonus-bot --expiry 8760h
+   gh secret set FLY_API_TOKEN --env production --body "$t"
+   Remove-Variable t
    ```
    Check with `gh secret list --env production`.
 
@@ -166,7 +173,10 @@ Done once on 2026-09-26; repeat it for a new host, or to hand the bot over.
    prefix `snapshots/`, list-all-bucket-names off. The page shows the key once.
 5. Give it to Fly (separate PowerShell window), pasting at the prompts:
    ```
-   "BACKUP_KEY_ID=$(Read-Host 'keyID')`nBACKUP_KEY=$(Read-Host 'applicationKey')" | fly secrets import --stage --app awt-party-bonus-bot
+   $id = Read-Host 'keyID'
+   $key = Read-Host 'applicationKey'
+   fly secrets set "BACKUP_KEY_ID=$id" "BACKUP_KEY=$key" --stage --app awt-party-bonus-bot
+   Remove-Variable id, key
    ```
 6. The bucket name and endpoint (`https://s3.us-east-005.backblazeb2.com`) are in
    `fly.toml`.
@@ -185,42 +195,75 @@ merge of the pull request that adds it. Check it with `fly logs`: you should see
 
 | When | Do |
 |---|---|
-| The deploy token expires (a year after it was made; the Deploy workflow fails with an authentication error) | Repeat the `fly tokens create deploy ... \| gh secret set ...` step. Revoke the old one: `fly tokens list --app awt-party-bonus-bot`, then `fly tokens revoke <ID>`. |
+| The deploy token expires (a year after it was made; the Deploy workflow fails with an authentication error) | Repeat the `fly tokens create deploy` and `gh secret set` step (Fly.io step 4). Revoke the old one: `fly tokens list --app awt-party-bonus-bot`, then `fly tokens revoke <ID>`. |
 | AWT goes live | Follow "Going live at AWT" below. |
 | The bot token leaks | Discord developer portal → the bot → **Reset Token**, then set the new one (step 3, without `--stage`). |
 | The storage key leaks or is lost | Delete it in B2, make a new one (B2 step 4) and set it (B2 step 5, without `--stage`). |
 
 ## Going live at AWT
 
-Until launch, Fly runs the **test bot** on the test server. Production is a second,
+Done on 2026-10-17 and 18. Repeat it to move the bot to another server.
+
+Before launch, Fly ran the **test bot** on the test server. Production is a second,
 separate bot, so the test bot keeps its own token and database for trying changes
 (TS-13). Nothing in the code or the repository changes.
 
+The Fly steps can be done before the server's admin has invited the bot: the bot
+waits in maintenance mode until step 7. Don't start it earlier. A bot that isn't on
+the server yet can't register its commands, so it exits, and Fly restarts it over and
+over until the invite happens.
+
 1. **Create the production bot.** Discord developer portal → **New Application**.
    Give it the name, icon and description in [discord/](../discord/README.md). On
-   the **Bot** page, leave every privileged intent off (NF-6), turn **Public Bot**
-   off (so only you can invite it; worth doing for the test bot too), and click
-   **Reset Token**. Keep the token for step 4; never paste it into a chat or a file.
+   the **Bot** page, leave every privileged intent off (NF-6), and click **Reset
+   Token**. Keep the token for step 6; never paste it into a chat or a file. Leave
+   **Public Bot** on for now: when it's off, only the application's owner can add
+   the bot to a server, so an admin who isn't the owner can't use the invite link.
 2. **Invite it to AWT with only the four permissions (NF-11).** **OAuth2 → URL
    Generator**: scopes `bot` and `applications.commands`; permissions View
-   Channels, Send Messages, Embed Links and Use Application Commands. Whoever opens
-   the link needs **Manage Server** on AWT; the link itself isn't secret.
-3. **Let it into `#bonus-bot-support`** if that channel is private: the channel's
-   **Permissions → +**, pick the bot, allow View Channel and Send Messages. On the
-   channel only, never through a role.
-4. **Point Fly at AWT** (separate PowerShell window). Without `--stage`, the bot
-   restarts with the new values:
+   Channels, Send Messages, Embed Links and Use Application Commands. The link ends
+   with `permissions=2147503104`; any other number means an extra box is ticked.
+   Whoever opens the link needs **Manage Server** on AWT; the link itself isn't
+   secret.
+3. **Let it into `#bonus-bot-support`.** Create the channel if it doesn't exist
+   (named exactly as `request_channel` in `config/settings.yaml`; private, since
+   requests name the player), and give whoever answers requests access to it. Then
+   the channel's **Permissions → +**, pick the bot, and allow View Channel and Send
+   Messages. On the channel only, never through a role.
+4. **Park the bot** (separate PowerShell window, as for the rest of these steps):
    ```
-   "DISCORD_TOKEN=$(Read-Host 'AWT bot token')" | fly secrets import --app awt-party-bonus-bot
+   fly machine update <machine ID> --env MAINTENANCE=1 --app awt-party-bonus-bot --yes
+   ```
+   `fly logs` shows `maintenance mode: the bot is not running`, and the bot stays
+   parked through the secret changes below.
+5. **Start AWT with an empty database.** Move the test data aside; the bot creates
+   a new, empty database when it starts:
+   ```
+   fly ssh console --app awt-party-bonus-bot -C "mv /data/awt-bonus.db /data/awt-bonus.db.old"
+   fly ssh console --app awt-party-bonus-bot -C "ls -la /data"
+   ```
+   The listing should show `awt-bonus.db.old` and no `awt-bonus.db`, `-wal` or
+   `-shm` file. Move any of those aside too, or SQLite may bring the test data back.
+6. **Point Fly at AWT.** Paste the token at the prompt:
+   ```
+   $t = Read-Host 'AWT bot token'
+   fly secrets set "DISCORD_TOKEN=$t" --app awt-party-bonus-bot
+   Remove-Variable t
    fly secrets set DISCORD_GUILD_ID=<AWT server ID> --app awt-party-bonus-bot
    ```
-   Between the two commands the bot has the new token and the old server ID, so
-   the logs may show a `startup refused` or two until the second lands.
-5. **Decide about the test data.** The database still holds whatever was done on
-   the test server. To start AWT empty, see [restore-runbook.md](restore-runbook.md),
-   "Starting with an empty database".
-6. **Check it.** `fly logs` shows `ready`; on AWT, try `/catalog` and `/request`,
-   and run the [TS-15 checklist](test-server.md) where it makes sense.
+   Each command restarts the machine, still in maintenance mode.
+7. **Start it**, once the admin has done steps 2 and 3:
+   ```
+   fly machine update <machine ID> --env MAINTENANCE=0 --app awt-party-bonus-bot --yes
+   ```
+   `fly logs` shows `migrating` and `migrated` (the new database), then `commands
+   synced` and `ready`, both with the AWT server's ID as `guild_id`.
+8. **Check it.** On AWT, the bot is online; try `/catalog` and a test `/request`
+   (it should arrive in `#bonus-bot-support`), and run the
+   [TS-15 checklist](test-server.md) where it makes sense.
+9. **Make it private.** On the **Installation** page, set **Install Link** to
+   **None** (Discord won't make an application private while it has one), then turn
+   **Public Bot** off on the **Bot** page. Worth doing for the test bot too.
 
 From then on the test bot only runs when started by hand on a PC, with its own
 `var/` database; it can't clash with production, because its token is different.
