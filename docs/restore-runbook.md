@@ -129,9 +129,12 @@ If the Fly app or its volume is gone:
 
 ## Starting with an empty database
 
-E.g. to clear the test data before AWT goes live: in maintenance mode (step 2),
+E.g. to clear the test data when AWT went live: in maintenance mode (step 2),
 `fly ssh console --app awt-party-bonus-bot -C "mv /data/awt-bonus.db /data/awt-bonus.db.old"`,
-then step 4. The bot creates a new, empty database as it starts.
+then check with `fly ssh console --app awt-party-bonus-bot -C "ls -la /data"`: there
+should be no `awt-bonus.db`, `-wal` or `-shm` file left. Move any of those aside too,
+or SQLite may bring the old data back. Then step 4. The bot creates a new, empty
+database as it starts.
 
 ## The drill on a PC (Docker Desktop)
 
