@@ -120,7 +120,7 @@ Done once on 2026-09-26; repeat it for a new host, or to hand the bot over.
 - `main` protected by the "Protect main" ruleset: pull requests only, and the CI
   checks `lint`, `test`, `test-rule` and `catalog` must pass.
 - Dependabot (`.github/dependabot.yml`) keeps Python packages, actions and the
-  Docker base images current.
+  Docker base images current, with one pull request a week for each.
 
 ### Fly.io
 
