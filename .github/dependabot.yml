@@ -1,14 +1,25 @@
 # Keep dependencies current (NF-12).
+# Each ecosystem's minor and patch updates come as one pull request a week. Major
+# updates still come one per pull request, so a breaking one can be reviewed (or
+# closed) on its own. Security updates aren't grouped and arrive as soon as found.
 version: 2
 updates:
   - package-ecosystem: uv
     directory: /
     schedule:
       interval: weekly
+    groups:
+      python-packages:
+        patterns: ["*"]
+        update-types: [minor, patch]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+        update-types: [minor, patch]
   # The Dockerfile's base images (python, uv), pinned by digest. Python itself stays
   # on 3.12 (requires-python, .python-version): only its image's digest is updated,
   # for security fixes. Moving to a newer Python is a deliberate change, not a bot's.
@@ -19,3 +30,8 @@ updates:
     ignore:
       - dependency-name: python
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    groups:
+      # All of them: the python image only gets digest updates, which have no
+      # version type to filter on.
+      base-images:
+        patterns: ["*"]

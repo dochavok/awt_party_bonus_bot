@@ -66,7 +66,10 @@ step 2:
 
 ## Reviewing Dependabot pull requests
 
-Dependabot opens pull requests to update dependencies and GitHub Actions (NF-12).
+Dependabot opens pull requests to update dependencies, GitHub Actions and the Docker
+base images (NF-12). Once a week, each of the three gets one pull request with all its
+updates. Major version updates of Python packages and actions come in a pull request
+of their own, and so do security fixes, as soon as they're found.
 
 - **CI passes:** read the title for anything surprising (a major version jump), then
   merge. Merging deploys.
