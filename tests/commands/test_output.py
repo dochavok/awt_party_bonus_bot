@@ -1,6 +1,6 @@
-"""Output commands (requirements 6.6: OUT-1 to OUT-7, and OUT-9 /help), message size
-(TS-7), totals only (rule 4.13), review (AD-2) and the section 9 numbers through the
-commands.
+"""Output commands (requirements 6.6: OUT-1 to OUT-7, OUT-9 /help and OUT-10 /guild
+members), message size (TS-7), totals only (rule 4.13), review (AD-2) and the section
+9 numbers through the commands.
 
 Numbers are checked on the reply's report; text only for what must, or must never,
 appear (TF-1). Most tests use the sample game: Isla plays Ioseph, Kit plays Kael,
@@ -15,7 +15,7 @@ from collections.abc import Mapping
 
 import pytest
 
-from awt_bonus.commands import OptionValue
+from awt_bonus.commands import OptionValue, Reply
 from awt_bonus.engine import Reason
 from awt_bonus.ids import StatId
 from tests.support.text import PRONOUNS, counted, lines_with, mentions, recipient, stat
@@ -25,6 +25,7 @@ M3 = pytest.mark.milestone("M3")
 M4 = pytest.mark.milestone("M4")
 M6 = pytest.mark.milestone("M6")
 M7 = pytest.mark.milestone("M7")
+M9 = pytest.mark.milestone("M9")
 
 
 def _stats(
@@ -630,3 +631,145 @@ async def test_help_links_to_the_documentation_site_near_the_top(make_world: Mak
         assert "https://dochavok.github.io/awt_party_bonus_bot/" in paragraphs[0]
         assert len(reply.messages) == 1
         assert "github.io" not in _next_step(reply.text), "the next step stays at the end"
+
+
+# ---------------------------------------------------------------- OUT-10: /guild members
+
+CHARACTERS = [
+    "Ioseph", "Kael", "Crateris", "Elowen", "Chris", "Mira",
+    "Sable", "Bram", "Tamsin", "Ulric", "Vex",
+]  # fmt: skip
+"""Every character in the sample game."""
+
+SECRET_REFUSAL = "Guild of Thieves? Never heard of it. And neither have you."
+
+
+def _named(text: str) -> set[str]:
+    """Every character the text names."""
+    return {name for name in CHARACTERS if re.search(rf"\b{name}\b", text)}
+
+
+def _assert_members(reply: Reply, guild: str, expected: set[str]) -> None:
+    """The reply is private, ties the count to the guild, and names exactly these."""
+    assert reply.private
+    lines = "\n".join(lines_with(reply.text, guild))
+    assert re.search(rf"\b{len(expected)}\b", lines), reply.text
+    assert _named(reply.text) == expected
+
+
+@M9
+@pytest.mark.req("OUT-10")
+async def test_guild_members_counts_and_names_the_members_present(make_world: MakeWorld) -> None:
+    world = await make_world("sample-game")
+    reply = await world.run("isla", "guild members", guild="Cult of the Dragon")
+    _assert_members(reply, "Cult of the Dragon", {"Kael", "Crateris", "Mira"})
+
+
+@M9
+@pytest.mark.req("OUT-10", "HV-3")
+async def test_guild_members_lists_a_guild_that_comes_from_discord_roles(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("sample-game")
+    reply = await world.run("cora", "guild members", guild="The Guild")
+    _assert_members(reply, "The Guild", {"Ioseph", "Kael"})
+
+
+@M9
+@pytest.mark.req("OUT-10", "SE-2")
+async def test_guild_members_leaves_out_anyone_sitting_out(make_world: MakeWorld) -> None:
+    world = await make_world("sample-game")
+    await world.run("sam", "guild join", character="Sable", guild="Cult of the Dragon")
+    reply = await world.run("isla", "guild members", guild="Cult of the Dragon")
+    _assert_members(reply, "Cult of the Dragon", {"Kael", "Crateris", "Mira"})
+
+
+@M9
+@pytest.mark.req("OUT-10", "SE-1")
+async def test_guild_members_leaves_out_members_who_arent_in_the_channel(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("sample-game")
+    await world.run("tess", "guild join", character="Tamsin", guild="Cult of the Dragon")
+    await world.run("vic", "guild join", character="Vex", guild="Cult of the Dragon")
+    reply = await world.run("isla", "guild members", guild="Cult of the Dragon")
+    _assert_members(reply, "Cult of the Dragon", {"Kael", "Crateris", "Mira"})
+
+
+@M9
+@pytest.mark.req("OUT-10", "SE-1")
+async def test_guild_members_uses_the_callers_channel_unless_one_is_picked(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("sample-game")
+    await world.run("tess", "guild join", character="Tamsin", guild="Cult of the Dragon")
+
+    own = await world.run("ulf", "guild members", guild="Cult of the Dragon")
+    _assert_members(own, "Cult of the Dragon", {"Tamsin"})
+
+    picked = await world.run(
+        "ulf", "guild members", guild="Cult of the Dragon", channel=world.channel("AWT Voice")
+    )
+    _assert_members(picked, "Cult of the Dragon", {"Kael", "Crateris", "Mira"})
+
+
+@M9
+@pytest.mark.req("OUT-10", "SE-3")
+async def test_guild_members_uses_each_players_current_character(make_world: MakeWorld) -> None:
+    world = await make_world("sample-game")
+    await world.set_current("cora", "Elowen")
+    reply = await world.run("isla", "guild members", guild="Cult of the Dragon")
+    _assert_members(reply, "Cult of the Dragon", {"Kael", "Mira"})
+
+
+@M9
+@pytest.mark.req("OUT-10")
+async def test_guild_members_says_so_when_no_members_are_present(make_world: MakeWorld) -> None:
+    world = await make_world("sample-game")
+    reply = await world.run("isla", "guild members", guild="Pirate Coalition")
+    assert reply.private
+    assert mentions(reply.text, "Pirate Coalition")
+    assert _named(reply.text) == set()
+
+
+@M9
+@pytest.mark.req("OUT-10")
+async def test_guild_members_says_so_when_the_caller_isnt_in_a_voice_channel(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("sample-game")
+    reply = await world.run("vic", "guild members", guild="Cult of the Dragon")
+    assert reply.private
+    assert mentions(reply.text, "voice")
+    assert _named(reply.text) == set()
+
+    picked = await world.run(
+        "vic", "guild members", guild="Cult of the Dragon", channel=world.channel("AWT Voice")
+    )
+    _assert_members(picked, "Cult of the Dragon", {"Kael", "Crateris", "Mira"})
+
+
+@M9
+@pytest.mark.req("OUT-10", "SG-3")
+@pytest.mark.parametrize("handle", ["cole", "isla", "ulf", "vic"], ids=str)
+@pytest.mark.parametrize("wanted", ["Guild of Thieves", "Thieves"], ids=str)
+async def test_guild_members_refuses_a_secret_guild_the_same_way_for_everyone(
+    make_world: MakeWorld, handle: str, wanted: str
+) -> None:
+    """A member, a non-member, another channel and no channel: nothing tells them apart."""
+    world = await make_world("sample-game")
+    reply = await world.run(handle, "guild members", guild=wanted)
+    assert reply.private
+    assert reply.text == SECRET_REFUSAL
+
+
+@M9
+@pytest.mark.req("OUT-10", "SG-3")
+async def test_guild_members_autocomplete_offers_every_guild_but_secret_ones(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("sample-game")
+    choices = await world.autocomplete("isla", "guild members", "guild", "")
+    labels = {c.label for c in choices}
+    assert not any("Thieves" in label for label in labels)
+    assert {"The Guild", "Cult of the Dragon", "Pirate Coalition"} <= labels
