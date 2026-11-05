@@ -54,6 +54,11 @@ guilds:
     full_name: Order of Cookery
     membership: open
 
+  knights_of_crail:
+    short_name: KoC
+    full_name: Knights of Crail
+    membership: open                        # for /guild members (OUT-10); no bonuses
+
 entries:
   # ------------------------------------------------------------ GoTH boons
   # Seraph's Affection replaces Nuyaru's Love (answered, Q3).

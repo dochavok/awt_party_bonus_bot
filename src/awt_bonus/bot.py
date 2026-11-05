@@ -355,6 +355,20 @@ def build_tree(
             private=True,
         )
 
+    @guilds.command(name="members", description="Who in a guild is in your voice channel")
+    @app_commands.describe(guild="The guild", channel="Another voice channel")
+    @app_commands.autocomplete(guild=completer("guild members", "guild"))
+    async def guild_members(
+        interaction: discord.Interaction,
+        guild: str,
+        channel: discord.VoiceChannel | None = None,
+    ) -> None:
+        await _answer(
+            interaction,
+            runner(interaction, "guild members", guild=guild, channel=channel_id(channel)),
+            private=True,
+        )
+
     tree.add_command(guilds)
 
     @tree.command(name="bogsy", description="Your party bonuses as Bogsy dice-bot modifiers")
