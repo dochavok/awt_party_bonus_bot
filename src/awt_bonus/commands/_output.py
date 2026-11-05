@@ -19,7 +19,7 @@ from awt_bonus.store import CharacterRecord
 
 async def partybonus(ctx: Context) -> Reply:
     """OUT-1: public by default; ``private:true`` for a quiet check (OUT-5)."""
-    party = await build_party(ctx, await _callers_channel(ctx))
+    party = await build_party(ctx, await callers_channel(ctx))
     view = await _view(ctx, party)
     return _reply(render.partybonus(view), party.report, private=ctx.flag("private"))
 
@@ -32,7 +32,7 @@ async def mybonus(ctx: Context) -> Reply:
 async def breakdown(ctx: Context) -> Reply:
     """OUT-3 for the party; OUT-3a, OUT-2a and OUT-4 for one character."""
     if ctx.text("character") is None:
-        party = await build_party(ctx, await _callers_channel(ctx))
+        party = await build_party(ctx, await callers_channel(ctx))
         view = await _view(ctx, party)
         return _reply(render.party_breakdown(view), party.report, private=True)
     return await _one_character(ctx, render.character_breakdown)
@@ -143,7 +143,7 @@ async def _gives_only(ctx: Context, character: CharacterRecord, why: str) -> Rep
     return _reply(render.gives_only(view, recipient, why), report, private=True)
 
 
-async def _callers_channel(ctx: Context) -> VoiceChannel:
+async def callers_channel(ctx: Context) -> VoiceChannel:
     """The ``channel:`` option, or the caller's voice channel (SE-1)."""
     channel = await _chosen_channel(ctx)
     if channel is not None:

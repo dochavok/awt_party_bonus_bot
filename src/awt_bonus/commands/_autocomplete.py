@@ -107,6 +107,9 @@ async def suggest(
             if g.membership is Membership.OPEN and (g.id in joined) == (command == "guild leave")
         ]
         return _matching(((g.full_name, g.full_name) for g in guilds), typed)
+    if option == "guild" and command == "guild members":
+        guilds = [g for g in catalog.guilds.values() if not g.secret]  # SG-3
+        return _matching(((g.full_name, g.full_name) for g in guilds), typed)
     return []
 
 

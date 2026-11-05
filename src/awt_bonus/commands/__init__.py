@@ -57,6 +57,7 @@ HANDLERS: Mapping[str, Handler] = {
     "breakdown": _output.breakdown,
     "guild join": _guilds.join,
     "guild leave": _guilds.leave,
+    "guild members": _guilds.members,
     "request": _requests.request,
     "help": _help.help_,
     "bogsy": _bogsy.bogsy,

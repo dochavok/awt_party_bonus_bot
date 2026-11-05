@@ -2,7 +2,8 @@
 # ---------------------------------------------------------------------------
 # Joining a guild grants nothing by itself: a guild's bonuses come from the rank
 # and boon entries a member adds. Ranks that grant no party bonus aren't listed.
-# Guilds with no always-on bonuses to others aren't listed either.
+# Guilds with no always-on bonuses to others aren't listed either, unless one is
+# needed as an audience or for /guild members (as with the Knights of Crail).
 #
 # Each key is a permanent ID (CT-2): never change or remove one. To take an entry
 # out of the game, set `retired: true` (CT-6).
@@ -52,6 +53,11 @@ guilds:
     short_name: Cookery
     full_name: Order of Cookery
     membership: open
+
+  knights_of_crail:
+    short_name: KoC
+    full_name: Knights of Crail
+    membership: open                        # for /guild members (OUT-10); no bonuses
 
 entries:
   # ------------------------------------------------------------ GoTH boons

@@ -35,6 +35,20 @@ boons they've earned, which you add by name:
 `/catalog` shows a guild's ranks and boons once your character has joined it. Other
 guilds are listed by name with the command to join.
 
+## Who's here
+
+`/guild members` shows how many characters from a guild are counted in the voice
+channel, and names them. Only you see the reply.
+
+```
+/guild members guild:Knights of Crail
+```
+
+**The Knights of Crail** use this for abilities that count the Knights present, such
+as *Space Knights to Me!*. Their items have no always-on bonuses, so they aren't in
+the catalog: if your character has one, join the guild with `/guild join`, and leave
+it if the character no longer has any.
+
 ## One holder at a time
 
 Some ranks and titles can only be held by **one character on the server at a time**,
@@ -63,7 +77,8 @@ The Guild of Thieves' rules say never to reveal another member, so the bot keeps
 secret, in a tongue-in-cheek way:
 
 - Joining or leaving, and adding or removing its ranks, **always reply privately**.
-- The bot **never names a secret guild's members**, anywhere.
+- The bot **never names a secret guild's members**, anywhere. `/guild members` claims
+  never to have heard of it.
 - Secret guild bonuses **are still in everyone's totals**, including the public
   `/partybonus`.
 - In `/breakdown`, they're shown as one unnamed *secret guild bonus*, with no givers.

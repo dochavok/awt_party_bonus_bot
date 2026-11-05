@@ -78,6 +78,27 @@ that character's totals, what they don't receive and why, and what they give.
 /breakdown character:Thessaly
 ```
 
+<!-- BEGIN GENERATED: /guild members -->
+### `/guild members`
+
+Who in a guild is in your voice channel
+
+| Option | Required | What it's for |
+|---|---|---|
+| `guild` | yes | The guild |
+| `channel` | no | Another voice channel |
+
+<!-- END GENERATED: /guild members -->
+
+How many characters from a guild are counted in the voice channel, with their names.
+It's handy for abilities that depend on who's present, such as a Knights of Crail
+item. Anyone sitting out isn't included. It won't list a secret guild.
+**Only you see the reply.**
+
+```
+/guild members guild:Knights of Crail
+```
+
 <!-- BEGIN GENERATED: /play -->
 ### `/play`
 

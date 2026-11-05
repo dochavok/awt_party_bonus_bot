@@ -187,6 +187,7 @@ There are no sessions to start or end. Each time a command runs, the bot looks a
 | OUT-7 | Output never uses pronouns for characters ("to Kael", not "to himself"). | M |
 | OUT-8 | **Live `/partybonus`:** a public `/partybonus` message that the bot keeps editing when people join or leave the voice channel, sit out or in, or change characters. Edits are batched over a few seconds (to stay within Discord's rate limits), and it stops updating once the channel has been empty for a while (e.g. 15 minutes). It isn't pinned, since pinning needs the *Manage Messages* permission (NF-11). | C |
 | OUT-9 | **`/help`**: a short guide for players getting started, in one private message, with a link to the documentation site near the top (DOC-6). **Set up** (once per character): `/character register` (the level is optional and only used for level-based bonuses), `/guild join`, `/add`, `/character items` for players using items of a class (e.g. passion items), `/catalog`, and `/request` for anything the character has that isn't in the catalog; and that Support comes from the Guild rank roles automatically, with nothing to add. **Game night:** being in the voice channel is how players are counted, with nothing to start; `/sitout` and `/sitin` for anyone running the game or watching; `/partybonus` (posted for everyone), `/mybonus` (only for the player) and `/breakdown`. Then a note that a player with several characters uses `/play` before the game. It ends with **the player's next step**, worked out from their data: with no character, register one; with characters but none current, choose one with `/play`; with a current character that has nothing added, add what it has with `/add` (and see `/catalog`); otherwise, that they're set up, and how to see the party's bonuses on game night. | S |
+| OUT-10 | **`/guild members <guild> [channel:<voice>]`**: how many of the characters counted in the voice channel (section 6.5) belong to the guild, with their names, e.g. *"Knights of Crail present in AWT Voice: 2 (Chris, Elizor)"*. It uses the caller's voice channel unless `channel` picks one. Anyone sitting out isn't included. If no members are present, or the caller isn't in a voice channel and names none, the reply says so. **Secret guilds are refused** (SG-3), e.g. *"Guild of Thieves? Never heard of it. And neither have you."*, and autocomplete doesn't offer them. The reply is always private (OUT-5). | M |
 
 ### 6.7 Administration and Review
 
@@ -215,6 +216,7 @@ Game night (players)
 /mybonus [character]                               always private
 /bogsy                                             always private; party bonuses as Bogsy modifiers (M6)
 /breakdown [character] [channel:<voice>]           always private
+/guild members <guild> [channel:<voice>]           always private
 /play <character>
 /sitout   /sitin
 
@@ -278,10 +280,11 @@ Values come from the skill-tree images and guild write-ups in the Diceknights dr
 | **Cult of the Dragon** | `/guild join` | Rank **High Inquisitor** (Cult of the Dragon): to other members, level under 10: +1 heart damage; level 10 or higher: +10 CM. **One holder at a time** (HV-6). Doesn't stack (answered, Q2). |
 | **Ranger's Guild** | `/guild join` | Ranks **Ranger Captain** and **Master Ranger** (replaces Ranger Captain), each with Wilderness Lore: effect: challenge rolls to resist natural effects are one roll category easier, for the giver and allies. |
 | **Order of Cookery** | `/guild join` | Ranks **Chef** and **Cookery Master** (replaces Chef), each with Proper Seasoning: effect: +1 heart when Invigorated, for the giver and allies. |
+| **Knights of Crail** (KoC) | `/guild join` | None. A character with a Knights of Crail item joins the guild. These items have no always-on bonuses, so they aren't in the catalog. `/guild members` shows who's present, e.g. for *Space Knights to Me!* (1/combat, not tracked). |
 
 Ranks that grant no party bonus (e.g. Journeyman, Swabbie) aren't in the catalog.
 
-Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Physicians, Lorekeepers) aren't in the catalog. They can be added if one is needed as an audience.
+Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Physicians, Lorekeepers) aren't in the catalog. They can be added if one is needed as an audience, or if players need `/guild members` to see who's present (as with the Knights of Crail).
 
 ### 8.4 Items and Titles
 
@@ -841,6 +844,7 @@ The bot doesn't roll dice. `/bogsy` replies privately with Bogsy `/modifier` com
 | **M6: Extras** | Bogsy hand-off, `/help` (OUT-9). |
 | **M7: User documentation** | The documentation site and its publishing workflow (DOC-1); the player and DM pages (DOC-2); the maintainer guide (DOC-3); the scripts that generate the examples and the command reference, with their CI checks (DOC-4, DOC-5); the `/help` link (DOC-6); and page dates (DOC-7). |
 | **M8: Item classes** | First, review the existing tests against the new requirements and list any that the change affects, before any code is written. Then: new tests for CT-10 and IC-1 to IC-5, the rules 4.14 and 4.15 scenarios (in a new file) and the TS-3 properties; the catalog classes and the three items; the `CharacterItemCount` migration; the engine input (section 11); `/character items`; the output in IC-3; and the docs pages (DOC-2). |
+| **M9: Guild members** | New tests for OUT-10, including that secret guilds are refused and that anyone sitting out isn't included. Then: `/guild members`; the Knights of Crail guild (section 8.3); and the docs pages (DOC-2, DOC-7). |
 
 Each milestone from M2 on is done when all of its M1 tests pass, with no test changed except through the test-change rule (TF-5).
 

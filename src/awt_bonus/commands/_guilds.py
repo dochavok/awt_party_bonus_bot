@@ -1,14 +1,18 @@
-"""/guild join and /guild leave: guild membership (requirements HV-2, HV-5, HV-6, SG-2).
+"""/guild join, /guild leave and /guild members: guild membership (requirements HV-2,
+HV-5, HV-6, SG-2, OUT-10).
 
 Joining only records membership; ranks and boons are then added with /add. Leaving
 removes the character's ranks and boons from that guild. Every reply is private,
-so secret guild membership is never shown to anyone else (SG-2).
+so secret guild membership is never shown to anyone else (SG-2). /guild members never
+lists a secret guild (SG-3).
 """
 
 from awt_bonus.catalog import EntryKind, Guild, Membership
 from awt_bonus.commands._base import Context, Refused, private
+from awt_bonus.commands._output import callers_channel
+from awt_bonus.commands._presence import build_party, roles
 from awt_bonus.commands._types import Reply
-from awt_bonus.output.describe import names
+from awt_bonus.output.describe import channel_mention, names
 
 
 async def join(ctx: Context) -> Reply:
@@ -75,6 +79,26 @@ async def leave(ctx: Context) -> Reply:
         lines.append(f"Removed from {character.name}: {names(e.name for e in entries)}.")
     lines += [f"{e.name} is free for another character to hold." for e in entries if e.unique]
     return private(*lines)
+
+
+async def members(ctx: Context) -> Reply:
+    """OUT-10: the guild's members counted in the voice channel."""
+    guild = _guild(ctx)
+    if guild.secret:  # checked first: the reply is the same wherever the caller is (SG-3)
+        raise Refused(f"{guild.full_name}? Never heard of it. And neither have you.")
+    channel = await callers_channel(ctx)
+    party = await build_party(ctx, channel)
+    characters = party.characters.values()
+    held = await roles(ctx, (c.owner for c in characters))
+    present = [
+        c.name
+        for c in characters
+        if guild.id in c.guilds or held.get(c.owner, frozenset()) & set(guild.roles)
+    ]
+    where = channel_mention(channel.id)
+    if not present:
+        return private(f"No members of {guild.full_name} are present in {where}.")
+    return private(f"{guild.full_name} present in {where}: {len(present)} ({', '.join(present)})")
 
 
 def _guild(ctx: Context) -> Guild:
