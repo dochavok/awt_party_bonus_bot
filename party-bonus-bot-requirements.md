@@ -78,6 +78,7 @@ Games happen in a Discord voice channel. There's no session to start or end: the
 5. **Replacements.** If a character has an entry and the entry that replaces it, they give only the replacement. A GoTH member with Nuyaru's Love (+1) and Seraph's Affection (+3) gives +3.
 6. **Modifiers.** A modifier changes the bonuses **that same character** gives, and nobody else's. Numbers only; effects with no number are unchanged.
    - **Devotion III:** +1 to each aura, from any tree (Holy Aura, Bolstering Aura, Aura of Defense, Aura of Hope). Only skills named "Aura" are auras.
+   - **Excalibur** (an item): +1 to each aura, as Devotion III, and adds to it. A Holy Knight with both gives Holy Aura +4.
    - **Helping Hands / v2.0** are **not** modifiers in the bot (Q7): they raise only the buffs and heals their holder casts (once per combat), which the bot doesn't track, and never auras or other always-on bonuses. A Holy Knight with Devotion III and Helping Hands gives Holy Aura +3.
 7. **Parent stats flow down to subtypes.** "+5 to all challenge rolls" plus "+3 CR vs fear" means CR +5 and CR vs fear +8. The same applies to *stealth*, *escape* and *would hurt*.
 8. **Audience.** The whole party, only members of one guild (e.g. Rat Pack: Guild of Thieves members only), or only other holders of the same entry (e.g. Hero of Passion: other HoP holders only).
@@ -299,6 +300,7 @@ Guilds with no always-on bonuses to others (Bards, Monks, Fighters, Hunters, Phy
 | Pants of the Water Valkyrie | Item | +1 heart damage reduction to the party, the holder included | Card text from Craig |
 | Protection Charm | Item | +1 heart damage reduction to allies. An item, so not an aura for Devotion III (rule 4.6) | Card text from Craig |
 | Helm of the Caladrius | Item | +1 heart of healing per round to allies | Card text from Craig |
+| Excalibur | Item | Modifier: +1 to each of the holder's auras (rule 4.6), as Devotion III, and adds to it: a holder with both gives Holy Aura +4. Always on while the item is held; if a game strips the effect, that's handled in play or by removing the item. Its +20 CM (Defense), 5 hearts of Divine True Damage and ignoring 2 hearts of damage each round are the holder's own (section 2): on the card, not calculated. **One holder at a time** (HV-6). | Card text from Craig |
 | Champion of Power | Title | +5 CR, +5 CM. **One holder at a time** (HV-6). | Confirmed (Q4) |
 | Hero of Passion (HoP) | Title | +1 CM to each **other HoP holder** (stacks). Its +3 CM to the holder is self-only, so it's part of the holder's own CM (section 2): shown on the card, not calculated | Answered (Q5) |
 | Part of the Ship, Part of the Crew | Title | +2 CM to each **other** holder of the title (stacks). Its +5 CM to the holder, and its effect (sea legs: can't be knocked off a ship), are self-only (section 2): on the card, not calculated. Two holders present each get +2 from the bot and add their own +5 | Card text from Craig |
