@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-09-30
+reviewed: 2026-11-21
 ---
 
 # How bonuses are counted
@@ -40,6 +40,10 @@ A few entries don't give a bonus themselves; they change what the **same charact
 gives. **Devotion III** adds +1 to each of that character's auras, from any skill tree
 (Holy Aura, Bolstering Aura, Aura of Defense, Aura of Hope). Only skills named "Aura"
 are auras: items aren't, even if their card mentions an aura.
+
+The item **Excalibur** does the same: +1 to each of its holder's auras. It adds to
+Devotion III, so a Holy Knight with both gives Holy Aura +4. The rest of its card (+20
+CM, True Damage, ignoring damage) is for the holder only, so add that yourself.
 
 **Helping Hands** doesn't change party bonuses. It raises the buffs and heals its holder
 casts, which the bot doesn't track, not auras or other always-on bonuses.

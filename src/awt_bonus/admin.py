@@ -19,7 +19,7 @@ a removed character. ``holders`` lists who has an entry, e.g. before changing it
 the catalog. ``transfer`` moves a character to another Discord account: only the
 owner can change a character (CH-1). ``remove-character`` is for a player who asked,
 with /request, to have a character removed (CH-2). ``remove-entry`` frees a
-one-holder title whose holder can't or won't remove it (HV-6).
+one-holder entry whose holder can't or won't remove it (HV-6).
 """
 
 import argparse

@@ -18,7 +18,7 @@ Players' requests arrive in `#bonus-bot-support`, with the player's name.
 | A **wrong entry**: a value, name or card text | Correct it in the catalog: see [Changing the catalog](#changing-the-catalog). The change applies to every character that has it (CT-3). If it's a rule question rather than a typo, ask the DMs first ([Applying a DM's answer](#applying-a-dms-answer)). |
 | **Remove a character** | `awt-admin remove-character`: see [Maintainer tasks in deployment.md](deployment.md#maintainer-tasks). |
 | **Move a character to another Discord account**, e.g. a player's new account | `awt-admin transfer`: same place. |
-| **Free a one-holder title** whose holder can't or won't `/remove` it | `awt-admin remove-entry`: same place. |
+| **Free a one-holder entry** (rank, title or item) whose holder can't or won't `/remove` it | `awt-admin remove-entry`: same place. |
 | A **dispute** about who changed a character | `awt-admin history` shows every change, who made it and when. |
 | Anything else | Reply on Discord. If it's a new feature, it starts as a requirements change. |
 

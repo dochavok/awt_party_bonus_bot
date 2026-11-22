@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-09-29
+reviewed: 2026-11-21
 ---
 
 # Guilds and Support
@@ -51,14 +51,15 @@ it if the character no longer has any.
 
 ## One holder at a time
 
-Some ranks and titles can only be held by **one character on the server at a time**,
-such as High Inquisitor and Champion of Power. If someone else holds it, the bot says
-who:
+Some ranks, titles and items can only be held by **one character on the server at a
+time**, such as High Inquisitor, Champion of Power and Excalibur. If someone else holds
+it, the bot says who:
 
 --8<-- "refused-one-holder.md"
 
-The title passes on when its holder removes it, or leaves the guild for a guild rank.
-If the holder can't or won't, ask with `/request`, and the maintainer will sort it out.
+The rank, title or item passes on when its holder removes it, or leaves the guild for a
+guild rank. If the holder can't or won't, ask with `/request`, and the maintainer will
+sort it out.
 
 ## Support from your Discord role
 

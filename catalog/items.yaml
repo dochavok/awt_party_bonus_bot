@@ -79,6 +79,16 @@ entries:
     gives: {Healing: 1}                     # allies only
     card: "1 heart of healing per round"
 
+  # Lord Thomas's sword: only "your Auras gain +1" reaches the party, always on (Craig).
+  excalibur:
+    name: Excalibur
+    kind: item
+    unique: true                            # one holder at a time (HV-6)
+    modifies: {tag: aura, add: 1}         # as Devotion III, and adds to it (rule 4.6)
+    card: >-
+      Take the form of the one true king- gain +20 CM (Defense), add 5 ♥️’s of Divine
+      True Damage, Ignore 2 ♥️’s of Damage each round, and your Auras gain +1
+
   # ------------------------------------------------------------ titles
   champion_of_power:
     name: Champion of Power
