@@ -57,8 +57,9 @@ it, the bot says who:
 
 --8<-- "refused-one-holder.md"
 
-It passes on when its holder removes it, or leaves the guild for a guild rank.
-If the holder can't or won't, ask with `/request`, and the maintainer will sort it out.
+The rank, title or item passes on when its holder removes it, or leaves the guild for a
+guild rank. If the holder can't or won't, ask with `/request`, and the maintainer will
+sort it out.
 
 ## Support from your Discord role
 
