@@ -68,7 +68,7 @@ the bot's image does this safely, while the bot keeps running:
 | See who has an entry, e.g. before changing or retiring it in the catalog | `awt-admin holders <entry>` | No |
 | Move a character to another Discord account (only the owner can change a character, CH-1), e.g. a player's new account | `awt-admin transfer <character> <new owner's Discord user ID>` | Yes |
 | Remove a character (CH-2): players can rename but not delete | `awt-admin remove-character <character>` | Yes |
-| Free a one-holder title (HV-6) whose holder can't or won't `/remove` it, e.g. they've left | `awt-admin remove-entry <character> <entry>` | Yes |
+| Free a one-holder entry (HV-6) whose holder can't or won't `/remove` it, e.g. they've left | `awt-admin remove-entry <character> <entry>` | Yes |
 
 To find a Discord user ID, turn on **User Settings → Advanced → Developer Mode**,
 then right-click the person and choose **Copy User ID**.

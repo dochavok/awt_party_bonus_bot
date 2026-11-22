@@ -10,9 +10,11 @@ from datetime import timedelta
 
 import pytest
 
+from awt_bonus.catalog import load_catalog
 from awt_bonus.engine import Reason
 from awt_bonus.store import CharacterRecord
 from tests.support.text import counted, mentions, recipient, stat
+from tests.support.traceability import ROOT
 from tests.support.world import MakeWorld, World
 
 M3 = pytest.mark.milestone("M3")
@@ -292,6 +294,27 @@ async def test_devotion_iii_with_no_auras_is_added_with_a_warning(make_world: Ma
 
     assert (await _get(world, "Elowen")).entries == ("devotion_3",)
     assert mentions(reply.text, "aura")
+
+
+@M3
+@pytest.mark.req("HV-4", "4.6")
+async def test_an_item_that_modifies_auras_warns_only_without_auras(make_world: MakeWorld) -> None:
+    """Excalibur, from the real catalog: Crateris has Holy Aura, Elowen has no auras.
+    Crateris gives it up before Elowen adds it: only one can hold it (HV-6)."""
+    world = await make_world("setup")
+    app = world.app_with(catalog=load_catalog(ROOT / "catalog"))
+    craig = world.user("craig")
+    quiet = await app.run(craig, "add", {"character": "Crateris", "entry": "Excalibur"})
+    assert "excalibur" in (await _get(world, "Crateris")).entries
+    assert "Note:" not in quiet.text, "Crateris has an aura, so no warning"
+
+    await app.run(craig, "remove", {"character": "Crateris", "entry": "Excalibur"})
+    warned = await app.run(craig, "add", {"character": "Elowen", "entry": "Excalibur"})
+    assert (await _get(world, "Elowen")).entries == ("excalibur",), "added despite the warning"
+    assert warned.private
+    note = [line for line in warned.text.splitlines() if line.startswith("Note:")]
+    assert len(note) == 1
+    assert all(word in note[0] for word in ("Excalibur", "Elowen", "aura")), note[0]
 
 
 # ---------------------------------------------------------------- HV-5: audit log
