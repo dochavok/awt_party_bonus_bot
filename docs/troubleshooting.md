@@ -24,8 +24,8 @@ command the bot gives you, then `/add` again.
 
 --8<-- "refused-one-holder.md"
 
-Some ranks, titles and items can only be held by one character at a time. The holder can
-`/remove` it; if they can't or won't, ask with `/request`. See
+Some ranks, titles and items can only be held by one character at a time. The holder
+can `/remove` it; if they can't or won't, ask with `/request`. See
 [Guilds and Support](guilds.md#one-holder-at-a-time).
 
 ### "There's no item class called …"
@@ -39,10 +39,10 @@ ask for it with `/request`.
 `/character items` takes how many items of the class your character is **using**,
 from 0 to 30. 0 clears it.
 
-### A warning about Devotion III or Excalibur
+### A warning about an entry that adds to auras
 
-Devotion III and Excalibur add +1 to your character's auras. If your character has no
-auras, they do nothing, and the bot warns you. They're still added.
+Some entries add to your character's auras, such as Devotion III and Excalibur. If your
+character has no auras, they do nothing, and the bot warns you. They're still added.
 
 ## My numbers look wrong
 

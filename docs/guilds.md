@@ -52,8 +52,8 @@ it if the character no longer has any.
 ## One holder at a time
 
 Some ranks, titles and items can only be held by **one character on the server at a
-time**, such as High Inquisitor, Champion of Power and Excalibur. If someone else holds it, the bot says
-who:
+time**, such as High Inquisitor, Champion of Power and Excalibur. If someone else holds
+it, the bot says who:
 
 --8<-- "refused-one-holder.md"
 
