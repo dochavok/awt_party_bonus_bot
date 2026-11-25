@@ -164,3 +164,33 @@ def test_only_a_bonus_from_roles_can_be_given_while_sitting_out() -> None:
     with pytest.raises(CatalogError) as caught:
         parse_catalog(_with_sitting_out(["Guild Legend"], on_rank=True))
     assert "Footpad" in "\n".join(caught.value.problems)
+
+
+@pytest.mark.milestone("M10")
+@pytest.mark.req("CT-5", "CT-7", "SE-7", "SG-3")
+def test_a_secret_guilds_bonus_cant_be_given_while_sitting_out() -> None:
+    data = _with_sitting_out(["Guild Legend"])
+    parse_catalog(data)
+
+    data["guilds"]["Guild"]["secret"] = True
+    with pytest.raises(CatalogError) as caught:
+        parse_catalog(data)
+    problems = "\n".join(caught.value.problems)
+    assert "Guild" in problems
+    assert "secret" in problems
+
+
+@pytest.mark.milestone("M10")
+@pytest.mark.req("CT-5", "CT-7", "SE-7")
+def test_a_bonus_counted_across_the_party_cant_be_given_while_sitting_out() -> None:
+    data = _with_sitting_out(["Guild Legend"])
+    data["item_classes"] = {"passion": {"description": "Test passion items"}}
+    data["guilds"]["Guild"]["from_roles"].append(
+        {"name": "Passion Tithe", "gives": {"CM": 1}, "per_item_class": "passion"}
+    )
+    parse_catalog(data)
+
+    data["guilds"]["Guild"]["from_roles"][1]["while_sitting_out"] = ["Guild Legend"]
+    with pytest.raises(CatalogError) as caught:
+        parse_catalog(data)
+    assert "per_item_class" in "\n".join(caught.value.problems)

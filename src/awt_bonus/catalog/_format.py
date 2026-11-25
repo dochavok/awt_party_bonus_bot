@@ -226,4 +226,11 @@ class GuildSpec(_Spec):
             raise ValueError(
                 f"`while_sitting_out` names roles that aren't the guild's: {', '.join(unknown)}"
             )
+        sitting_out = [a for a in self.from_roles if a.while_sitting_out]
+        if sitting_out and self.secret:
+            # A supporter is named on the public not-counted line (SE-4, SG-3).
+            raise ValueError("a secret guild's bonuses can't have `while_sitting_out`")
+        if any(a.per_item_class is not None for a in sitting_out):
+            # It goes only to its holder, and a supporter receives nothing (rule 4.15).
+            raise ValueError("a bonus with `per_item_class` can't have `while_sitting_out`")
         return self

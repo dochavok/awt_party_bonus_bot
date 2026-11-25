@@ -5,6 +5,7 @@ whoever is in the voice channel, their sit-outs and their current characters.
 """
 
 import asyncio
+import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -18,36 +19,65 @@ from awt_bonus.output.describe import timestamp
 from awt_bonus.ports import VoiceChannel
 from awt_bonus.store import CharacterRecord, PlayerState
 
+log = logging.getLogger(__name__)
+
 
 async def sitout(ctx: Context) -> Reply:
     """SE-2: only ever the caller (NF-4). ``support:true`` is a supporting sit-out (SE-7)."""
-    support = ctx.flag("support")
-    member = await ctx.discord.member(ctx.user)
-    roles = member.roles if member is not None else frozenset()
-    allowances = sitting_out_allowances(ctx.catalog)
-    held = [r for a in allowances for r in a.roles if r in roles]
-    if support and not held:
-        raise Refused(*_support_refusal(allowances))
-
     until = ctx.now + timedelta(hours=ctx.settings.sitout_hours)
-    await ctx.store.set_sitout(ctx.user, until, supporting=support)
     when = f"until {timestamp(until, 'f')} ({timestamp(until, 'R')})"
-    bonuses = " and ".join(dict.fromkeys(b for a in allowances for b in a.bonuses))
-    if support:
+    if ctx.flag("support"):
+        bonuses, _ = _allowed(ctx.catalog, await _roles(ctx))
+        if not bonuses:
+            raise Refused(*await _support_refusal(ctx))
+        await ctx.store.set_sitout(ctx.user, until, supporting=True)
         return private(
-            f"You're sitting out {when}, but still giving {bonuses} while you're in the "
-            "voice channel. `/sitin` ends it early."
+            f"You're sitting out {when}, but still giving {_and(bonuses)} while you're in "
+            "the voice channel. `/sitin` ends it early."
         )
+
+    # A plain sit-out never depends on Discord: it's recorded first, and the SE-8
+    # hint is left out if the caller's roles can't be looked up.
+    await ctx.store.set_sitout(ctx.user, until)
     lines = [
         f"You're sitting out {when}, so you aren't counted in any voice channel. "
         "`/sitin` ends it early."
     ]
-    if held:  # SE-8
+    try:
+        roles = await _roles(ctx)
+    except Exception:
+        log.warning("roles lookup failed; /sitout hint left out", exc_info=True)
+        roles = frozenset()
+    bonuses, role = _allowed(ctx.catalog, roles)
+    if role is not None:  # SE-8
         lines.append(
-            f"You have {held[0]}, so you can keep giving {bonuses} while you listen in: "
+            f"You have {role}, so you can keep giving {_and(bonuses)} while you listen in: "
             "`/sitout support:true`."
         )
     return private(*lines)
+
+
+async def _roles(ctx: Context) -> frozenset[str]:
+    member = await ctx.discord.member(ctx.user)
+    return member.roles if member is not None else frozenset()
+
+
+def _allowed(catalog: Catalog, roles: frozenset[str]) -> tuple[list[str], str | None]:
+    """The role bonuses these roles still give while sitting out, and the first role
+    that allows one, for the SE-8 hint (SE-7)."""
+    bonuses: list[str] = []
+    role: str | None = None
+    for guild in catalog.guilds.values():
+        for ability in guild.role_abilities:
+            if ability.while_sitting_out & roles:
+                bonuses.append(ability.name)
+                if role is None:
+                    role = next(r for r in guild.roles if r in ability.while_sitting_out & roles)
+    return list(dict.fromkeys(bonuses)), role
+
+
+def _and(items: list[str]) -> str:
+    return items[0] if len(items) == 1 else f"{', '.join(items[:-1])} and {items[-1]}"
 
 
 @dataclass(frozen=True)
@@ -72,21 +102,25 @@ def sitting_out_allowances(catalog: Catalog) -> list[Allowance]:
     return found
 
 
-def _support_refusal(allowances: list[Allowance]) -> list[str]:
+async def _support_refusal(ctx: Context) -> list[str]:
+    """Why ``support:true`` was refused, and what happened to any sit-out (SE-7)."""
+    was = await ctx.store.sitout_until(ctx.user)
+    if was is not None and was > ctx.now:
+        outcome = f"Your sit-out until {timestamp(was, 'f')} is unchanged."
+    else:
+        outcome = "You haven't been sat out: `/sitout` on its own does that."
+    allowances = sitting_out_allowances(ctx.catalog)
     if not allowances:
-        return [
-            "Nobody can keep giving a bonus while sitting out at the moment. "
-            "`/sitout` on its own sits you out."
-        ]
+        return ["Nobody can keep giving a bonus while sitting out at the moment.", outcome]
     lines = []
     for a in allowances:
         lines.append(
-            f"Only players with {_or(a.roles)} can keep giving {' and '.join(a.bonuses)} "
-            "while sitting out, so you're not sitting out. `/sitout` on its own sits you out."
+            f"Only players with {_or(a.roles)} can keep giving {_and(list(a.bonuses))} "
+            "while sitting out."
         )
         if a.guild.how_to_join is not None:
             lines.append(a.guild.how_to_join)
-    return lines
+    return [*lines, outcome]
 
 
 def _or(items: tuple[str, ...]) -> str:

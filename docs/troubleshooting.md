@@ -42,8 +42,9 @@ from 0 to 30. 0 clears it.
 ### "Only players with … can keep giving Support while sitting out"
 
 `/sitout support:true` is only for the Patreon tiers that allow it, today Guild
-Champion and Guild Legend. You haven't been sat out: use `/sitout` on its own if you're
-just listening in. The reply says how the tiers work.
+Champion and Guild Legend. Nothing changes: if you were already sitting out, that
+sit-out carries on, and if not, use `/sitout` on its own if you're just listening in.
+The reply says how the tiers work.
 
 ### A warning about an entry that adds to auras
 

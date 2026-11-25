@@ -10,10 +10,11 @@ from datetime import timedelta
 
 import pytest
 
+from awt_bonus.catalog import parse_catalog
 from awt_bonus.settings import Settings
 from tests.support.supporters import JOIN_TEXT, supporter_catalog
 from tests.support.text import counted, discord_timestamp, stat
-from tests.support.world import MakeWorld
+from tests.support.world import MakeWorld, catalog_data
 
 M3 = pytest.mark.milestone("M3")
 M4 = pytest.mark.milestone("M4")
@@ -492,3 +493,70 @@ async def test_the_not_counted_line_marks_a_supporter(make_world: MakeWorld, com
         "DM Sam": True,
         "Bob": False,
     }
+
+
+@M10
+@pytest.mark.req("SE-7", "SE-2")
+async def test_a_refused_supporting_sitout_leaves_an_existing_sitout_unchanged(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    isla = world.user("isla")  # Guild Vanguard
+    await app.run(isla, "sitout")
+    until = await world.store.sitout_until(isla)
+    assert until is not None
+    world.clock.advance(timedelta(minutes=30))
+
+    reply = await app.run(isla, "sitout", {"support": True})
+
+    assert reply.private
+    assert "unchanged" in reply.text
+    assert "not sitting out" not in reply.text
+    assert discord_timestamp(until) in reply.text, "says when the existing sit-out ends"
+    assert await world.store.sitout_until(isla) == until
+    assert "Ioseph" not in counted(await app.run(world.user("kit"), "partybonus"))
+
+
+@M10
+@pytest.mark.req("SE-7", "SE-8")
+async def test_the_sitout_replies_name_only_the_bonuses_the_callers_roles_allow(
+    make_world: MakeWorld,
+) -> None:
+    data = catalog_data()
+    guild = data["guilds"]["the_guild"]
+    guild["from_roles"] = [
+        {"name": "Support", "gives": {"CM": 2}, "while_sitting_out": ["Guild Legend"]},
+        {"name": "Rally", "gives": {"CR": 1}, "while_sitting_out": ["Guild Champion"]},
+    ]
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=parse_catalog(data))
+
+    supporting = await app.run(world.user("sam"), "sitout", {"support": True})  # Champion
+    hint = await app.run(world.user("bob"), "sitout")  # Legend
+
+    assert "Rally" in supporting.text
+    assert "Support" not in supporting.text.replace("support:true", "")
+    assert "Support" in hint.text
+    assert "Rally" not in hint.text
+
+
+@M10
+@pytest.mark.req("SE-2", "SE-8")
+async def test_a_plain_sitout_is_recorded_even_if_discord_cant_look_up_roles(
+    make_world: MakeWorld, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+
+    async def unavailable(user_id: object) -> None:
+        raise RuntimeError("Discord is unavailable")
+
+    monkeypatch.setattr(world.discord, "member", unavailable)
+    reply = await app.run(world.user("bob"), "sitout")
+
+    assert reply.private
+    assert await world.store.sitout_until(world.user("bob")) == world.clock.now() + timedelta(
+        hours=12
+    )
+    assert "support:true" not in reply.text, "no roles known, so no hint"

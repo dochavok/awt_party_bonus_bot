@@ -138,8 +138,8 @@ after 12 hours. **Only you see the reply.**
 
 With **Guild Champion** or **Guild Legend**, add `support:true` to keep giving Support
 while you listen in: you're still not counted, and your character gives nothing else.
-Anyone else is refused, and isn't sat out. Using `/sitout` again, with or without
-`support:true`, starts a new 12 hours.
+Anyone else is refused, and any sit-out they already have is unchanged. Using `/sitout`
+again, with or without `support:true`, starts a new 12 hours.
 
 ```
 /sitout support:true
