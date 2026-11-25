@@ -72,6 +72,11 @@ Support counts for whichever character you're playing. It counts even if you hav
 set up a character yet. Guild rank roles come from the AWT Patreon; `/catalog Patreon
 Bonuses` shows the details.
 
+With **Guild Champion or Guild Legend** you can listen in and still give Support: use
+`/sitout support:true`. You're not counted and your character gives nothing else, but
+your +2 CM still goes to everyone counted while you're in the voice channel. A plain
+`/sitout` reminds you of the option.
+
 ## Secret guilds { #secret-guilds }
 
 The Guild of Thieves' rules say never to reveal another member, so the bot keeps it

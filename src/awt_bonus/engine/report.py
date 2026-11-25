@@ -199,7 +199,8 @@ class NotCounted:
 @dataclass(frozen=True)
 class PartyReport:
     gives: tuple[Give, ...]
-    """Every give from a counted player, including replaced ones."""
+    """Every give from a counted player, including replaced ones, and Support from
+    each supporter sitting out (SE-7)."""
     recipients: tuple[RecipientReport, ...]
     """Every counted player, in the order given. Bots never appear anywhere."""
     not_counted: tuple[NotCounted, ...]

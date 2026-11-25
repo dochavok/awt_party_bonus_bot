@@ -61,6 +61,8 @@ class PlayerState:
     current: CharacterRecord | None
     sitout_until: datetime | None
     """The stored sit-out end (UTC), whether or not it has passed."""
+    sitout_supporting: bool = False
+    """The stored sit-out is a supporting one (SE-7)."""
 
 
 class NameTaken(Exception):
@@ -211,17 +213,21 @@ class Store:
         async with self._connect() as connection:
             await connection.execute(statement)
 
-    async def set_sitout(self, user_id: UserId, until: datetime | None) -> None:
-        """Set (or clear) the player's sit-out end (SE-2)."""
+    async def set_sitout(
+        self, user_id: UserId, until: datetime | None, supporting: bool = False
+    ) -> None:
+        """Set (or clear) the player's sit-out end (SE-2), and whether it's a
+        supporting one (SE-7). Setting it replaces any earlier sit-out."""
         async with self._connect() as connection:
             if until is None:
                 await connection.execute(
                     delete(schema.sit_out).where(schema.sit_out.c.discord_user_id == user_id)
                 )
                 return
-            statement = sqlite_insert(schema.sit_out).values(discord_user_id=user_id, until=until)
+            values = {"until": until, "supporting": supporting}
+            statement = sqlite_insert(schema.sit_out).values(discord_user_id=user_id, **values)
             statement = statement.on_conflict_do_update(
-                index_elements=[schema.sit_out.c.discord_user_id], set_={"until": until}
+                index_elements=[schema.sit_out.c.discord_user_id], set_=values
             )
             await connection.execute(statement)
 
@@ -337,19 +343,21 @@ class Store:
                 .where(schema.player.c.current_character_id.is_not(None))
             )
             current_ids = {UserId(row[0]): CharacterId(row[1]) for row in currents}
+            table = schema.sit_out
             sitouts = await connection.execute(
-                select(schema.sit_out.c.discord_user_id, schema.sit_out.c.until).where(
-                    schema.sit_out.c.discord_user_id.in_(wanted)
+                select(table.c.discord_user_id, table.c.until, table.c.supporting).where(
+                    table.c.discord_user_id.in_(wanted)
                 )
             )
-            until = {UserId(row[0]): row[1] for row in sitouts}
+            rows = {UserId(row[0]): (row[1], bool(row[2])) for row in sitouts}
         records = {
             r.id: r for r in await self._characters(schema.character.c.id.in_(current_ids.values()))
         }
         return {
             user_id: PlayerState(
                 current=records.get(current_ids[user_id]) if user_id in current_ids else None,
-                sitout_until=until.get(user_id),
+                sitout_until=rows[user_id][0] if user_id in rows else None,
+                sitout_supporting=user_id in rows and rows[user_id][1],
             )
             for user_id in wanted
         }

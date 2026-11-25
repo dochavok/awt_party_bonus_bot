@@ -18,7 +18,9 @@ guilds:
     membership: roles
     roles: [Junior Adventurer, Guild Veteran, Guild Vanguard, Guild Champion, Guild Legend]  # lowest first
     from_roles:                             # given once, whichever roles and however many (HV-3)
-      - {name: Support, gives: {CM: 2}}
+      - name: Support
+        gives: {CM: 2}
+        while_sitting_out: [Guild Champion, Guild Legend]   # listening in still gives it (SE-7)
     how_to_join: >-
       Guild tiers are derived from the AWT Patreon:
       <https://www.patreon.com/adventuresfromthewizardstower>

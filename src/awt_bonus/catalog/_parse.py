@@ -298,7 +298,12 @@ def _stat(key: str, spec: StatSpec) -> Stat:
 
 
 def _ability(
-    name: str, bonus: BonusFields, tags: frozenset[str], card: str | None, bands: Bands
+    name: str,
+    bonus: BonusFields,
+    tags: frozenset[str],
+    card: str | None,
+    bands: Bands,
+    while_sitting_out: frozenset[str] = frozenset(),
 ) -> Ability:
     return Ability(
         name=name,
@@ -313,6 +318,7 @@ def _ability(
         card=card,
         needs_item_class=_class_id(bonus.needs_item_class),
         per_item_class=_class_id(bonus.per_item_class),
+        while_sitting_out=while_sitting_out,
     )
 
 
@@ -368,7 +374,8 @@ def _guild(key: str, spec: GuildSpec, bands: Bands) -> Guild:
         membership=Membership(spec.membership),
         roles=tuple(spec.roles),
         role_abilities=tuple(
-            _ability(a.name, a, frozenset(a.tags), a.card, bands) for a in spec.from_roles
+            _ability(a.name, a, frozenset(a.tags), a.card, bands, frozenset(a.while_sitting_out))
+            for a in spec.from_roles
         ),
         secret=spec.secret,
         how_to_join=spec.how_to_join,

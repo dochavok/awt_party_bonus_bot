@@ -77,6 +77,10 @@ scenario or catalog fix.
       change.
 - [ ] Bots in the channel (e.g. the music bot) are ignored and never listed.
 - [ ] `/sitout` leaves you out, with the time it ends; `/sitin` counts you again.
+- [ ] With Guild Legend, `/sitout` mentions `support:true`; `/sitout support:true`
+      leaves you out but `/partybonus` still gives the others your +2 CM, and the
+      *Not counted* line says you're giving Support. Without Guild Champion or Guild
+      Legend, `/sitout support:true` is refused and you're still counted.
 - [ ] Someone in voice with no character is listed under NO CHARACTER SET UP.
 - [ ] `channel:` picks another voice channel.
 

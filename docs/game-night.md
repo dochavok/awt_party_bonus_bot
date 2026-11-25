@@ -15,6 +15,9 @@ the moment a command runs.
 - **Running the game, or just listening in?** Use `/sitout`, so your character's bonuses
   aren't counted and you don't appear in the table. It lasts 12 hours; `/sitin` ends it
   early. Remembering to sit out is up to you: the bot doesn't guess.
+- **Listening in with Guild Champion or Guild Legend?** Use `/sitout support:true`
+  instead: you're still not counted, but you keep giving the party your Support while
+  you're in the voice channel.
 
 ## During the game
 
@@ -39,7 +42,8 @@ See [Reading the results](results.md) for what each reply means.
 
 - Everyone in the voice channel, with the character they're playing.
 - **Not** anyone who has used `/sitout` in the last 12 hours. They're listed at the end
-  of `/partybonus` as *not counted*, with the time their sit-out ends.
+  of `/partybonus` as *not counted*, with the time their sit-out ends. Anyone who used
+  `/sitout support:true` is marked as still giving Support.
 - **Not** bots, such as a music bot.
 - Someone **without a character** is still counted, under their Discord name. They
   receive bonuses, and give Support if their Discord role includes it, and they're

@@ -222,8 +222,9 @@ def build_tree(
         await _answer(interaction, runner(interaction, "play", character=character), private=True)
 
     @tree.command(name="sitout", description=f"Don't count me for {settings.sitout_hours:g} hours")
-    async def sitout(interaction: discord.Interaction) -> None:
-        await _answer(interaction, runner(interaction, "sitout"), private=True)
+    @app_commands.describe(support="Keep giving Support while you listen in (some Patreon tiers)")
+    async def sitout(interaction: discord.Interaction, support: bool = False) -> None:
+        await _answer(interaction, runner(interaction, "sitout", support=support), private=True)
 
     @tree.command(name="sitin", description="Count me again")
     async def sitin(interaction: discord.Interaction) -> None:

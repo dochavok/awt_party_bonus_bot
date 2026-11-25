@@ -43,10 +43,17 @@ def compute(
     character or class left out has 0.
     """
     # Step 0: who is counted. Bots are ignored entirely (SE-6); anyone with an
-    # active sit-out is listed, but gives and receives nothing (SE-2, SE-4).
+    # active sit-out is listed, and gives and receives nothing (SE-2, SE-4),
+    # except that a supporter with an allowed role still gives Support (SE-7).
     people = [p for p in present_players if not p.is_bot]
+    supporters = [
+        _supporter(p, player_roles.get(p.user_id, frozenset()))
+        for p in people
+        if p.sitting_out_until is not None and p.supporting
+    ]
+    supporting = {s.user_id for s in supporters if _sitting_out_abilities(s.roles, catalog)}
     not_counted = tuple(
-        NotCounted(p.user_id, p.display_name, p.sitting_out_until)
+        NotCounted(p.user_id, p.display_name, p.sitting_out_until, p.user_id in supporting)
         for p in people
         if p.sitting_out_until is not None
     )
@@ -72,7 +79,7 @@ def compute(
 
     # Step 2: every give, with replacements marked and modifiers applied.
     candidates: list[_Candidate] = []
-    for player in players:
+    for player in players + supporters:
         candidates += _gives(player, catalog, class_counts, first_id=len(candidates) + 1)
 
     # Steps 3-5: apply each give to each recipient, keep one of each bonus that
@@ -105,6 +112,8 @@ class _Player:
     """Open guilds joined, plus guilds from Discord roles; none without a character (SE-5)."""
     item_counts: Mapping[ItemClassId, int]
     """Item class counts above 0 (IC-1); none without a character."""
+    sitting_out: bool = False
+    """A supporter (SE-7): gives only the role bonuses its roles allow while sitting out."""
 
     @property
     def level(self) -> int | None:
@@ -139,6 +148,23 @@ def _player(
     return _Player(
         player.user_id, character.name, character, roles, held, frozenset(joined), counts
     )
+
+
+def _supporter(player: PresentPlayer, roles: frozenset[str]) -> _Player:
+    """A supporter sitting out (SE-7): no character, entries or guilds, only roles."""
+    return _Player(player.user_id, player.display_name, None, roles, (), frozenset(), {}, True)
+
+
+def _sitting_out_abilities(
+    roles: frozenset[str], catalog: Catalog
+) -> list[tuple[CatalogGuild, Ability]]:
+    """The role bonuses these roles still give while sitting out (SE-7, CT-5)."""
+    return [
+        (guild, ability)
+        for guild in catalog.role_guilds(roles)
+        for ability in guild.role_abilities
+        if ability.while_sitting_out & roles
+    ]
 
 
 # ---------------------------------------------------------------- step 2
@@ -193,8 +219,12 @@ def _gives(
         )
         origins += [(origin, ability) for ability in entry.abilities]
     # Bonuses from Discord roles, e.g. Support: once, however many roles (HV-3).
-    for guild in catalog.role_guilds(player.roles):
-        origins += [(_role_origin(guild, player.roles), a) for a in guild.role_abilities]
+    # A supporter sitting out gives only those its roles allow (SE-7).
+    if player.sitting_out:
+        role_gives = _sitting_out_abilities(player.roles, catalog)
+    else:
+        role_gives = [(g, a) for g in catalog.role_guilds(player.roles) for a in g.role_abilities]
+    origins += [(_role_origin(guild, player.roles), a) for guild, a in role_gives]
 
     candidates = []
     for number, (origin, ability) in enumerate(origins, start=first_id):

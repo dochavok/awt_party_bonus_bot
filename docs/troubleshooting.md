@@ -39,6 +39,12 @@ ask for it with `/request`.
 `/character items` takes how many items of the class your character is **using**,
 from 0 to 30. 0 clears it.
 
+### "Only players with … can keep giving Support while sitting out"
+
+`/sitout support:true` is only for the Patreon tiers that allow it, today Guild
+Champion and Guild Legend. You haven't been sat out: use `/sitout` on its own if you're
+just listening in. The reply says how the tiers work.
+
 ### A warning about an entry that adds to auras
 
 Some entries add to your character's auras, such as Devotion III and Excalibur. If your

@@ -79,10 +79,18 @@ class Party:
         return SECRET if self.hidden(give) else give.bonus
 
     def name_of(self, user_id: UserId) -> str:
+        """A giver's name: their character's, or a supporter's Discord name (SE-7)."""
         for recipient in self.report.recipients:
             if recipient.user_id == user_id:
                 return recipient.name
+        for person in self.report.not_counted:
+            if person.user_id == user_id:
+                return person.name
         return "someone"
+
+    def supporting(self, user_id: UserId) -> bool:
+        """Whether this player is sitting out but still giving Support (SE-7)."""
+        return any(n.user_id == user_id and n.supporting for n in self.report.not_counted)
 
     def replaced(self) -> set[int]:
         """Gives replaced by another entry of the same giver (rule 4.5)."""
@@ -229,13 +237,18 @@ def heading(title: str, party: Party) -> Block:
 
 
 def not_counted(party: Party) -> Block | None:
-    """Everyone in the channel who is sitting out, with the time it ends (SE-4)."""
+    """Everyone in the channel who is sitting out, with the time it ends, and whether
+    they're still giving Support (SE-4, SE-7)."""
     if not party.report.not_counted:
         return None
-    people = ", ".join(
-        f"{n.name} (sitting out until {timestamp(n.until, 't')})" for n in party.report.not_counted
-    )
-    return text(f"Not counted: {people}")
+    people = []
+    for n in party.report.not_counted:
+        giving = ""
+        if n.supporting:
+            bonuses = dict.fromkeys(g.bonus for g in party.report.gives if g.giver == n.user_id)
+            giving = f", giving {names(bonuses)}"
+        people.append(f"{n.name} (sitting out until {timestamp(n.until, 't')}{giving})")
+    return text(f"Not counted: {', '.join(people)}")
 
 
 def no_character(party: Party) -> list[str]:
@@ -595,6 +608,8 @@ def _group_lines(party: Party, group: _Group) -> list[str]:
         width = max(len(party.name_of(g.giver)) for g in group.gives) + 3
         for give, note in zip(group.gives, notes, strict=True):
             rank = ", ".join(give.giver_rank)
+            if party.supporting(give.giver):  # OUT-3
+                rank += " (sitting out)"
             line = f"    {party.name_of(give.giver):<{width}}{rank:<22}{note}"
             lines.append(line.rstrip())
     else:

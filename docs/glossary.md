@@ -74,7 +74,8 @@ reviewed: 2026-09-30
 
 **Sitting out**
 :   Not counted for 12 hours, after `/sitout`. For the DM running the game and anyone
-    just watching.
+    just watching. With `/sitout support:true`, a Guild Champion or Guild Legend
+    sitting out still gives Support.
 
 **Stacks / doesn't stack**
 :   A bonus that stacks counts once per giver. One that doesn't stack counts once,

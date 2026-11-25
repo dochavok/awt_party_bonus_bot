@@ -9,7 +9,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from awt_bonus.commands._base import Context, private
+from awt_bonus.catalog import Catalog, Guild
+from awt_bonus.commands._base import Context, Refused, private
 from awt_bonus.commands._types import Reply
 from awt_bonus.engine import CharacterRef, PartyReport, PresentPlayer, compute
 from awt_bonus.ids import CharacterId, EntryId, GuildId, UserId
@@ -19,13 +20,78 @@ from awt_bonus.store import CharacterRecord, PlayerState
 
 
 async def sitout(ctx: Context) -> Reply:
-    """SE-2: only ever the caller (NF-4)."""
+    """SE-2: only ever the caller (NF-4). ``support:true`` is a supporting sit-out (SE-7)."""
+    support = ctx.flag("support")
+    member = await ctx.discord.member(ctx.user)
+    roles = member.roles if member is not None else frozenset()
+    allowances = sitting_out_allowances(ctx.catalog)
+    held = [r for a in allowances for r in a.roles if r in roles]
+    if support and not held:
+        raise Refused(*_support_refusal(allowances))
+
     until = ctx.now + timedelta(hours=ctx.settings.sitout_hours)
-    await ctx.store.set_sitout(ctx.user, until)
-    return private(
-        f"You're sitting out until {timestamp(until, 'f')} ({timestamp(until, 'R')}), "
-        "so you aren't counted in any voice channel. `/sitin` ends it early."
-    )
+    await ctx.store.set_sitout(ctx.user, until, supporting=support)
+    when = f"until {timestamp(until, 'f')} ({timestamp(until, 'R')})"
+    if support:
+        bonuses = " and ".join(dict.fromkeys(b for a in allowances for b in a.bonuses))
+        return private(
+            f"You're sitting out {when}, but still giving {bonuses} while you're in the "
+            "voice channel. `/sitin` ends it early."
+        )
+    lines = [
+        f"You're sitting out {when}, so you aren't counted in any voice channel. "
+        "`/sitin` ends it early."
+    ]
+    if held:  # SE-8
+        bonuses = " and ".join(dict.fromkeys(b for a in allowances for b in a.bonuses))
+        lines.append(
+            f"You have {held[0]}, so you can keep giving {bonuses} while you listen in: "
+            "`/sitout support:true`."
+        )
+    return private(*lines)
+
+
+@dataclass(frozen=True)
+class Allowance:
+    """A role guild's bonuses that some of its roles still give while sitting out (CT-5)."""
+
+    guild: Guild
+    roles: tuple[str, ...]
+    """The allowed roles, in the guild's order (lowest first)."""
+    bonuses: tuple[str, ...]
+
+
+def sitting_out_allowances(catalog: Catalog) -> list[Allowance]:
+    """Every role guild with a bonus allowed while sitting out (SE-7)."""
+    found = []
+    for guild in catalog.guilds.values():
+        abilities = [a for a in guild.role_abilities if a.while_sitting_out]
+        if abilities:
+            allowed = set().union(*(a.while_sitting_out for a in abilities))
+            roles = tuple(r for r in guild.roles if r in allowed)
+            found.append(Allowance(guild, roles, tuple(a.name for a in abilities)))
+    return found
+
+
+def _support_refusal(allowances: list[Allowance]) -> list[str]:
+    if not allowances:
+        return [
+            "Nobody can keep giving a bonus while sitting out at the moment. "
+            "`/sitout` on its own sits you out."
+        ]
+    lines = []
+    for a in allowances:
+        lines.append(
+            f"Only players with {_or(a.roles)} can keep giving {' and '.join(a.bonuses)} "
+            "while sitting out, so you're not sitting out. `/sitout` on its own sits you out."
+        )
+        if a.guild.how_to_join is not None:
+            lines.append(a.guild.how_to_join)
+    return lines
+
+
+def _or(items: tuple[str, ...]) -> str:
+    return items[0] if len(items) == 1 else f"{', '.join(items[:-1])} or {items[-1]}"
 
 
 async def sitin(ctx: Context) -> Reply:
@@ -68,6 +134,7 @@ async def build_party(
     present: list[PresentPlayer] = []
     counted: dict[CharacterId, CharacterRecord] = {}
     counted_players: list[UserId] = []
+    supporters: list[UserId] = []
     for member in members:
         if member.is_bot:  # ignored and never listed (SE-6)
             present.append(PresentPlayer(member.user_id, member.display_name, is_bot=True))
@@ -77,21 +144,25 @@ async def build_party(
         record = state.current
         if substitute is not None and substitute.owner == member.user_id:
             record = substitute
+        supporting = until is not None and state.sitout_supporting
         if until is None:
             counted_players.append(member.user_id)
             if record is not None:
                 counted[record.id] = record
+        elif supporting:  # still gives Support, so their roles are needed (SE-7)
+            supporters.append(member.user_id)
         present.append(
             PresentPlayer(
                 user_id=member.user_id,
                 display_name=member.display_name,
                 sitting_out_until=until,
                 character=_ref(record),
+                supporting=supporting,
             )
         )
     report = compute(
         present,
-        await roles(ctx, counted_players),
+        await roles(ctx, counted_players + supporters),
         {i: tuple(EntryId(e) for e in c.entries) for i, c in counted.items()},
         {i: tuple(GuildId(g) for g in c.guilds) for i, c in counted.items()},
         ctx.catalog,
