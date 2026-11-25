@@ -10,7 +10,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from awt_bonus.catalog import Catalog, Guild
+from awt_bonus.catalog import Catalog
 from awt_bonus.commands._base import Context, Refused, private
 from awt_bonus.commands._types import Reply
 from awt_bonus.engine import CharacterRef, PartyReport, PresentPlayer, compute
@@ -80,50 +80,30 @@ def _and(items: list[str]) -> str:
     return items[0] if len(items) == 1 else f"{', '.join(items[:-1])} and {items[-1]}"
 
 
-@dataclass(frozen=True)
-class Allowance:
-    """A role guild's bonuses that some of its roles still give while sitting out (CT-5)."""
-
-    guild: Guild
-    roles: tuple[str, ...]
-    """The allowed roles, in the guild's order (lowest first)."""
-    bonuses: tuple[str, ...]
-
-
-def sitting_out_allowances(catalog: Catalog) -> list[Allowance]:
-    """Every role guild with a bonus allowed while sitting out (SE-7)."""
-    found = []
-    for guild in catalog.guilds.values():
-        abilities = [a for a in guild.role_abilities if a.while_sitting_out]
-        if abilities:
-            allowed = set().union(*(a.while_sitting_out for a in abilities))
-            roles = tuple(r for r in guild.roles if r in allowed)
-            found.append(Allowance(guild, roles, tuple(a.name for a in abilities)))
-    return found
-
-
 async def _support_refusal(ctx: Context) -> list[str]:
-    """Why ``support:true`` was refused, and what happened to any sit-out (SE-7)."""
+    """Why ``support:true`` was refused: each bonus allowed while sitting out, with
+    its own roles, and what happened to any sit-out (SE-7)."""
     was = await ctx.store.sitout_until(ctx.user)
     if was is not None and was > ctx.now:
         outcome = f"Your sit-out until {timestamp(was, 'f')} is unchanged."
     else:
         outcome = "You haven't been sat out: `/sitout` on its own does that."
-    allowances = sitting_out_allowances(ctx.catalog)
-    if not allowances:
-        return ["Nobody can keep giving a bonus while sitting out at the moment.", outcome]
     lines = []
-    for a in allowances:
-        lines.append(
-            f"Only players with {_or(a.roles)} can keep giving {_and(list(a.bonuses))} "
-            "while sitting out."
-        )
-        if a.guild.how_to_join is not None:
-            lines.append(a.guild.how_to_join)
+    for guild in ctx.catalog.guilds.values():
+        abilities = [a for a in guild.role_abilities if a.while_sitting_out]
+        for ability in abilities:
+            roles = [r for r in guild.roles if r in ability.while_sitting_out]  # lowest first
+            lines.append(
+                f"Only players with {_or(roles)} can keep giving {ability.name} while sitting out."
+            )
+        if abilities and guild.how_to_join is not None:
+            lines.append(guild.how_to_join)
+    if not lines:
+        lines.append("Nobody can keep giving a bonus while sitting out at the moment.")
     return [*lines, outcome]
 
 
-def _or(items: tuple[str, ...]) -> str:
+def _or(items: list[str]) -> str:
     return items[0] if len(items) == 1 else f"{', '.join(items[:-1])} or {items[-1]}"
 
 

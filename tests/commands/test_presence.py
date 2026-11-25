@@ -560,3 +560,28 @@ async def test_a_plain_sitout_is_recorded_even_if_discord_cant_look_up_roles(
         hours=12
     )
     assert "support:true" not in reply.text, "no roles known, so no hint"
+
+
+@M10
+@pytest.mark.req("SE-7")
+async def test_the_refusal_names_the_roles_allowed_for_each_bonus(make_world: MakeWorld) -> None:
+    data = catalog_data()
+    data["guilds"]["the_guild"]["from_roles"] = [
+        {"name": "Support", "gives": {"CM": 2}, "while_sitting_out": ["Guild Legend"]},
+        {
+            "name": "Rally",
+            "gives": {"CR": 1},
+            "while_sitting_out": ["Guild Champion", "Guild Legend"],
+        },
+    ]
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=parse_catalog(data))
+
+    reply = await app.run(world.user("isla"), "sitout", {"support": True})  # Guild Vanguard
+
+    [support] = [line for line in reply.text.splitlines() if "giving Support" in line]
+    [rally] = [line for line in reply.text.splitlines() if "giving Rally" in line]
+    assert "Guild Legend" in support
+    assert "Guild Champion" not in support
+    assert "Guild Champion" in rally
+    assert "Guild Legend" in rally
