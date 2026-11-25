@@ -33,3 +33,5 @@ class PresentPlayer:
     """End of an **active** sit-out (UTC), or None. A player sitting out isn't counted (SE-2)."""
     character: CharacterRef | None = None
     """The current character (or the OUT-2a substitute); None means no character set up."""
+    supporting: bool = False
+    """The sit-out is a supporting one (SE-7). Ignored without an active sit-out."""

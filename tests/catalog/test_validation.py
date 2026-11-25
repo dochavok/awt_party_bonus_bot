@@ -4,14 +4,22 @@ Uses the small catalogs in tests/fixtures/catalogs/, each valid or broken in one
 known way, plus the two test catalogs the other tests rely on.
 """
 
+import copy
 import shutil
 from pathlib import Path
+from typing import Any
 
 import pytest
 
-from awt_bonus.catalog import CatalogError, check_no_removed, load_catalog, load_catalog_file
+from awt_bonus.catalog import (
+    CatalogError,
+    check_no_removed,
+    load_catalog,
+    load_catalog_file,
+    parse_catalog,
+)
 from awt_bonus.catalog.__main__ import main
-from tests.engine.scenarios import scenario_catalog
+from tests.engine.scenarios import scenario_catalog, scenario_file
 from tests.support.world import FIXTURES
 
 pytestmark = pytest.mark.milestone("M2")
@@ -121,3 +129,38 @@ def test_the_ci_check_fails_when_an_entry_disappears(tmp_path: Path) -> None:
         "entries:\n  war_drum: {name: War Drum, kind: item, gives: {CM: 1}}\n", encoding="utf-8"
     )
     assert main(["check", str(CATALOGS / "split-valid"), "--previous", str(previous)]) != 0
+
+
+# ---------------------------------------------------------------- CT-5: supporting sit-outs
+
+
+def _with_sitting_out(roles: list[str], on_rank: bool = False) -> dict[str, Any]:
+    """The scenario catalog, with roles that may give a bonus while sitting out (SE-7)."""
+    data = copy.deepcopy(dict(scenario_file()["catalog"]))
+    if on_rank:
+        data["entries"]["Footpad"]["abilities"][0]["while_sitting_out"] = roles
+    else:
+        data["guilds"]["Guild"]["from_roles"][0]["while_sitting_out"] = roles
+    return data
+
+
+@pytest.mark.milestone("M10")
+@pytest.mark.req("CT-5", "CT-7", "SE-7")
+def test_roles_allowed_while_sitting_out_must_be_the_guilds_roles() -> None:
+    parse_catalog(_with_sitting_out(["Guild Champion", "Guild Legend"]))
+
+    with pytest.raises(CatalogError) as caught:
+        parse_catalog(_with_sitting_out(["Guild Champion", "Guild Overlord"]))
+    problems = "\n".join(caught.value.problems)
+    assert "Guild Overlord" in problems
+    assert "Guild Champion" not in problems, "only the role that isn't the guild's"
+
+
+@pytest.mark.milestone("M10")
+@pytest.mark.req("CT-5", "CT-7", "SE-7")
+def test_only_a_bonus_from_roles_can_be_given_while_sitting_out() -> None:
+    parse_catalog(_with_sitting_out(["Guild Legend"]))
+
+    with pytest.raises(CatalogError) as caught:
+        parse_catalog(_with_sitting_out(["Guild Legend"], on_rank=True))
+    assert "Footpad" in "\n".join(caught.value.problems)

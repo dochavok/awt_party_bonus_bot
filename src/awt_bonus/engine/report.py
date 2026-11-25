@@ -191,6 +191,9 @@ class NotCounted:
     name: str
     until: datetime
     """When the sit-out ends (UTC)."""
+    supporting: bool = False
+    """Still giving Support while sitting out (SE-7): a supporting sit-out and an
+    allowed role. False for a plain sit-out, or a supporter without an allowed role."""
 
 
 @dataclass(frozen=True)

@@ -1,7 +1,8 @@
-"""Presence in the voice channel (requirements 6.5: SE-1 to SE-6), and the TS-2 edge
+"""Presence in the voice channel (requirements 6.5: SE-1 to SE-8), and the TS-2 edge
 cases at command level.
 
-Uses the presence fixture (one voice channel per case; see the fixture's header).
+Uses the presence fixture (one voice channel per case; see the fixture's header),
+except the supporting sit-out tests (SE-7, SE-8), which use the sample game.
 """
 
 import re
@@ -10,11 +11,13 @@ from datetime import timedelta
 import pytest
 
 from awt_bonus.settings import Settings
+from tests.support.supporters import JOIN_TEXT, supporter_catalog
 from tests.support.text import counted, discord_timestamp, stat
 from tests.support.world import MakeWorld
 
 M3 = pytest.mark.milestone("M3")
 M4 = pytest.mark.milestone("M4")
+M10 = pytest.mark.milestone("M10")
 
 
 # ---------------------------------------------------------------- SE-1: which channel
@@ -296,3 +299,196 @@ async def test_a_bot_with_a_guild_rank_role_gives_nothing(make_world: MakeWorld)
     world = await make_world("presence")
     reply = await world.run("gwen", "partybonus")
     assert stat(reply, "Gwyneth", "CM") == 2  # Rook's Support only
+
+
+# ---------------------------------------------------------------- SE-7: supporting sit-outs
+# These use the sample game, with Support allowed while sitting out for Guild
+# Champion and Guild Legend (tests/support/supporters.py). DM Sam (Guild Champion,
+# plays Sable: Aura of Hope +10 CM) and Bob (Guild Legend, plays Bram) start with
+# plain sit-outs; Isla (Guild Vanguard) plays Ioseph.
+
+SAMPLE_COUNTED = {"Ioseph", "Kael", "Crateris", "Chris", "Mira", "Dana"}
+
+
+def _not_counted_entry(text: str, name: str) -> str:
+    """What the *not counted* line says about one person, e.g. "sitting out until …"."""
+    lines = [line for line in text.splitlines() if "Not counted" in line]
+    assert len(lines) == 1, f"one not-counted line: {lines}"
+    found = re.search(rf"{re.escape(name)} \(([^)]*)\)", lines[0])
+    assert found is not None, f"{name} isn't on the not-counted line: {lines[0]}"
+    return found.group(1)
+
+
+@M10
+@pytest.mark.req("SE-7", "HV-3", "4.11")
+async def test_a_supporter_keeps_giving_support_while_sitting_out(make_world: MakeWorld) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    isla, sam = world.user("isla"), world.user("sam")
+    before = await app.run(isla, "partybonus")
+
+    reply = await app.run(sam, "sitout", {"support": True})
+    after = await app.run(isla, "partybonus")
+
+    assert reply.private
+    assert await world.store.sitout_until(sam) == world.clock.now() + timedelta(hours=12)
+    assert counted(after) == counted(before) == SAMPLE_COUNTED, "Sable still isn't counted"
+    for name in SAMPLE_COUNTED:
+        assert stat(after, name, "CM") == stat(before, name, "CM") + 2, name
+        assert stat(after, name, "CR") == stat(before, name, "CR"), name
+    assert after.report is not None
+    assert [g.bonus for g in after.report.gives if g.giver == sam] == ["Support"]
+
+
+@M10
+@pytest.mark.req("SE-7", "NF-4")
+async def test_support_true_is_refused_without_an_allowed_role(make_world: MakeWorld) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    isla = world.user("isla")  # Guild Vanguard
+
+    reply = await app.run(isla, "sitout", {"support": True})
+
+    assert reply.private
+    assert "Guild Champion" in reply.text
+    assert "Guild Legend" in reply.text
+    assert JOIN_TEXT in reply.text
+    assert await world.store.sitout_until(isla) is None, "no sit-out is recorded"
+    assert "Ioseph" in counted(await app.run(isla, "partybonus"))
+
+
+@M10
+@pytest.mark.req("SE-7", "HV-3", "SE-4")
+async def test_a_supporter_who_loses_the_role_gives_nothing(make_world: MakeWorld) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    isla, sam = world.user("isla"), world.user("sam")
+    before = await app.run(isla, "partybonus")
+    await app.run(sam, "sitout", {"support": True})
+
+    world.discord.set_roles(sam, frozenset())
+    after = await app.run(isla, "partybonus")
+
+    for name in SAMPLE_COUNTED:
+        assert stat(after, name, "CM") == stat(before, name, "CM"), name
+    assert after.report is not None
+    assert {n.name: n.supporting for n in after.report.not_counted} == {
+        "DM Sam": False,
+        "Bob": False,
+    }
+    assert "Support" not in _not_counted_entry(after.text, "DM Sam")
+
+
+@M10
+@pytest.mark.req("SE-7")
+async def test_sitting_out_again_replaces_the_sitout_and_restarts_its_time(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    isla, sam = world.user("isla"), world.user("sam")
+    plain = await app.run(isla, "partybonus")
+
+    await app.run(sam, "sitout", {"support": True})
+    world.clock.advance(timedelta(hours=1))
+    await app.run(sam, "sitout")
+    after_plain = await app.run(isla, "partybonus")
+    assert stat(after_plain, "Chris", "CM") == stat(plain, "Chris", "CM")
+    assert await world.store.sitout_until(sam) == world.clock.now() + timedelta(hours=12)
+
+    world.clock.advance(timedelta(hours=1))
+    await app.run(sam, "sitout", {"support": True})
+    after_support = await app.run(isla, "partybonus")
+    assert stat(after_support, "Chris", "CM") == stat(plain, "Chris", "CM") + 2
+    assert await world.store.sitout_until(sam) == world.clock.now() + timedelta(hours=12)
+
+
+@M10
+@pytest.mark.req("SE-7", "SE-2")
+async def test_sitin_ends_a_supporting_sitout(make_world: MakeWorld) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    isla, sam = world.user("isla"), world.user("sam")
+    plain = await app.run(isla, "partybonus")
+    await app.run(sam, "sitout", {"support": True})
+
+    reply = await app.run(sam, "sitin")
+    after = await app.run(isla, "partybonus")
+
+    assert reply.private
+    assert "Sable" in counted(after)
+    # Counted again: Sable's Aura of Hope (+10) and DM Sam's Support (+2).
+    assert stat(after, "Chris", "CM") == stat(plain, "Chris", "CM") + 12
+
+
+@M10
+@pytest.mark.req("SE-7", "SE-2", "TS-10")
+async def test_a_supporting_sitout_ends_after_12_hours(make_world: MakeWorld) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    isla, sam = world.user("isla"), world.user("sam")
+    await app.run(sam, "sitout", {"support": True})
+
+    world.clock.advance(timedelta(hours=11, minutes=59))
+    assert "Sable" not in counted(await app.run(isla, "partybonus"))
+    world.clock.advance(timedelta(minutes=2))
+    assert "Sable" in counted(await app.run(isla, "partybonus"))
+
+
+# ---------------------------------------------------------------- SE-8: the hint
+
+
+@M10
+@pytest.mark.req("SE-8")
+@pytest.mark.parametrize(("handle", "role"), [("bob", "Guild Legend"), ("sam", "Guild Champion")])
+async def test_a_plain_sitout_tells_an_allowed_player_about_support(
+    make_world: MakeWorld, handle: str, role: str
+) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+
+    reply = await app.run(world.user(handle), "sitout")
+
+    assert reply.private
+    assert "/sitout support:true" in reply.text
+    assert role in reply.text, "names the role that allows it"
+    assert discord_timestamp(world.clock.now() + timedelta(hours=12)) in reply.text
+
+
+@M10
+@pytest.mark.req("SE-8")
+@pytest.mark.parametrize("handle", ["isla", "kit", "maya"])  # Vanguard, Junior Adventurer, none
+async def test_a_plain_sitout_doesnt_offer_support_to_anyone_else(
+    make_world: MakeWorld, handle: str
+) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+
+    reply = await app.run(world.user(handle), "sitout")
+
+    assert "support:true" not in reply.text
+    assert await world.store.sitout_until(world.user(handle)) is not None
+
+
+# ---------------------------------------------------------------- SE-4: marking supporters
+
+
+@M10
+@pytest.mark.req("SE-4", "SE-7")
+@pytest.mark.parametrize("command", ["partybonus", "breakdown"])
+async def test_the_not_counted_line_marks_a_supporter(make_world: MakeWorld, command: str) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    await app.run(world.user("sam"), "sitout", {"support": True})
+
+    reply = await app.run(world.user("isla"), command)
+
+    sam = _not_counted_entry(reply.text, "DM Sam")
+    assert "giving Support" in sam
+    assert discord_timestamp(world.clock.now() + timedelta(hours=12)) in sam
+    assert "Support" not in _not_counted_entry(reply.text, "Bob"), "Bob's sit-out is plain"
+    assert reply.report is not None
+    assert {n.name: n.supporting for n in reply.report.not_counted} == {
+        "DM Sam": True,
+        "Bob": False,
+    }

@@ -18,6 +18,7 @@ import pytest
 from awt_bonus.commands import OptionValue, Reply
 from awt_bonus.engine import Reason
 from awt_bonus.ids import StatId
+from tests.support.supporters import supporter_catalog
 from tests.support.text import PRONOUNS, counted, lines_with, mentions, recipient, stat
 from tests.support.world import MakeWorld
 
@@ -26,6 +27,7 @@ M4 = pytest.mark.milestone("M4")
 M6 = pytest.mark.milestone("M6")
 M7 = pytest.mark.milestone("M7")
 M9 = pytest.mark.milestone("M9")
+M10 = pytest.mark.milestone("M10")
 
 
 def _stats(
@@ -773,3 +775,105 @@ async def test_guild_members_autocomplete_offers_every_guild_but_secret_ones(
     labels = {c.label for c in choices}
     assert not any("Thieves" in label for label in labels)
     assert {"The Guild", "Cult of the Dragon", "Pirate Coalition"} <= labels
+
+
+# ---------------------------------------------------------------- SE-7: supporters in the output
+# DM Sam (Guild Champion, plays Sable) keeps giving Support while sitting out, with
+# Support allowed while sitting out for Guild Champion and Guild Legend
+# (tests/support/supporters.py). Bob (Guild Legend, plays Bram) sits out plainly.
+
+
+@M10
+@pytest.mark.req("OUT-3", "SE-7", "HV-3")
+async def test_the_party_breakdown_lists_a_supporter_among_supports_givers(
+    make_world: MakeWorld,
+) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    await app.run(world.user("sam"), "sitout", {"support": True})
+
+    reply = await app.run(world.user("isla"), "breakdown")
+
+    assert reply.private
+    givers = lines_with(reply.text, "DM Sam", "Guild Champion")
+    assert len(givers) == 1, f"DM Sam is listed once as a Support giver: {givers}"
+    assert "(sitting out)" in givers[0]
+    assert not lines_with(reply.text, "Bob", "Guild Legend"), "Bob's sit-out is plain"
+    assert "Sable" not in reply.text, "a supporter is listed by Discord name, not character"
+
+
+@M10
+@pytest.mark.req("OUT-4", "SE-7")
+@pytest.mark.parametrize("command", ["mybonus", "breakdown"])
+async def test_a_supporter_is_told_they_are_still_giving_support(
+    make_world: MakeWorld, command: str
+) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    sam = world.user("sam")
+    await app.run(sam, "sitout", {"support": True})
+
+    reply = await app.run(sam, command, {"character": "Sable"})
+
+    assert reply.private
+    notice = lines_with(reply.text, "sitting out", "still giving Support")
+    assert len(notice) == 1, f"one notice: {notice}"
+    assert "You're" in notice[0], "addressed to the supporter"
+    assert "+2 CM" in notice[0]
+    assert "Aura of Hope" in reply.text, "what Sable gives is still shown"
+
+
+@M10
+@pytest.mark.req("OUT-4", "SE-7", "OUT-6")
+@pytest.mark.parametrize("command", ["mybonus", "breakdown"])
+async def test_anyone_looking_up_a_supporters_character_sees_the_support(
+    make_world: MakeWorld, command: str
+) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    await app.run(world.user("sam"), "sitout", {"support": True})
+
+    reply = await app.run(world.user("isla"), command, {"character": "Sable"})
+
+    notice = lines_with(reply.text, "DM Sam", "sitting out", "still giving Support")
+    assert len(notice) == 1, f"one notice: {notice}"
+    assert "+2 CM" in notice[0]
+    assert "Aura of Hope" in reply.text
+
+
+@M10
+@pytest.mark.req("OUT-4", "SE-7")
+@pytest.mark.parametrize("command", ["mybonus", "breakdown"])
+async def test_a_plain_sitout_isnt_told_about_giving_support(
+    make_world: MakeWorld, command: str
+) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+
+    reply = await app.run(world.user("bob"), command, {"character": "Bram"})
+
+    assert "sitting out" in reply.text
+    assert "giving Support" not in reply.text
+
+
+@M10
+@pytest.mark.req("OUT-10", "SE-7")
+async def test_guild_members_leaves_out_a_supporter(make_world: MakeWorld) -> None:
+    world = await make_world("sample-game")
+    app = world.app_with(catalog=supporter_catalog())
+    await app.run(world.user("bob"), "sitout", {"support": True})
+
+    reply = await app.run(world.user("isla"), "guild members", {"guild": "The Guild"})
+
+    assert "Bram" not in reply.text
+    assert "Bob" not in reply.text
+    assert "Ioseph" in reply.text, "Isla's Guild Vanguard role makes Ioseph a member"
+
+
+@M10
+@pytest.mark.req("OUT-9", "SE-7")
+async def test_help_mentions_the_supporting_sitout(make_world: MakeWorld) -> None:
+    world = await make_world("setup")
+    reply = await world.run("craig", "help")
+    assert "/sitout support:true" in reply.text
+    assert len(reply.messages) == 1, "still one message"

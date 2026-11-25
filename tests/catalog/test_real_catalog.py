@@ -11,8 +11,9 @@ from functools import cache
 import pytest
 
 from awt_bonus.catalog import Catalog, EntryKind, Membership, load_catalog
-from awt_bonus.ids import EntryId
+from awt_bonus.ids import EntryId, StatId
 from tests.engine.scenarios import PlayerSpec, run
+from tests.engine.test_supporters import run as supporters_run
 from tests.support.traceability import ROOT
 
 pytestmark = pytest.mark.milestone("M2")
@@ -81,3 +82,21 @@ def test_excalibur_is_a_unique_item() -> None:
     assert entry.name == "Excalibur"
     assert entry.kind is EntryKind.ITEM
     assert entry.unique
+
+
+@pytest.mark.milestone("M10")
+@pytest.mark.req("SE-7", "CT-5", "TS-4")
+@pytest.mark.parametrize(
+    ("role", "support"),
+    [
+        ("Junior Adventurer", 0),
+        ("Guild Veteran", 0),
+        ("Guild Vanguard", 0),
+        ("Guild Champion", 2),
+        ("Guild Legend", 2),
+    ],
+)
+def test_guild_champion_and_legend_give_support_while_sitting_out(role: str, support: int) -> None:
+    party = [PlayerSpec("Gwen", roles=(role,), sitout=True), PlayerSpec("Ally")]
+    report = supporters_run(party, supporting={"Gwen"}, catalog=_real_catalog())
+    assert report.recipient("Ally").totals.get(StatId("CM"), 0) == support

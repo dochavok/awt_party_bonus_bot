@@ -6,6 +6,7 @@ tests can keep using temporary files.
 """
 
 import os
+import sqlite3
 import subprocess
 import sys
 import uuid
@@ -14,9 +15,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from alembic import command
+from alembic.config import Config
+from sqlalchemy import create_engine
 
 from awt_bonus.commands import App
-from awt_bonus.ids import UserId
+from awt_bonus.ids import StatId, UserId
 from awt_bonus.settings import Environment
 from awt_bonus.startup import (
     StartupError,
@@ -26,12 +30,14 @@ from awt_bonus.startup import (
 )
 from awt_bonus.store import Store
 from tests.support.fakes import FakeClock
+from tests.support.supporters import supporter_catalog
 from tests.support.text import counted, recipient
 from tests.support.traceability import ROOT
 from tests.support.world import MakeWorld
 
 M3 = pytest.mark.milestone("M3")
 M5 = pytest.mark.milestone("M5")
+M10 = pytest.mark.milestone("M10")
 
 
 def _url(path: Path) -> str:
@@ -270,5 +276,67 @@ async def test_an_up_to_date_database_needs_no_migration_or_snapshot(tmp_path: P
     store = await Store.open(url)
     try:
         assert await store.character_by_name("Pip") is not None
+    finally:
+        await store.close()
+
+
+# ---------------------------------------------------------------- SE-7, DB-4: supporting sit-outs
+
+
+@M10
+@pytest.mark.req("SE-7", "NF-3", "DP-4")
+async def test_a_supporting_sitout_survives_a_restart(make_world: MakeWorld) -> None:
+    world = await make_world("sample-game")
+    catalog = supporter_catalog()
+    app = world.app_with(catalog=catalog)
+    plain = await app.run(world.user("isla"), "partybonus")
+    await app.run(world.user("sam"), "sitout", {"support": True})
+
+    # A new store and app on the same file, as after a restart.
+    store = await Store.open(_url(world.store_path))
+    try:
+        restarted = App(
+            store=store,
+            discord=world.discord,
+            clock=world.clock,
+            catalog=catalog,
+            settings=world.settings,
+        )
+        after = await restarted.run(world.user("isla"), "partybonus", {})
+        assert "Sable" not in counted(after)
+        cm = StatId("CM")
+        assert recipient(after, "Chris").totals[cm] == recipient(plain, "Chris").totals[cm] + 2
+    finally:
+        await store.close()
+
+
+@M10
+@pytest.mark.req("DB-4", "TS-11", "SE-7")
+async def test_migrating_keeps_existing_sitouts_as_plain_ones(tmp_path: Path) -> None:
+    """The bot at AWT runs revision 0002; its sit-outs must stay plain (SE-2)."""
+    database = tmp_path / "awt-bonus.db"
+    config = Config()
+    config.set_main_option("script_location", "awt_bonus:migrations")
+    engine = create_engine(f"sqlite:///{database.as_posix()}")
+    with engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "0002")
+    engine.dispose()
+    until = "2026-11-25 23:00:00.000000"
+    with sqlite3.connect(database) as db:
+        db.execute("INSERT INTO sit_out (discord_user_id, until) VALUES (4001, ?)", (until,))
+    db.close()
+    clock = FakeClock(datetime(2026, 11, 25, 20, 0, tzinfo=UTC))
+
+    snapshot = await migrate_database(_url(database), tmp_path / "snapshots", clock)
+
+    assert snapshot is not None, "a migration is pending after 0002"
+    with sqlite3.connect(database) as db:
+        rows = db.execute("SELECT discord_user_id, supporting FROM sit_out").fetchall()
+    db.close()
+    assert rows == [(4001, 0)]
+    store = await Store.open(_url(database))
+    try:
+        assert await store.sitout_until(UserId(4001)) == datetime(2026, 11, 25, 23, 0, tzinfo=UTC)
     finally:
         await store.close()
