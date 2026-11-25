@@ -32,8 +32,8 @@ async def sitout(ctx: Context) -> Reply:
     until = ctx.now + timedelta(hours=ctx.settings.sitout_hours)
     await ctx.store.set_sitout(ctx.user, until, supporting=support)
     when = f"until {timestamp(until, 'f')} ({timestamp(until, 'R')})"
+    bonuses = " and ".join(dict.fromkeys(b for a in allowances for b in a.bonuses))
     if support:
-        bonuses = " and ".join(dict.fromkeys(b for a in allowances for b in a.bonuses))
         return private(
             f"You're sitting out {when}, but still giving {bonuses} while you're in the "
             "voice channel. `/sitin` ends it early."
@@ -43,7 +43,6 @@ async def sitout(ctx: Context) -> Reply:
         "`/sitin` ends it early."
     ]
     if held:  # SE-8
-        bonuses = " and ".join(dict.fromkeys(b for a in allowances for b in a.bonuses))
         lines.append(
             f"You have {held[0]}, so you can keep giving {bonuses} while you listen in: "
             "`/sitout support:true`."
