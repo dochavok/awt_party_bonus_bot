@@ -175,9 +175,16 @@ guilds:
     membership: roles          # membership comes from Discord roles
     roles: [Junior Adventurer, Guild Veteran]   # lowest first
     from_roles:                # given once by a player with any of the roles (HV-3)
-      - {name: Support, gives: {CM: 2}}
+      - name: Support
+        gives: {CM: 2}
+        while_sitting_out: [Guild Veteran]   # optional: still given while sitting out (SE-7)
     how_to_join: "Guild tiers are derived from the AWT Patreon: <https://...>"   # optional (CT-5)
 ```
+
+`while_sitting_out` (optional, only on a bonus from roles) lists the roles that keep
+giving that bonus with `/sitout support:true` (SE-7). Each must be one of the guild's
+`roles`. Changing who can do it is a catalog edit: today Support lists Guild Champion
+and Guild Legend.
 
 `roles` are listed lowest first: `/catalog` says a bonus is given by the first
 role "or above", then lists them all (e.g. "Support Tiers: Junior Adventurer, ...").

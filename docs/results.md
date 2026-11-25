@@ -33,7 +33,9 @@ Reading it from the top:
 - **NO CHARACTER SET UP** lists anyone in the channel without a character, with how to
   fix it. They still receive bonuses, but the `*` means the only bonus they give is
   Support from their Discord role, if they have it.
-- **Not counted** lists who in the channel is sitting out, and until when.
+- **Not counted** lists who in the channel is sitting out, and until when. Anyone still
+  giving Support while listening in (`/sitout support:true`) is marked as giving it, and
+  `/breakdown` lists them among Support's givers as *(sitting out)*.
 
 ## `/mybonus` { #mybonus }
 

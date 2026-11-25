@@ -94,6 +94,8 @@ class Ability:
     """Only recipients with an item of this class in use receive it (rule 4.14)."""
     per_item_class: ItemClassId | None = None
     """Goes only to the holder, once per item of this class in use in the party (rule 4.15)."""
+    while_sitting_out: frozenset[str] = frozenset()
+    """For a bonus from roles: the roles that still give it while sitting out (SE-7, CT-5)."""
 
     @property
     def item_class(self) -> ItemClassId | None:

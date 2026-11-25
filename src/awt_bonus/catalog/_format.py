@@ -112,6 +112,8 @@ class AbilitySpec(BonusFields):
     name: StrictStr
     tags: list[StrictStr] = []
     card: StrictStr | None = None
+    while_sitting_out: list[StrictStr] = []
+    """For a bonus from roles: the roles that still give it while sitting out (SE-7)."""
 
     @model_validator(mode="after")
     def _gives_something(self) -> Self:
@@ -167,6 +169,8 @@ class EntrySpec(BonusFields):
             names = [a.name for a in self.abilities]
             if len(set(names)) != len(names):
                 problems.append("two abilities share a name")
+            if any(a.while_sitting_out for a in self.abilities):
+                problems.append("only a bonus from roles can have `while_sitting_out`")
             audiences = [a.audience for a in self.abilities]
         else:
             problems += self.bonus_problems()
@@ -217,4 +221,16 @@ class GuildSpec(_Spec):
             raise ValueError("`roles` and `from_roles` are only for `membership: roles`")
         if any(a.audience == "holders" for a in self.from_roles):
             raise ValueError("a bonus from roles can't have `audience: holders`")
+        unknown = [r for a in self.from_roles for r in a.while_sitting_out if r not in self.roles]
+        if unknown:
+            raise ValueError(
+                f"`while_sitting_out` names roles that aren't the guild's: {', '.join(unknown)}"
+            )
+        sitting_out = [a for a in self.from_roles if a.while_sitting_out]
+        if sitting_out and self.secret:
+            # A supporter is named on the public not-counted line (SE-4, SG-3).
+            raise ValueError("a secret guild's bonuses can't have `while_sitting_out`")
+        if any(a.per_item_class is not None for a in sitting_out):
+            # It goes only to its holder, and a supporter receives nothing (rule 4.15).
+            raise ValueError("a bonus with `per_item_class` can't have `while_sitting_out`")
         return self

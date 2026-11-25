@@ -123,7 +123,9 @@ one. **Only you see the reply.**
 
 Don't count me for 12 hours
 
-No options.
+| Option | Required | What it's for |
+|---|---|---|
+| `support` | no | Keep giving Support while you listen in (some Patreon tiers) |
 
 <!-- END GENERATED: /sitout -->
 
@@ -132,6 +134,15 @@ after 12 hours. **Only you see the reply.**
 
 ```
 /sitout
+```
+
+With **Guild Champion** or **Guild Legend**, add `support:true` to keep giving Support
+while you listen in: you're still not counted, and your character gives nothing else.
+Anyone else is refused, and any sit-out they already have is unchanged. Using `/sitout`
+again, with or without `support:true`, starts a new 12 hours.
+
+```
+/sitout support:true
 ```
 
 <!-- BEGIN GENERATED: /sitin -->

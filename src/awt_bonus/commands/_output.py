@@ -5,13 +5,15 @@
 picks one explicitly (SE-1).
 """
 
+from datetime import datetime
+
 from awt_bonus.commands._base import Context, Refused, no_character_hint
 from awt_bonus.commands._presence import Party, build_party, sitting_out, solo
 from awt_bonus.commands._types import Reply
 from awt_bonus.engine import PartyReport, RecipientReport
 from awt_bonus.ids import ChannelId, UserId
 from awt_bonus.output import render
-from awt_bonus.output.describe import channel_mention, timestamp
+from awt_bonus.output.describe import amounts, channel_mention, timestamp
 from awt_bonus.output.messages import Block, to_messages
 from awt_bonus.ports import VoiceChannel
 from awt_bonus.store import CharacterRecord
@@ -61,12 +63,7 @@ async def _one_character(ctx: Context, show: render.RenderOne) -> Reply:
     party = await build_party(ctx, channel, substitute=character)
     state = party.players.get(character.owner)
     if state is not None and (until := sitting_out(state, ctx.now)) is not None:
-        return await _gives_only(
-            ctx,
-            character,
-            f"{_players_is(ctx, character)} sitting out until {timestamp(until, 't')}, "
-            f"so {character.name} isn't counted.",
-        )
+        return await _gives_only(ctx, character, _sitting_out(ctx, character, party, until))
     recipient = _recipient(party.report, character)
     if recipient is None:
         return await _gives_only(
@@ -91,6 +88,27 @@ async def _no_character_caller(ctx: Context, show: render.RenderOne) -> Reply:
         raise Refused(no_character_hint())
     view = await _view(ctx, party)
     return _reply(show(view, recipient, []), party.report, private=True)
+
+
+def _sitting_out(ctx: Context, character: CharacterRecord, party: Party, until: datetime) -> str:
+    """Why there are no totals: the player is sitting out (OUT-4), maybe still giving
+    Support (SE-7)."""
+    supporter = next(
+        (n for n in party.report.not_counted if n.user_id == character.owner and n.supporting),
+        None,
+    )
+    if supporter is None:
+        return (
+            f"{_players_is(ctx, character)} sitting out until {timestamp(until, 't')}, "
+            f"so {character.name} isn't counted."
+        )
+    who = "You're" if character.owner == ctx.user else f"{supporter.name} is"
+    gives = [g for g in party.report.gives if g.giver == character.owner]
+    giving = ", ".join(f"{g.bonus} ({amounts(g.amounts, ctx.catalog)})" for g in gives)
+    return (
+        f"{who} sitting out until {timestamp(until, 't')}, but still giving {giving} "
+        f"to the party. {character.name} isn't counted."
+    )
 
 
 def _players(ctx: Context, character: CharacterRecord) -> str:

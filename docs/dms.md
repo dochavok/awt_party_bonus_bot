@@ -11,7 +11,9 @@ game.
 ## Before the game
 
 - **Use `/sitout`** once you're in the voice channel, so your own character isn't
-  counted. It lasts 12 hours. Anyone just listening in should do the same.
+  counted. It lasts 12 hours. Anyone just listening in should do the same. A DM or
+  listener with Guild Champion or Guild Legend can use `/sitout support:true` to keep
+  giving the party Support.
 - **Ask the players to check they're playing the right character**, with `/play` if they
   have more than one.
 - **Post the totals** with `/partybonus` once everyone's in, so the whole party sees

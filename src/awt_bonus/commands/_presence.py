@@ -5,11 +5,13 @@ whoever is in the voice channel, their sit-outs and their current characters.
 """
 
 import asyncio
+import logging
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from awt_bonus.commands._base import Context, private
+from awt_bonus.catalog import Catalog
+from awt_bonus.commands._base import Context, Refused, private
 from awt_bonus.commands._types import Reply
 from awt_bonus.engine import CharacterRef, PartyReport, PresentPlayer, compute
 from awt_bonus.ids import CharacterId, EntryId, GuildId, UserId
@@ -17,15 +19,92 @@ from awt_bonus.output.describe import timestamp
 from awt_bonus.ports import VoiceChannel
 from awt_bonus.store import CharacterRecord, PlayerState
 
+log = logging.getLogger(__name__)
+
 
 async def sitout(ctx: Context) -> Reply:
-    """SE-2: only ever the caller (NF-4)."""
+    """SE-2: only ever the caller (NF-4). ``support:true`` is a supporting sit-out (SE-7)."""
     until = ctx.now + timedelta(hours=ctx.settings.sitout_hours)
+    when = f"until {timestamp(until, 'f')} ({timestamp(until, 'R')})"
+    if ctx.flag("support"):
+        bonuses, _ = _allowed(ctx.catalog, await _roles(ctx))
+        if not bonuses:
+            raise Refused(*await _support_refusal(ctx))
+        await ctx.store.set_sitout(ctx.user, until, supporting=True)
+        return private(
+            f"You're sitting out {when}, but still giving {_and(bonuses)} while you're in "
+            "the voice channel. `/sitin` ends it early."
+        )
+
+    # A plain sit-out never depends on Discord: it's recorded first, and the SE-8
+    # hint is left out if the caller's roles can't be looked up.
     await ctx.store.set_sitout(ctx.user, until)
-    return private(
-        f"You're sitting out until {timestamp(until, 'f')} ({timestamp(until, 'R')}), "
-        "so you aren't counted in any voice channel. `/sitin` ends it early."
-    )
+    lines = [
+        f"You're sitting out {when}, so you aren't counted in any voice channel. "
+        "`/sitin` ends it early."
+    ]
+    try:
+        roles = await _roles(ctx)
+    except Exception:
+        log.warning("roles lookup failed; /sitout hint left out", exc_info=True)
+        roles = frozenset()
+    bonuses, role = _allowed(ctx.catalog, roles)
+    if role is not None:  # SE-8
+        lines.append(
+            f"You have {role}, so you can keep giving {_and(bonuses)} while you listen in: "
+            "`/sitout support:true`."
+        )
+    return private(*lines)
+
+
+async def _roles(ctx: Context) -> frozenset[str]:
+    member = await ctx.discord.member(ctx.user)
+    return member.roles if member is not None else frozenset()
+
+
+def _allowed(catalog: Catalog, roles: frozenset[str]) -> tuple[list[str], str | None]:
+    """The role bonuses these roles still give while sitting out, and the first role
+    that allows one, for the SE-8 hint (SE-7)."""
+    bonuses: list[str] = []
+    role: str | None = None
+    for guild in catalog.guilds.values():
+        for ability in guild.role_abilities:
+            if ability.while_sitting_out & roles:
+                bonuses.append(ability.name)
+                if role is None:
+                    role = next(r for r in guild.roles if r in ability.while_sitting_out & roles)
+    return list(dict.fromkeys(bonuses)), role
+
+
+def _and(items: list[str]) -> str:
+    return items[0] if len(items) == 1 else f"{', '.join(items[:-1])} and {items[-1]}"
+
+
+async def _support_refusal(ctx: Context) -> list[str]:
+    """Why ``support:true`` was refused: each bonus allowed while sitting out, with
+    its own roles, and what happened to any sit-out (SE-7)."""
+    was = await ctx.store.sitout_until(ctx.user)
+    if was is not None and was > ctx.now:
+        outcome = f"Your sit-out until {timestamp(was, 'f')} is unchanged."
+    else:
+        outcome = "You haven't been sat out: `/sitout` on its own does that."
+    lines = []
+    for guild in ctx.catalog.guilds.values():
+        abilities = [a for a in guild.role_abilities if a.while_sitting_out]
+        for ability in abilities:
+            roles = [r for r in guild.roles if r in ability.while_sitting_out]  # lowest first
+            lines.append(
+                f"Only players with {_or(roles)} can keep giving {ability.name} while sitting out."
+            )
+        if abilities and guild.how_to_join is not None:
+            lines.append(guild.how_to_join)
+    if not lines:
+        lines.append("Nobody can keep giving a bonus while sitting out at the moment.")
+    return [*lines, outcome]
+
+
+def _or(items: list[str]) -> str:
+    return items[0] if len(items) == 1 else f"{', '.join(items[:-1])} or {items[-1]}"
 
 
 async def sitin(ctx: Context) -> Reply:
@@ -68,6 +147,7 @@ async def build_party(
     present: list[PresentPlayer] = []
     counted: dict[CharacterId, CharacterRecord] = {}
     counted_players: list[UserId] = []
+    supporters: list[UserId] = []
     for member in members:
         if member.is_bot:  # ignored and never listed (SE-6)
             present.append(PresentPlayer(member.user_id, member.display_name, is_bot=True))
@@ -77,21 +157,25 @@ async def build_party(
         record = state.current
         if substitute is not None and substitute.owner == member.user_id:
             record = substitute
+        supporting = until is not None and state.sitout_supporting
         if until is None:
             counted_players.append(member.user_id)
             if record is not None:
                 counted[record.id] = record
+        elif supporting:  # still gives Support, so their roles are needed (SE-7)
+            supporters.append(member.user_id)
         present.append(
             PresentPlayer(
                 user_id=member.user_id,
                 display_name=member.display_name,
                 sitting_out_until=until,
                 character=_ref(record),
+                supporting=supporting,
             )
         )
     report = compute(
         present,
-        await roles(ctx, counted_players),
+        await roles(ctx, counted_players + supporters),
         {i: tuple(EntryId(e) for e in c.entries) for i, c in counted.items()},
         {i: tuple(GuildId(g) for g in c.guilds) for i, c in counted.items()},
         ctx.catalog,

@@ -10,6 +10,7 @@ from typing import Any
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
     Column,
     DateTime,
@@ -22,6 +23,7 @@ from sqlalchemy import (
     Text,
     TypeDecorator,
     UniqueConstraint,
+    false,
 )
 
 
@@ -124,6 +126,7 @@ sit_out = Table(
     metadata,
     Column("discord_user_id", BigInteger, primary_key=True, autoincrement=False),
     Column("until", UTCDateTime, nullable=False),
+    Column("supporting", Boolean, nullable=False, server_default=false()),  # SE-7
 )
 
 audit_log = Table(

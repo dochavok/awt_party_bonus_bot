@@ -40,6 +40,7 @@ async def help_(ctx: Context) -> Reply:
             "- Join the voice channel: you're counted automatically, nothing to start.",
             f"- `/sitout`: running the game or just watching? (lasts {hours} hours; "
             "`/sitin` to undo)",
+            "- `/sitout support:true`: some Patreon tiers keep giving Support while you listen",
             "- `/partybonus`: everyone's totals, posted for the party",
             "- `/mybonus`: your totals, just for you",
             "- `/breakdown`: how the totals are worked out",
